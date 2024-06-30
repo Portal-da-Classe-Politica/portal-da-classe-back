@@ -1,0 +1,34 @@
+{
+  "name": "portal-da-classe-back",
+  "version": "1.0.0",
+  "description": "Back end da aplicacao do portal da classe politica",
+  "main": "./src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/app.js"
+  },
+  "author": "@luizdavilaf",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Portal-da-Classe-Politica/portal-da-classe-back.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "luxon": "^3.4.4",
+    "nodemon": "^3.0.1",
+    "pg": "^8.11.3",
+    "sequelize": "^6.33.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "husky": "^4.3.5",
+    "nodemon": "^3.0.2"
+  },
+  "nodemonConfig": {
+    "ext": "js,json,html, mjs, ejs,cjs"
+  }
+}
