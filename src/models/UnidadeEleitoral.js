@@ -17,6 +17,9 @@ const UnidadeEleitoral = sequelize.define("unidade_eleitoral",
             allowNull: false,
             comment: "SG_UF - Sigla da Unidade da Federação em que ocorreu a eleição..",
         },
+        codigo_ibge: {
+            type: DataTypes.STRING,
+        },
 
     }, {
         sequelize,
