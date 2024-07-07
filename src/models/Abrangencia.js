@@ -7,6 +7,11 @@ const Abrangencia = sequelize.define("abrangencia",
             comment: "TP_ABRANGENCIA",
             allowNull: false,
         },
+        descricao: {
+            type: DataTypes.STRING,
+            comment: "descricao da abrangencia",
+            allowNull: false,
+        },
 
     }, {
         sequelize,

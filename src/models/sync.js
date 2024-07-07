@@ -29,13 +29,14 @@ const syncModels = async () => {
     Candidato.belongsTo(Genero)
     Candidato.belongsTo(Raca)
     Candidato.belongsTo(Ocupacao, { targetKey: "id", foreignKey: "ultima_ocupacao_id" })
+    Candidato.belongsTo(Eleicao, { targetKey: "id", foreignKey: "ultima_eleicao_id" })
     Genero.hasMany(Candidato)
     Raca.hasMany(Candidato)
 
-    Ocupacao.belongsTo(Categoria)
+    Ocupacao.belongsTo(Categoria, { targetKey: "id", foreignKey: "categoria_id" })
     Categoria.hasMany(Ocupacao)
 
-    Ocupacao.belongsTo(Categoria2)
+    Ocupacao.belongsTo(Categoria2, { targetKey: "id", foreignKey: "categoria_2_id" })
     Categoria2.hasMany(Ocupacao)
 
     Abrangencia.hasMany(UnidadeEleitoral)

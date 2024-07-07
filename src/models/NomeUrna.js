@@ -7,6 +7,12 @@ const NomeUrna = sequelize.define("nome_urna",
             allowNull: false,
 
             comment: "NM_URNA_CANDIDATO",
+        },
+        nome_candidato: {
+            type: DataTypes.STRING,
+            allowNull: false,
+
+            comment: "NM_CANDIDATO",
         }
         ,
     }, {

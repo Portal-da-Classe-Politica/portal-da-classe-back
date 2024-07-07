@@ -15,6 +15,9 @@ const MunicipiosVotacao = sequelize.define(
             type: DataTypes.STRING,
             allowNull: false,
         },
+        codigo_ibge: {
+            type: DataTypes.STRING,
+        },
     },
     {
         sequelize,
