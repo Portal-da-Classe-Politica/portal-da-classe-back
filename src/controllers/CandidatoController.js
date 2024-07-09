@@ -4,6 +4,7 @@ const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const candidatoSvc = require("../services/CandidatoService")
 const nomeUrnaSvc = require("../services/NomeUrnaSvc")
 const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
+const EleicaoSvc = require("../services/EleicaoSvc")
 
 const getFiltersForSearch = async (req, res) => {
     try {
@@ -148,7 +149,7 @@ const getCandidateDetail = async (req, res) => {
             message: "Candidato encontrado com sucesso.",
         })
     } catch (error) {
-        //console.log(error)
+        // console.log(error)
         return res.json({
             success: false,
             data: {},
@@ -157,7 +158,34 @@ const getCandidateDetail = async (req, res) => {
     }
 }
 
+const getLastElectionVotesByRegion = async (req, res) => {
+    try {
+        const { id } = req.params
+        if (!id) throw new Error("ID do candidato é obrigatório")
+        const candidate = await candidatoSvc.getCandidate(id)
+        if (!candidate) throw new Error("Candidato não encontrado")
+        if (!candidate.ano_eleicao) throw new Error("Candidato não possui ano de eleição")
+        const lastElectionFirstTurn = await EleicaoSvc.getLastElectionFirstTurn(candidate.ano_eleicao, 1)
+        const votes = await candidatoEleicaoSvc.getLastElectionVotesByRegion(id, lastElectionFirstTurn.id)
+        if (!votes) throw new Error("Votos não encontrados")
+        return res.json({
+            success: true,
+            message: "Votos encontrados com sucesso.",
+            data: votes,
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os votos",
+        })
+    }
+}
+
 module.exports = {
+    getLastElectionVotesByRegion,
     getCandidates,
     getFiltersForSearch,
     getCandidateDetail,

@@ -121,7 +121,7 @@ const getCandidateDetailById = async (candidatoId) => {
                 "eleicao->candidato_eleicaos->partido.id", "eleicao->candidato_eleicaos->grau_de_instrucao.id",
                 "eleicao->candidato_eleicaos->bens_candidatos.id", "eleicao->candidato_eleicaos->cargo.id",
                 "eleicao->candidato_eleicaos->unidade_eleitoral.id", "genero.id", "raca.id", "ocupacao.id",
-                "eleicao->candidato_eleicaos->situacao_candidatura.id"
+                "eleicao->candidato_eleicaos->situacao_candidatura.id",
             ],
             attributes: [
                 "id",
@@ -162,7 +162,30 @@ const getCandidateDetailById = async (candidatoId) => {
     }
 }
 
+const getCandidate = async (candidatoId) => {
+    try {
+        return await candidatoModel.findOne({
+            where: {
+                id: candidatoId,
+            },
+            include: [
+                {
+                    model: eleicaoModel,
+                    attributes: ["ano_eleicao"],
+                },
+            ],
+
+            attributes: ["id", "eleicao.ano_eleicao"],
+            raw: true,
+
+        })
+    } catch (error) {
+        throw error
+    }
+}
+
 module.exports = {
+    getCandidate,
     get10CandidatesSortedByName,
     getCandidateDetailById,
 }
