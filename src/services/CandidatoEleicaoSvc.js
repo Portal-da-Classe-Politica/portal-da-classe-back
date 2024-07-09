@@ -6,6 +6,8 @@ const PartidoModel = require("../models/Partido")
 const SituacaoCandidatoModel = require("../models/SituacaoCandidatura")
 const CargoModel = require("../models/Cargo")
 const nomeUrnaModel = require("../models/NomeUrna")
+const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
+const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
 
 const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralUnitIds, page) => {
     try {
@@ -198,6 +200,58 @@ const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralU
     }
 }
 
+const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
+    try {
+        const candidateElection = await CandidatoEleicaoModel.findOne({
+            where: {
+                candidato_id: candidatoId,
+                eleicao_id: eleicaoId,
+            },
+            raw: true,
+            attributes: ["id"],
+        })
+
+        if (!candidateElection) {
+            throw new Error("Candidato não encontrado")
+        }
+        const result = await votacaoCandidatoMunicipioModel.findAll({
+            where: {
+                candidato_eleicao_id: candidateElection.id,
+            },
+            include: [
+                {
+                    model: municipiosVotacaoModel,
+                    attributes: ["nome", "codigo_ibge"],
+                },
+            ],
+            attributes: [
+                [sequelize.col("municipios_votacao.nome"), "municipios_votacao.nome"],
+                [sequelize.col("municipios_votacao.codigo_ibge"), "municipios_votacao.codigo_ibge"],
+                ["quantidade_votos", "votos"],
+            ],
+            order: [
+                [sequelize.col("votos"), "DESC"],
+            ],
+            raw: true,
+        })
+        if (!result || result.length === 0) {
+            throw new Error("Nenhum voto encontrado")
+        }
+        const parsedResults = result.map((r) => {
+            return {
+                municipio: r["municipios_votacao.nome"],
+                codigo_ibge: r["municipios_votacao.codigo_ibge"],
+                votos: parseInt(r.votos),
+            }
+        })
+        return parsedResults
+    } catch (error) {
+        console.error("Error fetching votes by region:", error)
+        throw error
+    }
+}
+
 module.exports = {
     getLatestElectionsForSearch,
+    getLastElectionVotesByRegion,
 }
