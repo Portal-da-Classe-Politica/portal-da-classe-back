@@ -63,7 +63,7 @@ const getCandidates = async (req, res) => {
                 message: "Candidatos encontrados com sucesso.",
             })
         }
-
+        let electoralUnitiesIds
         const UFsAllowed = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1, "ufAndId")
         let UFFinded
         if (UF) UFFinded = UFsAllowed.find((uf) => uf.sigla_unidade_federacao === UF.toUpperCase())
@@ -76,8 +76,6 @@ const getCandidates = async (req, res) => {
                 })
             }
         }
-
-        let electoralUnitiesIds
 
         // se escolher apenas abrangencia
         if (!UF && !electoralUnitId){
@@ -92,8 +90,11 @@ const getCandidates = async (req, res) => {
         if (UF && !electoralUnitId){
             if (abrangencyId === "1"){
                 electoralUnitiesIds = [UFFinded.id]
-            } else {
+            } else if (abrangencyId === "2") {
                 const electoralUnities = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(2, "ufAndId", UF.toUpperCase())
+                electoralUnitiesIds = electoralUnities.map((uf) => uf.id)
+            } else {
+                const electoralUnities = await unidadeEleitoralSvc.getAllElectoralUnitiesIdsByUF(UF.toUpperCase())
                 electoralUnitiesIds = electoralUnities.map((uf) => uf.id)
             }
         }
@@ -195,7 +196,7 @@ const getLast5LastElectionsVotes = async (req, res) => {
         if (!elections) throw new Error("Nenhuma eleição encontrada.")
         const candidateElectionsIds = elections.map((election) => election.id)
         const votes = await candidatoEleicaoSvc.getLast5LastElectionsVotes(candidateElectionsIds)
-        
+
         return res.json({
             success: true,
             message: "Votos encontrados com sucesso.",
