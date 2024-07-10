@@ -24,6 +24,17 @@ const getFederativeUnitsByAbrangency = (abrangency, show, UF) => {
     return unidadeEleitoralModel.findAll(filter)
 }
 
+const getAllElectoralUnitiesIdsByUF = (UF) => {
+    return unidadeEleitoralModel.findAll({
+        where: {
+            sigla_unidade_federacao: UF,
+        },
+        attributes: ["id"],
+        raw: true,
+    })
+}
+
 module.exports = {
     getFederativeUnitsByAbrangency,
+    getAllElectoralUnitiesIdsByUF,
 }
