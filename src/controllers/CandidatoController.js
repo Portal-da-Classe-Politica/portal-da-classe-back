@@ -27,7 +27,7 @@ const getFiltersForSearch = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.json({
+        return res.staus(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os filtros dos candidatos",
@@ -129,7 +129,7 @@ const getCandidates = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.json({
+        return res.staus(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os candidatos",
@@ -150,7 +150,7 @@ const getCandidateDetail = async (req, res) => {
         })
     } catch (error) {
         // console.log(error)
-        return res.json({
+        return res.staus(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar o candidato",
@@ -176,7 +176,35 @@ const getLastElectionVotesByRegion = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
+        return res.staus(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os votos",
+        })
+    }
+}
+
+const getLast5LastElectionsVotes = async (req, res) => {
+    // TO-DO: Implementar a busca dos votos das últimas 5 eleições
+    try {
+        const candidateId = req.params.id
+        if (!candidateId) throw new Error("ID do candidato é obrigatório")
+        const candidate = await candidatoSvc.getCandidate(candidateId)
+        if (!candidate) throw new Error("Candidato não encontrado")
+        const elections = await candidatoEleicaoSvc.getLast5LastElections(candidateId)
+        if (!elections) throw new Error("Nenhuma eleição encontrada.")
+        const candidateElectionsIds = elections.map((election) => election.id)
+        const votes = await candidatoEleicaoSvc.getLast5LastElectionsVotes(candidateElectionsIds)
+        
         return res.json({
+            success: true,
+            message: "Votos encontrados com sucesso.",
+            data: votes,
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.staus(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os votos",
@@ -185,6 +213,7 @@ const getLastElectionVotesByRegion = async (req, res) => {
 }
 
 module.exports = {
+    getLast5LastElectionsVotes,
     getLastElectionVotesByRegion,
     getCandidates,
     getFiltersForSearch,
