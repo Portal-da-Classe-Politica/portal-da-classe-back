@@ -324,7 +324,126 @@ const getLast5LastElectionsVotes = async (candidateElectionsIds) => {
     }
 }
 
+const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, electoralUnitIds, page) => {
+    const finder = {
+        include: [
+            {
+                model: nomeUrnaModel,
+                required: true,
+                attributes: [],
+                where: {
+                    [Op.or]: [
+                        {
+                            nome_urna: {
+                                [Op.iLike]: `%${nomeUrnaOrName}%`,
+                            },
+                        },
+                        {
+                            nome_candidato: {
+                                [Op.iLike]: `%${nomeUrnaOrName}%`,
+                            },
+                        },
+                    ],
+                },
+            },
+        ],
+        raw: true,
+        limit,
+        offset: skip,
+        order: [[sequelize.col("nome_urna.nome_candidato"), "ASC"]],
+        attributes: ["id"],
+
+    }
+
+    if (electoralUnitIds && electoralUnitIds.length > 0) {
+        console.log("electoralUnitIds", electoralUnitIds)
+        finder.where = {
+            unidade_eleitoral_id: {
+                [Op.in]: electoralUnitIds,
+            },
+        }
+    }
+
+    const { count, rows } = await CandidatoEleicaoModel.findAndCountAll(finder)
+    if (!rows || rows.length === 0) return new Error("Nenhum candidato encontrado")
+
+    const ids = rows.map((candidate) => candidate.id)
+
+    const finalResult = await CandidatoEleicaoModel.findAll({
+        where: {
+            id: {
+                [Op.in]: ids,
+            },
+        },
+        include: [
+            {
+                model: CandidatoModel,
+                attributes: ["id", "nome"],
+                include: [
+                    {
+                        model: EleicaoModel,
+                        attributes: ["ano_eleicao"],
+                    },
+                ],
+            },
+            {
+                model: PartidoModel,
+                attributes: ["sigla"],
+            },
+            {
+                model: SituacaoCandidatoModel,
+                attributes: ["nome"],
+            },
+            {
+                model: CargoModel,
+                attributes: ["nome_cargo"],
+            },
+            {
+                model: nomeUrnaModel,
+                attributes: ["nome_urna"],
+            },
+        ],
+        order: [
+            [sequelize.col("candidato.nome"), "ASC"],
+        ],
+        attributes: [
+            ["id", "lastCandidatoEleicaoId"],
+            [sequelize.col("partido.sigla"), "partido"],
+            [sequelize.col("candidato.nome"), "nomeCandidato"],
+            [sequelize.col("candidato.id"), "candidatoId"],
+            [sequelize.col("candidato.eleicao.ano_eleicao"), "ultimaEleicao"],
+            [sequelize.col("situacao_candidatura.nome"), "situacao"],
+            [sequelize.col("cargo.nome_cargo"), "cargo"],
+            [sequelize.col("nome_urna.nome_urna"), "nome_urna"],
+
+        ],
+        raw: true,
+    })
+
+    // Limpar resultados duplicados
+    const cleanedResults = finalResult.map((result) => {
+        return {
+            lastCandidatoEleicaoId: result.lastCandidatoEleicaoId,
+            partido: result.partido,
+            nomeCandidato: result.nomeCandidato,
+            situacao: result.situacao,
+            cargo: result.cargo,
+            nomeUrna: result.nome_urna,
+            ultimaEleicao: result.ultimaEleicao,
+            candidatoId: result.candidatoId,
+        }
+    })
+
+    return {
+        totalResults: count,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(count / limit),
+        results: cleanedResults,
+    }
+}
+
 module.exports = {
+    getCandidatesIdsByNomeUrnaOrName,
     getLast5LastElectionsVotes,
     getLast5LastElections,
     getLatestElectionsForSearch,
