@@ -27,7 +27,7 @@ const getFiltersForSearch = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.staus(500).json({
+        return res.status(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os filtros dos candidatos",
@@ -111,10 +111,7 @@ const getCandidates = async (req, res) => {
                     message: "Nome de candidato deve ter pelo menos 4 caracteres.",
                 })
             }
-            const candidateIds = await nomeUrnaSvc.getCandidatesIdsByNomeUrnaOrName(name)
-            if (!Array.isArray(candidateIds)) throw candidateIds
-
-            const latestElections = await candidatoEleicaoSvc.getLatestElectionsForSearch(candidateIds, skip, limit, electoralUnitiesIds, page)
+            const latestElections = await candidatoEleicaoSvc.getCandidatesIdsByNomeUrnaOrName(name, skip, limit, electoralUnitiesIds, page)
             return res.json({
                 success: true,
                 data: latestElections,
@@ -130,7 +127,7 @@ const getCandidates = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.staus(500).json({
+        return res.status(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os candidatos",
@@ -151,7 +148,7 @@ const getCandidateDetail = async (req, res) => {
         })
     } catch (error) {
         // console.log(error)
-        return res.staus(500).json({
+        return res.status(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar o candidato",
@@ -177,7 +174,7 @@ const getLastElectionVotesByRegion = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.staus(500).json({
+        return res.status(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os votos",
@@ -205,7 +202,7 @@ const getLast5LastElectionsVotes = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        return res.staus(500).json({
+        return res.status(500).json({
             success: false,
             data: {},
             message: "Erro ao buscar os votos",
