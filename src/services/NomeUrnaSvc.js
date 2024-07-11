@@ -22,11 +22,13 @@ const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, ele
         group: [
             [sequelize.col("candidato.ultima_eleicao_id")],
             [sequelize.col("candidato.id")],
+            [sequelize.col("nome_urna.nome_candidato")],
         ],
 
         attributes: [[sequelize.col("candidato.id"), "candidato_id"],
             [sequelize.col("candidato.ultima_eleicao_id"), "eleicao_id"],
         ],
+        order: [["nome_candidato", "ASC"]],
         limit,
         raw: true,
         offset: skip,
