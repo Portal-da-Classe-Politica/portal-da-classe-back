@@ -128,6 +128,8 @@ const getCandidateDetailById = async (candidatoId) => {
                 "nome",
                 "cpf",
                 "data_nascimento",
+                "municipio_nascimento",
+                "estado_nascimento",
 
             ],
             raw: true,
@@ -137,22 +139,27 @@ const getCandidateDetailById = async (candidatoId) => {
         if (!candidate) return new Error("Candidato não encontrado")
         const parsedCandidate = {
             candidato_id: candidate.id,
+            municipio_nascimento: candidate.municipio_nascimento,
+            estado_nascimento: candidate.estado_nascimento,
             nome: candidate.nome,
-            cpf: candidate.cpf,
             data_nascimento: candidate.data_nascimento,
             genero: candidate.genero.nome_genero,
             raca: candidate.raca.nome || "Não informada",
             ocupacao: candidate.ocupacao.nome_ocupacao,
             ano_ultima_eleicao: candidate.ano_eleicao,
             coligacao: candidate.eleicao.candidato_eleicaos.coligacao,
-            ...candidate.eleicao.candidato_eleicaos.partido,
+            partido: candidate.eleicao.candidato_eleicaos.partido.nome,
+            sigla_partido: candidate.eleicao.candidato_eleicaos.partido.sigla,
+            nome_atual: candidate.eleicao.candidato_eleicaos.partido.nome_atual,
+            class_categ_1: candidate.eleicao.candidato_eleicaos.partido.class_categ_1,
+            class_categ_4: candidate.eleicao.candidato_eleicaos.partido.class_categ_4,
+            class_survey_esp: candidate.eleicao.candidato_eleicaos.partido.class_survey_esp,
             grau_de_instrucao: candidate.eleicao.candidato_eleicaos.grau_de_instrucao.nome_agrupado,
             bens_declarados: candidate.eleicao.candidato_eleicaos.bens_candidatos.totalValor,
             cidade_nascimento: candidate.municipio_nascimento,
             ultimo_cargo: candidate.eleicao.candidato_eleicaos.cargo.nome_cargo,
             ultima_unidade_eleitoral: `${candidate.eleicao.candidato_eleicaos.unidade_eleitoral.sigla_unidade_fede} - ${candidate.eleicao.candidato_eleicaos.unidade_eleitoral.nome}`,
             ultima_situacao_candidatura: candidate.eleicao.candidato_eleicaos.situacao_candidatura.nome,
-
         }
 
         return parsedCandidate
