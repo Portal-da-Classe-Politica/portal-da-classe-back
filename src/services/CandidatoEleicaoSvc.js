@@ -324,51 +324,7 @@ const getLast5LastElectionsVotes = async (candidateElectionsIds) => {
     }
 }
 
-const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, electoralUnitIds, page) => {
-    const finder = {
-        include: [
-            {
-                model: nomeUrnaModel,
-                required: true,
-                attributes: [],
-                where: {
-                    [Op.or]: [
-                        {
-                            nome_urna: {
-                                [Op.iLike]: `%${nomeUrnaOrName}%`,
-                            },
-                        },
-                        {
-                            nome_candidato: {
-                                [Op.iLike]: `%${nomeUrnaOrName}%`,
-                            },
-                        },
-                    ],
-                },
-            },
-        ],
-        raw: true,
-        limit,
-        offset: skip,
-        order: [[sequelize.col("nome_urna.nome_candidato"), "ASC"]],
-        attributes: ["id"],
-
-    }
-
-    if (electoralUnitIds && electoralUnitIds.length > 0) {
-        console.log("electoralUnitIds", electoralUnitIds)
-        finder.where = {
-            unidade_eleitoral_id: {
-                [Op.in]: electoralUnitIds,
-            },
-        }
-    }
-
-    const { count, rows } = await CandidatoEleicaoModel.findAndCountAll(finder)
-    if (!rows || rows.length === 0) return new Error("Nenhum candidato encontrado")
-
-    const ids = rows.map((candidate) => candidate.id)
-
+const getCandidatesIdsByCandidateElectionsIds = async (ids, skip, limit, page, count) => {
     const finalResult = await CandidatoEleicaoModel.findAll({
         where: {
             id: {
@@ -443,7 +399,7 @@ const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, ele
 }
 
 module.exports = {
-    getCandidatesIdsByNomeUrnaOrName,
+    getCandidatesIdsByCandidateElectionsIds,
     getLast5LastElectionsVotes,
     getLast5LastElections,
     getLatestElectionsForSearch,

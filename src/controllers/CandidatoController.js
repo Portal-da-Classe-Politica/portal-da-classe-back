@@ -111,7 +111,10 @@ const getCandidates = async (req, res) => {
                     message: "Nome de candidato deve ter pelo menos 4 caracteres.",
                 })
             }
-            const latestElections = await candidatoEleicaoSvc.getCandidatesIdsByNomeUrnaOrName(name, skip, limit, electoralUnitiesIds, page)
+            const candidates = await nomeUrnaSvc.getCandidatesIdsByNomeUrnaOrName(name, skip, limit, electoralUnitiesIds)
+            if (!candidates) throw new Error("Erro ao buscar candidatos")
+
+            const latestElections = await candidatoEleicaoSvc.getCandidatesIdsByCandidateElectionsIds(candidates.ids, skip, limit, page, candidates.count)
             return res.json({
                 success: true,
                 data: latestElections,
