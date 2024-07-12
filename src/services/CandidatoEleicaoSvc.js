@@ -398,7 +398,43 @@ const getCandidatesIdsByCandidateElectionsIds = async (ids, skip, limit, page, c
     }
 }
 
+const getLastAllElections = async (candidatoId) => {
+    try {
+        const candidateElection = await CandidatoEleicaoModel.findAll({
+            where: {
+                candidato_id: candidatoId,
+            },
+            include: [
+                {
+                    model: EleicaoModel,
+                    where: {
+                        turno: 1,
+                    },
+                    attributes: ["ano_eleicao", "id"],
+                },
+            ],
+            order: [
+                [sequelize.col("eleicao.ano_eleicao"), "DESC"],
+            ],
+            raw: true,
+            attributes: ["id", [sequelize.col("eleicao.id"), "eleicao_id"], [sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"]],
+        })
+
+        if (!candidateElection) {
+            throw new Error("Candidato não encontrado")
+        }
+
+        // console.log(candidateElection)
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error fetching votes by region:", error)
+        throw error
+    }
+}
+
 module.exports = {
+    getLastAllElections,
     getCandidatesIdsByCandidateElectionsIds,
     getLast5LastElectionsVotes,
     getLast5LastElections,

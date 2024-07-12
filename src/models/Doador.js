@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require("sequelize")
 
 const Doador = sequelize.define(
-    "doadores",
+    "doadore",
     {
         nome: {
             type: DataTypes.STRING,
