@@ -49,8 +49,7 @@ const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, ele
 
     let { rows, count } = await nomeUrnaModel.findAndCountAll(finder)
 
-    // console.log(rows)
-    // console.log(count)
+    if (!rows || !count) return new Error("Erro ao buscar candidatos")
 
     if (count.length === 1) {
         const object = {
