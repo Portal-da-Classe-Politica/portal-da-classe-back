@@ -96,8 +96,8 @@ const syncModels = async () => {
     BensCandidatoEleicao.belongsTo(CategoriaBensCandidato, { targetKey: "id", foreignKey: "categoria_bem_id" })
     CategoriaBensCandidato.hasMany(BensCandidatoEleicao)
 
-    DoacoesCandidatoEleicao.belongsTo(Doador, { as: "doadores", targetKey: "id", foreignKey: "doador_id" })
-    Doador.hasMany(DoacoesCandidatoEleicao, { targetKey: "id", foreignKey: "doador_id" })
+    DoacoesCandidatoEleicao.belongsTo(Doador, { targetKey: "id", foreignKey: "doador_id" })
+    Doador.hasMany(DoacoesCandidatoEleicao)
 
     DoacoesCandidatoEleicao.belongsTo(CandidatoEleicao, { targetKey: "id", foreignKey: "candidato_eleicao_id" })
     CandidatoEleicao.hasMany(DoacoesCandidatoEleicao)

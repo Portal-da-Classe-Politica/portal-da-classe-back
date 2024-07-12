@@ -606,3 +606,146 @@ paths:
                   message:
                     type: string
                     example: Erro ao buscar os votos
+  /noauth/candidate/biggest-donors/{candidatoId}:
+    get:
+      operationId: "9"
+      tags:
+      - candidato
+      summary: Maiores doadores do candidato
+      description: Busca os maiores doadores do candidato em todas eleicoes
+      parameters:
+        - name: candidatoId
+          in: path
+          required: true
+          description: ID do candidato
+          schema:
+            type: integer
+            example: 415180
+        - name: page
+          in: query
+          required: false
+          description: Página para paginação
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Resposta bem-sucedida com detalhes dos doadores.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Doadores encontrados com sucesso."
+                  data:
+                    type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            nome:
+                              type: string
+                              example: "PMDB DIRETÓRIO ESTADUAL"
+                            total:
+                              type: number
+                              example: 190000
+                      totalResults:
+                        type: integer
+                        example: 40
+                      currentPage:
+                        type: integer
+                        example: 1
+                      totalPages:
+                        type: integer
+                        example: 4
+        '400':
+          description: Erro de requisição inválida (por exemplo, ID do candidato ausente)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "ID do candidato é obrigatório"
+                  data:
+                    type: object
+                    example: {}
+        '404':
+          description: Candidato não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Candidato não encontrado"
+                  data:
+                    type: object
+                    example: {}
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Erro ao buscar os votos"
+                  data:
+                    type: object
+                    example: {}
+components:
+  schemas:
+    Donor:
+      type: object
+      properties:
+        nome:
+          type: string
+          example: "PMDB DIRETÓRIO ESTADUAL"
+        total:
+          type: number
+          example: 190000
+    DonorsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Doadores encontrados com sucesso."
+        data:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/Donor'
+            totalResults:
+              type: integer
+              example: 40
+            currentPage:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 4

@@ -5,6 +5,7 @@ const candidatoSvc = require("../services/CandidatoService")
 const nomeUrnaSvc = require("../services/NomeUrnaSvc")
 const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
 const EleicaoSvc = require("../services/EleicaoSvc")
+const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
 
 const getFiltersForSearch = async (req, res) => {
     try {
@@ -213,7 +214,39 @@ const getLast5LastElectionsVotes = async (req, res) => {
     }
 }
 
+const getBiggestDonors = async (req, res) => {
+    try {
+        let { page } = req.query
+        const limit = 10
+        let skip = 0
+        if (!page) page = 1
+        skip = (parseInt(page) - 1) * limit
+        const candidateId = req.params.id
+        if (!candidateId) throw new Error("ID do candidato é obrigatório")
+        const candidate = await candidatoSvc.getCandidate(candidateId)
+        if (!candidate) throw new Error("Candidato não encontrado")
+        const elections = await candidatoEleicaoSvc.getLastAllElections(candidateId)
+        if (!elections) throw new Error("Nenhuma eleição encontrada.")
+        const candidateElectionsIds = elections.map((election) => election.id)
+        const donors = await DoacoesCandidatoEleicaoSvc.getBiggestDonors(candidateElectionsIds, skip, limit, page)
+        return res.json({
+            success: true,
+            message: "Doadores encontrados com sucesso.",
+            data: donors,
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os votos",
+        })
+    }
+}
+
 module.exports = {
+    getBiggestDonors,
     getLast5LastElectionsVotes,
     getLastElectionVotesByRegion,
     getCandidates,

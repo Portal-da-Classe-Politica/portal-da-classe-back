@@ -13,15 +13,15 @@ const DoacoesCandidatoEleicao = sequelize.define(
             allowNull: false,
             comment: "",
         },
-        doador_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            comment: "Chave estrangeira referenciando o ID do doador",
-            references: {
-                model: "doadores",
-                key: "id",
-            },
-        },
+        // doador_id: {
+        //     type: DataTypes.INTEGER,
+        //     allowNull: false,
+        //     comment: "Chave estrangeira referenciando o ID do doador",
+        //     references: {
+        //         model: "doadores",
+        //         key: "id",
+        //     },
+        // },
     },
     {
         sequelize,
