@@ -6,58 +6,56 @@ const { Op } = require("sequelize")
 const { raw } = require("express")
 
 const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, electoralUnitiesIds) => {
-    const finder = {
-        where: {
-            [Op.or]: [
-                { nome_urna: { [Op.iLike]: `%${nomeUrnaOrName}%` } },
-                { nome_candidato: { [Op.iLike]: `%${nomeUrnaOrName}%` } },
-            ],
-        },
-        include: [
-            {
-                model: candidatoModel,
-                attributes: ["ultima_eleicao_id"],
-            },
-        ],
-        group: [
-            [sequelize.col("candidato.ultima_eleicao_id")],
-            [sequelize.col("candidato.id")],
-            [sequelize.col("nome_urna.nome_candidato")],
-        ],
-
-        attributes: [[sequelize.col("candidato.id"), "candidato_id"],
-            [sequelize.col("candidato.ultima_eleicao_id"), "eleicao_id"],
-        ],
-        order: [["nome_candidato", "ASC"]],
-        limit,
-        raw: true,
-        offset: skip,
-    }
-
+    let electoralUnitiesCondition = ""
     if (electoralUnitiesIds && electoralUnitiesIds.length > 0) {
-        const include = {
-            model: candidatoEleicaoModel,
-            required: true,
-            where: {
-                unidade_eleitoral_id: {
-                    [Op.in]: electoralUnitiesIds,
-                },
-            },
-        }
-        finder.include.push(include)
+        const electoralUnitiesIdsString = electoralUnitiesIds.map((id) => `'${id}'`).join(",")
+        electoralUnitiesCondition = `AND ce.unidade_eleitoral_id IN (${electoralUnitiesIdsString})`
     }
 
-    let { rows, count } = await nomeUrnaModel.findAndCountAll(finder)
+    const query = `
+    SELECT 
+        c.id AS candidato_id,
+        c.ultima_eleicao_id AS eleicao_id,
+        nu.nome_candidato
+    FROM nome_urnas nu
+    JOIN candidatos c ON nu.candidato_id = c.id
+    LEFT JOIN candidato_eleicaos ce ON ce.nome_urna_id = nu.id
+    WHERE 
+        (nu.nome_urna ILIKE :nomeUrnaOrName OR nu.nome_candidato ILIKE :nomeUrnaOrName)
+        ${electoralUnitiesCondition}
+    GROUP BY 
+        c.id, 
+        c.ultima_eleicao_id, 
+        nu.nome_candidato
+    ORDER BY 
+        nu.nome_candidato ASC
+    LIMIT :limit OFFSET :skip;
+`
+
+    const countQuery = `
+        SELECT COUNT(DISTINCT c.id) AS count
+        FROM nome_urnas nu
+        JOIN candidatos c ON nu.candidato_id = c.id
+        LEFT JOIN candidato_eleicaos ce ON ce.nome_urna_id = nu.id
+        WHERE 
+            (nu.nome_urna ILIKE :nomeUrnaOrName OR nu.nome_candidato ILIKE :nomeUrnaOrName)
+            ${electoralUnitiesCondition}
+    `
+
+    const replacements = {
+        nomeUrnaOrName: `%${nomeUrnaOrName}%`,
+        limit,
+        skip,
+    }
+
+    let [rows, countResult] = await Promise.all([
+        sequelize.query(query, { replacements, type: sequelize.QueryTypes.SELECT }),
+        sequelize.query(countQuery, { replacements, type: sequelize.QueryTypes.SELECT }),
+    ])
+
+    let count = countResult[0].count
 
     if (!rows || !count) return new Error("Erro ao buscar candidatos")
-
-    if (count.length === 1) {
-        const object = {
-            eleicao_id: count[0].ultima_eleicao_id,
-            candidato_id: count[0].id,
-        }
-        rows = [object]
-    }
 
     if (!rows || rows.length === 0) return new Error("Nenhum candidato encontrado")
 
@@ -83,7 +81,7 @@ const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, ele
 
     return {
         ids: filteredCandidatesIds.map((c) => c.id),
-        count: count.length,
+        count: Number(count),
     }
 }
 
