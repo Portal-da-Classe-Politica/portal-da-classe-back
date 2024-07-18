@@ -10,4 +10,7 @@ router.use("/abrangency", Abrangencia)
 const UnidadeEleitoral = require("./UnidadeEleitoral")
 router.use("/electoral-unit", UnidadeEleitoral)
 
+const Cruzamentos = require("./Cruzamentos")
+router.use("/cruzamentos", Cruzamentos)
+
 module.exports = router
