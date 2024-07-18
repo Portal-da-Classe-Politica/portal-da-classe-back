@@ -7,4 +7,6 @@ router.get("/", CruzamentosController.getPossibilities)
 
 router.get("/candidates-profile/:dimension/by-gender/", CruzamentosPerfilCandidatosController.getCandidatesByGender)
 
+router.get("/candidates-profile/:dimension/by-year/", CruzamentosPerfilCandidatosController.getCandidatesByGender)
+
 module.exports = router

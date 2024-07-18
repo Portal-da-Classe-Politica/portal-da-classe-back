@@ -1,26 +1,27 @@
-const candidatoEleicaoModel = require("../models/CandidatoEleicao")
+const { Sequelize, where } = require("sequelize")
+const candidatoModel = require('../models/Candidato');
+const candidatoEleicaoModel = require('../models/CandidatoEleicao');
+const generoModel = require("../models/Genero");
 
-const getPossibilities = async (dimension) => {
+const getCandidatesByGender = async (query) => {
     try {
+        const genderCounts = await candidatoModel.findAll({
+            attributes: [Sequelize.fn('COUNT', 'id'), 'count'],
+            include: [
+                { model: generoModel, }
+            ],
+            group: ['genero.id'],
+            raw: true,
+        });
 
-        if (!id) throw new Error("ID do candidato é obrigatório")
-        const candidate = await candidatoSvc.getCandidateDetailById(id)
-        if (!candidate) throw new Error("Candidato não encontrado")
-        return res.json({
-            success: true,
-            data: candidate,
-            message: "Candidato encontrado com sucesso.",
-        })
+
+        return genderCounts;
     } catch (error) {
-        // console.log(error)
-        return res.status(500).json({
-            success: false,
-            data: {},
-            message: "Erro ao buscar o candidato",
-        })
+        console.error("Error fetching candidate:", error)
+        throw error
     }
-}
+};
 
 module.exports = {
-    getPossibilities,
+    getCandidatesByGender,
 }

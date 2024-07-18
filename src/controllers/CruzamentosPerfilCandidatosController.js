@@ -2,7 +2,12 @@ const CruzamentosPerfilCandidatosSvc = require("../services/CruzamentosPerfilCan
 
 const getCandidatesByGender = async (req, res) => {
     try {
-        const { dimension } = req.params
+        let { dimension } = req.params
+        let { query } = req
+
+        const resp = await CruzamentosPerfilCandidatosSvc.getCandidatesByGender(query)
+
+        console.log({ dimension, query, resp })
 
         return res.json({
             success: true,
