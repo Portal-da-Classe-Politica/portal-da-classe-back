@@ -602,10 +602,10 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
 
             ],
             attributes: [
-                [Sequelize.col("ocupacao->categorium.nome"), "categoria_ocupacao"],
+                [Sequelize.col("ocupacao.nome_ocupacao"), "categoria_ocupacao"],
             ],
             group: [
-                [Sequelize.col("ocupacao->categorium.nome")]
+                "categoria_ocupacao"
             ],
             limit: 10,
             raw: true,
@@ -614,8 +614,6 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
         parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
         parseByDimension(finder, dimension)
-
-        console.log({ finder })
 
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
