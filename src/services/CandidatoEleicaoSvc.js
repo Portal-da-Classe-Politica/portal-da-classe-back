@@ -607,7 +607,6 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
             group: [
                 "categoria_ocupacao"
             ],
-            limit: 10,
             raw: true,
         }
 
@@ -628,6 +627,67 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
     }
 }
 
+const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+
+        let sqlQuery = `
+                SELECT
+                    ce.eleicao_id,
+                    COUNT (c.id) as total_candidatos,
+                    SUM(vcm.quantidade_votos) AS total_votos,
+                    SUM(ce.despesa_campanha) AS total_despesas,
+                    SUM(bce.valor) AS total_bens
+                FROM candidato_eleicaos ce
+                    JOIN candidatos c ON ce.candidato_id = c.id
+                    JOIN eleicaos e ON ce.eleicao_id = e.id
+                    JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+                    LEFT JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+                    LEFT JOIN bens_candidatos bce ON ce.candidato_id  = bce.candidato_eleicao_id
+                WHERE ce.eleicao_id IN (:elecionIds)
+                `;
+
+        const replacements = { elecionIds };
+
+        // Dynamic Filter Conditions
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            sqlQuery += ` AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)`;
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds; // Add to replacements
+        }
+
+        if (isElected && isElected > 0) {
+            sqlQuery += ` AND st.foi_eleito = (:isElected)`;
+            replacements.isElected = (Number(isElected) === 1);
+        }
+
+        if (partidos && partidos.length > 0) {
+            sqlQuery += ` AND ce.partido_id IN (:partidos)`;
+            replacements.partidos = partidos;
+        }
+
+        if (cargosIds && cargosIds.length > 0) {
+            sqlQuery += ` AND ce.cargo_id IN (:cargosIds)`;
+            replacements.cargosIds = cargosIds;
+        }
+
+        if (ocupacoesIds && ocupacoesIds.length > 0) {
+            sqlQuery += ` AND ce.ocupacao_id IN (:ocupacoesIds)`;
+            replacements.ocupacoesIds = ocupacoesIds;
+        }
+
+        sqlQuery += ` GROUP BY ce.eleicao_id;`;
+
+        const results = await sequelize.query(sqlQuery, {
+            replacements: replacements, // Replace placeholders in the query
+            type: Sequelize.QueryTypes.SELECT, // Indicate this is a SELECT query
+        });
+
+        return results
+    } catch (error) {
+        console.error("Error getCandidatesByYear:", error)
+        throw error
+    }
+}
+
 module.exports = {
     getLastAllElections,
     getCandidatesIdsByCandidateElectionsIds,
@@ -637,5 +697,6 @@ module.exports = {
     getLastElectionVotesByRegion,
     getCandidatesGenderByElection,
     getCandidatesByYear,
-    getCandidatesByOccupation
+    getCandidatesByOccupation,
+    getCandidatesProfileKPIs
 }

@@ -71,7 +71,7 @@ const getCandidateDetailById = async (candidatoId) => {
                                 {
                                     model: partidoModel,
                                 },
-                                {
+                                 {
                                     model: grauDeInstrucaoModel,
                                     attributes: ["nome_agrupado"],
                                 },
@@ -191,29 +191,8 @@ const getCandidate = async (candidatoId) => {
     }
 }
 
-const getCandidatesByGender = async (query) => {
-    try {
-        const genderCounts = await candidatoModel.findAll({
-            attributes: [Sequelize.fn('COUNT', 'id'), 'count'],
-            include: [
-                { model: generoModel, }
-            ],
-            group: ['genero.id'],
-            raw: true,
-        });
-
-
-        return genderCounts;
-    } catch (error) {
-        console.error("Error fetching candidate:", error)
-        throw error
-    }
-};
-
-
 module.exports = {
     getCandidate,
     get10CandidatesSortedByName,
     getCandidateDetailById,
-    getCandidatesByGender
 }
