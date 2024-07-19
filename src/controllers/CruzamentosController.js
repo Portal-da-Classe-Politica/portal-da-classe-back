@@ -50,6 +50,48 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
     };
 }
 
+function parseDataToBarChart(data, title, seriesName) {
+    // Parse totals to numbers and sort descending
+    data.sort((a, b) => parseInt(b.total) - parseInt(a.total));
+
+
+    // Calculate total votes
+    const totalVotes = data.reduce((sum, item) => sum + parseInt(item.total), 0);
+
+
+    // Calculate top 20%
+    const top20PercentIndex = Math.ceil(data.length * 0.2); // Get the index for top 20%
+    const top20PercentTotal = data.slice(0, top20PercentIndex).reduce((sum, item) => sum + parseInt(item.total), 0);
+
+    // Calculate the percentage of total votes represented by the top 20%
+    const top20PercentPercentage = (top20PercentTotal / totalVotes) * 100;
+
+
+    // Extract top 100 categories and combine the rest into "Outros"
+    const top3 = data.slice(0, 100);
+    const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
+    const finalData = [...top3, { categoria_ocupacao: "Outros", total: outrosTotal }];
+
+    // Calculate percentage increase (first to second)
+    const percentageIncrease = ((data[0].total - data[1].total) / data[1].total) * 100;
+
+    // Format the output for the chart
+    const output = {
+        type: "bar",
+        title: title,
+        seriesName: seriesName,
+        series: finalData.map(item => ({ name: item.categoria_ocupacao, value: item.total })),
+        extraData: {
+            bigNumbers: [
+                { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
+                { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" } // Add top 20% big number
+            ]
+        }
+    };
+
+    return output;
+}
+
 const validateParams = async (query) => {
     let { dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds } = query
     let ocupacoesIds = undefined
@@ -147,11 +189,11 @@ const getCandidatesByOcupations = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getCandidatesByOccupation(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
-        // const parsedData = parseDataToDonutChart(resp, 'genero', 'total', 'Proporção de candidatos por gênero')
+        const parsedData = parseDataToBarChart(resp, 'Distribuição do total por categoria de ocupação', 'Total')
 
         return res.json({
             success: true,
-            data: resp,
+            data: parsedData,
             message: "Dados buscados com sucesso.",
 
         })
