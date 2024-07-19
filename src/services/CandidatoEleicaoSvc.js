@@ -8,6 +8,7 @@ const CargoModel = require("../models/Cargo")
 const nomeUrnaModel = require("../models/NomeUrna")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
 const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
+const BensCandidatoEleicao = require("../models/BensCandidatoEleicao")
 const GeneroModel = require("../models/Genero")
 const SituacaoTurnoModel = require("../models/SituacaoTurno")
 
@@ -41,14 +42,28 @@ const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupaco
         finder.where.cargo_id = { [Op.in]: cargosIds };
     }
 
-
-
     // categoria
     if (ocupacoesIds && ocupacoesIds.length > 0) {
         finder.where.ocupacao_id = { [Op.in]: ocupacoesIds }
     }
 
     return finder
+}
+
+const parseByDimension = (finder, dimension) => {
+    switch (Number(dimension)) {
+        case 0:
+            finder.attributes.push([Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('candidato.id'))), 'total'])
+            break;
+        case 1:
+            finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] });
+            finder.attributes.push([Sequelize.fn('SUM', Sequelize.col('votacao_candidato_municipios.quantidade_votos')), 'total'])
+            break;
+        case 2:
+            finder.include.push({ model: BensCandidatoEleicao, attributes: [] });
+            finder.attributes.push([Sequelize.fn('SUM', Sequelize.col('bens_candidatos.valor')), 'total'])
+            break;
+    }
 }
 
 const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralUnitIds, page) => {
@@ -475,7 +490,7 @@ const getLastAllElections = async (candidatoId) => {
     }
 }
 
-const getCandidatesGenderByElection = async (elecionIds, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCandidatesGenderByElection = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
         let finder = {
             where: {
@@ -494,20 +509,19 @@ const getCandidatesGenderByElection = async (elecionIds, unidadesEleitoraisIds, 
             ],
             attributes: [
                 [Sequelize.col("candidato.genero.nome_genero"), "genero"],
-                [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('candidato.id'))), 'totalCandidatos']
             ],
             raw: true,
         }
 
         parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
+        parseByDimension(finder, dimension)
+
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
         if (!candidateElection) {
             throw new Error("Resultado não encontrado")
         }
-
-        // console.log(candidateElection)
 
         return candidateElection
     } catch (error) {
@@ -516,7 +530,7 @@ const getCandidatesGenderByElection = async (elecionIds, unidadesEleitoraisIds, 
     }
 }
 
-const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
         let finder = {
             where: {
@@ -533,7 +547,6 @@ const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected,
                 }
             ],
             attributes: [
-                [Sequelize.fn('COUNT', Sequelize.col('candidato.id')), 'totalCandidatos'],
                 [Sequelize.col("eleicao.ano_eleicao"), "ano"],
             ],
             group: [
@@ -543,6 +556,8 @@ const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected,
         }
 
         parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
 
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
