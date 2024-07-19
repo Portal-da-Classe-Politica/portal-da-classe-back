@@ -594,15 +594,15 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
                         {
                             model: categoriaModel, attributes: [],
                         },
-                        {
-                            model: categoria2Model, attributes: [],
-                        },
+                        // {
+                        //     model: categoria2Model, attributes: [],
+                        // },
                     ]
                 },
 
             ],
             attributes: [
-                [Sequelize.col("ocupacao.nome_ocupacao"), "categoria_ocupacao"],
+                [Sequelize.col("ocupacao.categorium.nome"), "categoria_ocupacao"],
             ],
             group: [
                 "categoria_ocupacao"
