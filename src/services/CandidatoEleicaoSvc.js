@@ -11,6 +11,9 @@ const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
 const BensCandidatoEleicao = require("../models/BensCandidatoEleicao")
 const GeneroModel = require("../models/Genero")
 const SituacaoTurnoModel = require("../models/SituacaoTurno")
+const ocupacaoModel = require("../models/Ocupacao")
+const categoriaModel = require("../models/Categoria")
+const categoria2Model = require("../models/Categoria2")
 
 
 const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
@@ -572,10 +575,60 @@ const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds,
     }
 }
 
-//   // categoria (mandar as 3 para o gráfico de barrra)
-//   if (cargo && cargo.length > 0){
+// TODO: mandar as 3 para o gráfico de barrra
+const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    attributes: []
+                },
+                {
+                    model: ocupacaoModel,
+                    attributes: [],
+                    include: [
+                        {
+                            model: categoriaModel, attributes: [],
+                        },
+                        {
+                            model: categoria2Model, attributes: [],
+                        },
+                    ]
+                },
 
-//   }
+            ],
+            attributes: [
+                [Sequelize.col("ocupacao->categorium.nome"), "categoria_ocupacao"],
+            ],
+            group: [
+                [Sequelize.col("ocupacao->categorium.nome")]
+            ],
+            limit: 10,
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
+
+        console.log({ finder })
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesGenderByElection:", error)
+        throw error
+    }
+}
 
 module.exports = {
     getLastAllElections,
@@ -585,5 +638,6 @@ module.exports = {
     getLatestElectionsForSearch,
     getLastElectionVotesByRegion,
     getCandidatesGenderByElection,
-    getCandidatesByYear
+    getCandidatesByYear,
+    getCandidatesByOccupation
 }

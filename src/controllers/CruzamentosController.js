@@ -139,9 +139,37 @@ const getCandidatesByGender = async (req, res) => {
     }
 }
 
+const getCandidatesByOcupations = async (req, res) => {
+    try {
+        let { dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds } = await validateParams(req.query)
+
+        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const electionsIds = elections.map(i => i.id)
+
+        const resp = await CandidatoEleicaoService.getCandidatesByOccupation(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        // const parsedData = parseDataToDonutChart(resp, 'genero', 'total', 'Proporção de candidatos por gênero')
+
+        return res.json({
+            success: true,
+            data: resp,
+            message: "Dados buscados com sucesso.",
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar candidatos por gênero",
+        })
+    }
+}
+
 
 
 module.exports = {
     getCandidatesByYear,
-    getCandidatesByGender
+    getCandidatesByGender,
+    getCandidatesByOcupations
 }
