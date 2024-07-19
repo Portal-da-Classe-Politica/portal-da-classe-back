@@ -144,7 +144,7 @@ const getCandidates = async (req, res) => {
             }
         }
 
-        if (electoralUnitId && !electoralUnitiesIds.length) {
+        if (electoralUnitId && (!electoralUnitiesIds || !electoralUnitiesIds.length)){
             electoralUnitiesIds = [electoralUnitId]
         }
 
