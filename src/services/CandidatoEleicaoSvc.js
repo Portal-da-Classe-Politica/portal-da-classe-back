@@ -1,4 +1,4 @@
-const { Op, where, QueryTypes } = require("sequelize")
+const { Op, where, QueryTypes, Sequelize } = require("sequelize")
 const CandidatoEleicaoModel = require("../models/CandidatoEleicao")
 const EleicaoModel = require("../models/Eleicao")
 const CandidatoModel = require("../models/Candidato")
@@ -8,10 +8,12 @@ const CargoModel = require("../models/Cargo")
 const nomeUrnaModel = require("../models/NomeUrna")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
 const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
+const GeneroModel = require("../models/Genero")
+const SituacaoTurnoModel = require("../models/SituacaoTurno")
 
 const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralUnitIds, page) => {
     try {
-        let whereClause = { }
+        let whereClause = {}
 
         if (!candidateIds && !electoralUnitIds) {
             throw new Error("É necessário informar ao menos um candidato ou uma unidade eleitoral para buscar resultados.")
@@ -433,6 +435,126 @@ const getLastAllElections = async (candidatoId) => {
     }
 }
 
+const getCandidatesGenderByElection = async (elecionIds) => {
+    try {
+        const candidateElection = await CandidatoEleicaoModel.findAll({
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    include: [
+                        { model: GeneroModel, attributes: ['nome_genero'] }
+                    ]
+                },
+            ],
+            group: [
+                [Sequelize.col("candidato.genero.nome_genero")]
+            ],
+            attributes: [
+                [Sequelize.col("candidato.genero.nome_genero"), "genero"],
+                [Sequelize.fn('COUNT', Sequelize.col('candidato.id')), 'totalCandidatos']
+            ],
+            raw: true,
+        })
+
+        if (!candidateElection) {
+            throw new Error("Candidato não encontrado")
+        }
+
+        // console.log(candidateElection)
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error fetching votes by region:", error)
+        throw error
+    }
+}
+
+const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected) => {
+    try {
+        const finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    attributes: []
+                },
+                {
+                    model: EleicaoModel, 
+                    attributes: []
+                }
+            ],            
+            attributes: [
+                [Sequelize.fn('COUNT', Sequelize.col('candidato.id')), 'totalCandidatos'],
+                [Sequelize.col("eleicao.ano_eleicao"), "ano"],
+            ],
+            group: [                
+                "ano"
+            ],
+            raw: true,
+        }
+
+        // UF, cidade
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            // finder.where.unidade_eleitoral_id: {
+            //     Op.in
+            // }
+        }
+
+        // is_elected
+        if (isElected){
+            const include = {
+                model: SituacaoTurnoModel,
+                required: true, //INNER JOIN
+                where: {
+                    foi_eleito: true
+                },
+                attributes: []
+            }
+            finder.include.push(include)
+        }
+
+
+        // cargo
+        if (cargo && cargo.length > 0){
+            
+        }
+        
+        // partido
+        if (cargo && cargo.length > 0){
+
+        }
+
+        // categoria
+        if (cargo && cargo.length > 0){
+
+        }
+
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Candidato não encontrado")
+        }
+
+        // console.log(candidateElection)
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error fetching votes by region:", error)
+        throw error
+    }
+}
+
+//   // categoria (mandar as 3 para o gráfico de barrra)
+//   if (cargo && cargo.length > 0){
+
+//   }
+
 module.exports = {
     getLastAllElections,
     getCandidatesIdsByCandidateElectionsIds,
@@ -440,4 +562,6 @@ module.exports = {
     getLast5LastElections,
     getLatestElectionsForSearch,
     getLastElectionVotesByRegion,
+    getCandidatesGenderByElection, 
+    getCandidatesByYear
 }

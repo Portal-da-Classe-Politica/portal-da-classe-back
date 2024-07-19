@@ -1,5 +1,7 @@
 const cargoService = require("../services/CargoService")
 const generoSvc = require("../services/GeneroService")
+const categoriaSvc = require("../services/CategoriaSvc")
+const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const candidatoSvc = require("../services/CandidatoService")
 const nomeUrnaSvc = require("../services/NomeUrnaSvc")
@@ -9,19 +11,61 @@ const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoS
 
 const getFiltersForSearch = async (req, res) => {
     try {
-        const [cargos, generos, estados] = await Promise.all(
+        const [cargos, generos, estados, categorias, partidos, anos] = await Promise.all(
             [
                 cargoService.getAllCargos(),
                 generoSvc.getAllGenders(),
                 unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1),
+                categoriaSvc.getAllCategorias(),
+                partidoSvc.getAllPartidos(),
+                EleicaoSvc.getAllElectionsYears()
+                
             ],
         )
         return res.json({
             success: true,
             data: {
-                cargos,
-                generos,
-                estados,
+                cargo: {
+                    values: cargos,
+                    type: "multiselect"
+                },
+                foiEleito: {
+                    type: "select",
+                    values: [
+                        { id: 0, label: "Ambos" },
+                        { id: 1, label: "Sim" },
+                        { id: 2, label: "Não" }
+                    ]
+                },
+                genero: {
+                    type: "multiselect",
+                    values: generos,
+                },
+                estado: {
+                    type: "select",
+                    values: estados
+                },
+                "categorias": {
+                    type: "multiselect",
+                    values: categorias
+                },
+                "partidos": {
+                    type: "multiselect",
+                    values: partidos
+                },
+                possibilities: {
+                    type: "select",
+                    values: [
+                        { id: 0, label: "Quantidade" },
+                        { id: 1, label: "Votos" },
+                        { id: 2, label: "Bens Declarados" },
+                    ]
+                },
+                "anos": {
+                    type: "select",
+                    values: anos.map(i => i.ano_eleicao)
+                        
+                }
             },
             message: "Dados buscados com sucesso.",
 
@@ -68,7 +112,7 @@ const getCandidates = async (req, res) => {
         const UFsAllowed = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1, "ufAndId")
         let UFFinded
         if (UF) UFFinded = UFsAllowed.find((uf) => uf.sigla_unidade_federacao === UF.toUpperCase())
-        if (abrangencyId === "1"){
+        if (abrangencyId === "1") {
             if (UF && !UFFinded) {
                 return res.json({
                     success: false,
@@ -79,17 +123,17 @@ const getCandidates = async (req, res) => {
         }
 
         // se escolher apenas abrangencia
-        if (!UF && !electoralUnitId){
-            if (abrangencyId === "1"){
+        if (!UF && !electoralUnitId) {
+            if (abrangencyId === "1") {
                 electoralUnitiesIds = UFsAllowed.map((uf) => uf.id)
             } else {
-                electoralUnitiesIds =[]
+                electoralUnitiesIds = []
             }
         }
 
         // se escolher apenas UF
-        if (UF && !electoralUnitId){
-            if (abrangencyId === "1"){
+        if (UF && !electoralUnitId) {
+            if (abrangencyId === "1") {
                 electoralUnitiesIds = [UFFinded.id]
             } else if (abrangencyId === "2") {
                 const electoralUnities = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(2, "ufAndId", UF.toUpperCase())
@@ -100,7 +144,7 @@ const getCandidates = async (req, res) => {
             }
         }
 
-        if (electoralUnitId && !electoralUnitiesIds.length){
+        if (electoralUnitId && !electoralUnitiesIds.length) {
             electoralUnitiesIds = [electoralUnitId]
         }
 

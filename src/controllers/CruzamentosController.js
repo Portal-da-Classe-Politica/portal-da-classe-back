@@ -1,18 +1,29 @@
 const cruzamentosSvc = require("../services/CruzamentosSvc")
+const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
+const CandidatoService = require("../services/CandidatoService")
+const EleicaoService = require("../services/EleicaoSvc")
 
 
-const getPossibilities = async (req, res) => {
+
+const getCandidatesByYear = async (req, res) => {
     try {
-        const {
-            dimension
-        } = req.query
-        console.log(dimension)
+        let { dimension } = req.params
+        let { initialYear, finalYear, round } = req.query
 
-        const resp = await cruzamentosSvc.getPossibilities(dimension)
+        if (!initialYear || !finalYear) {
+            throw new Error("ERRO: initialYear e finalYear são obrigatórios.")
+        }
+
+        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const electionsIds = elections.map(i => i.id)
+
+        const resp = await CandidatoEleicaoService.getCandidatesByYear(electionsIds)
+
+        console.log({ resp })
+
         return res.json({
             success: true,
             data: {
-                resp
             },
             message: "Dados buscados com sucesso.",
 
@@ -22,12 +33,12 @@ const getPossibilities = async (req, res) => {
         return res.status(500).json({
             success: false,
             data: {},
-            message: "Erro ao buscar possibilidades de cruzamento",
+            message: "Erro ao buscar candidatos por gênero",
         })
     }
 }
 
 
 module.exports = {
-    getPossibilities,
+    getCandidatesByYear
 }
