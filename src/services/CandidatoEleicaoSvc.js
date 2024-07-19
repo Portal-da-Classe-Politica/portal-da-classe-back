@@ -11,6 +11,46 @@ const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
 const GeneroModel = require("../models/Genero")
 const SituacaoTurnoModel = require("../models/SituacaoTurno")
 
+
+const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    // UF, cidade
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        finder.where.unidade_eleitoral_id = { [Op.in]: unidadesEleitoraisIds };
+    }
+
+    // is_elected
+    if (isElected && isElected > 0) {
+        const include = {
+            model: SituacaoTurnoModel,
+            required: true, //INNER JOIN
+            where: {
+                foi_eleito: Number(isElected) === 1
+            },
+            attributes: []
+        }
+        finder.include.push(include)
+    }
+
+    // partido
+    if (partidos && partidos.length > 0) {
+        finder.where.partido_id = { [Op.in]: partidos };
+    }
+
+    // cargo
+    if (cargosIds && cargosIds.length > 0) {
+        finder.where.cargo_id = { [Op.in]: cargosIds };
+    }
+
+
+
+    // categoria
+    if (ocupacoesIds && ocupacoesIds.length > 0) {
+        finder.where.ocupacao_id = { [Op.in]: ocupacoesIds }
+    }
+
+    return finder
+}
+
 const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralUnitIds, page) => {
     try {
         let whereClause = {}
@@ -435,9 +475,9 @@ const getLastAllElections = async (candidatoId) => {
     }
 }
 
-const getCandidatesGenderByElection = async (elecionIds) => {
+const getCandidatesGenderByElection = async (elecionIds, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
-        const candidateElection = await CandidatoEleicaoModel.findAll({
+        let finder = {
             where: {
                 eleicao_id: { [Sequelize.Op.in]: elecionIds },
             },
@@ -445,8 +485,8 @@ const getCandidatesGenderByElection = async (elecionIds) => {
                 {
                     model: CandidatoModel,
                     include: [
-                        { model: GeneroModel, attributes: ['nome_genero'] }
-                    ]
+                        { model: GeneroModel, attributes: [] }
+                    ], attributes: []
                 },
             ],
             group: [
@@ -454,27 +494,31 @@ const getCandidatesGenderByElection = async (elecionIds) => {
             ],
             attributes: [
                 [Sequelize.col("candidato.genero.nome_genero"), "genero"],
-                [Sequelize.fn('COUNT', Sequelize.col('candidato.id')), 'totalCandidatos']
+                [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('candidato.id'))), 'totalCandidatos']
             ],
             raw: true,
-        })
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
         if (!candidateElection) {
-            throw new Error("Candidato não encontrado")
+            throw new Error("Resultado não encontrado")
         }
 
         // console.log(candidateElection)
 
         return candidateElection
     } catch (error) {
-        console.error("Error fetching votes by region:", error)
+        console.error("Error getCandidatesGenderByElection:", error)
         throw error
     }
 }
 
-const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected) => {
+const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
-        const finder = {
+        let finder = {
             where: {
                 eleicao_id: { [Sequelize.Op.in]: elecionIds },
             },
@@ -484,68 +528,31 @@ const getCandidatesByYear = async (elecionIds, unidadesEleitoraisIds, isElected)
                     attributes: []
                 },
                 {
-                    model: EleicaoModel, 
+                    model: EleicaoModel,
                     attributes: []
                 }
-            ],            
+            ],
             attributes: [
                 [Sequelize.fn('COUNT', Sequelize.col('candidato.id')), 'totalCandidatos'],
                 [Sequelize.col("eleicao.ano_eleicao"), "ano"],
             ],
-            group: [                
+            group: [
                 "ano"
             ],
             raw: true,
         }
 
-        // UF, cidade
-        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            // finder.where.unidade_eleitoral_id: {
-            //     Op.in
-            // }
-        }
-
-        // is_elected
-        if (isElected){
-            const include = {
-                model: SituacaoTurnoModel,
-                required: true, //INNER JOIN
-                where: {
-                    foi_eleito: true
-                },
-                attributes: []
-            }
-            finder.include.push(include)
-        }
-
-
-        // cargo
-        if (cargo && cargo.length > 0){
-            
-        }
-        
-        // partido
-        if (cargo && cargo.length > 0){
-
-        }
-
-        // categoria
-        if (cargo && cargo.length > 0){
-
-        }
-
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
         if (!candidateElection) {
-            throw new Error("Candidato não encontrado")
+            throw new Error("Resultado não encontrado")
         }
-
-        // console.log(candidateElection)
 
         return candidateElection
     } catch (error) {
-        console.error("Error fetching votes by region:", error)
+        console.error("Error getCandidatesByYear:", error)
         throw error
     }
 }
@@ -562,6 +569,6 @@ module.exports = {
     getLast5LastElections,
     getLatestElectionsForSearch,
     getLastElectionVotesByRegion,
-    getCandidatesGenderByElection, 
+    getCandidatesGenderByElection,
     getCandidatesByYear
 }
