@@ -50,7 +50,6 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
     };
 }
 
-
 const validateParams = async (query) => {
     let { dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds } = query
     let ocupacoesIds = undefined
@@ -166,10 +165,36 @@ const getCandidatesByOcupations = async (req, res) => {
     }
 }
 
+const getCandidatesKPIs = async (req, res) => {
+    try {
+        let { dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds } = await validateParams(req.query)
 
+        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const electionsIds = elections.map(i => i.id)
+
+        const resp = await CandidatoEleicaoService.getCandidatesProfileKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        // const parsedData = parseDataToDonutChart(resp, 'genero', 'total', 'Proporção de candidatos por gênero')
+
+        return res.json({
+            success: true,
+            data: resp,
+            message: "Dados buscados com sucesso.",
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar candidatos por gênero",
+        })
+    }
+}
 
 module.exports = {
     getCandidatesByYear,
     getCandidatesByGender,
-    getCandidatesByOcupations
+    getCandidatesByOcupations,
+    getCandidatesKPIs
 }
