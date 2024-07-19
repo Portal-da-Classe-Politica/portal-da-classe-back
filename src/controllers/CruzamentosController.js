@@ -1,4 +1,3 @@
-const cruzamentosSvc = require("../services/CruzamentosSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const CandidatoService = require("../services/CandidatoService")
 const EleicaoService = require("../services/EleicaoSvc")
