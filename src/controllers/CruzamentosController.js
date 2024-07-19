@@ -85,9 +85,11 @@ function parseDataToBarChart(data, title, seriesName) {
 
 
     // Extract top 100 categories and combine the rest into "Outros"
-    const top3 = data.slice(0, 100);
-    const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
-    const finalData = [...top3, { categoria_ocupacao: "Outros", total: outrosTotal }];
+    const top100 = data.slice(0, 100);
+    // const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
+    const finalData = [...top100, 
+        // { categoria_ocupacao: "Outras ocupações", total: outrosTotal }
+    ];
 
     // Calculate percentage increase (first to second)
     const percentageIncrease = ((data[0].total - data[1].total) / data[1].total) * 100;
