@@ -8,21 +8,37 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
         throw new Error('Input data must be an array');
     }
 
-    const seriesData = data.map(item => {
-        const name = item[nameKey];
-        const value = Number(item[valueKey]) || 0; // Handle null/undefined values
+    const seriesData = data.map(item => ({
+        name: item[nameKey],
+        value: Number(item[valueKey]) || 0
+    }));
 
-        if (typeof name !== 'string' || typeof value !== 'number') {
-            throw new Error('Invalid name or value type in data');
-        }
+    // Sort data in descending order
+    seriesData.sort((a, b) => b.value - a.value);
 
-        return { name, value };
-    });
+    // Calculate total value
+    const totalValue = seriesData.reduce((sum, item) => sum + item.value, 0);
+
+    // Extra data calculations
+    const largestSegment = seriesData[0];
+    const smallestSegment = seriesData[seriesData.length - 1];
+    // const top3Segments = seriesData.slice(0, 3).map(item => ({
+    //     name: item.name,
+    //     value: item.value,
+    //     percentage: ((item.value / totalValue) * 100).toFixed(1) + '%'
+    // }));
+    // const otherSegmentsTotal = seriesData.slice(3).reduce((sum, item) => sum + item.value, 0);
+    // const averageValue = (totalValue / seriesData.length).toFixed(2);
 
     return {
         type: 'donut',
-        title: title || '', // Provide a default empty title if not given
-        series: seriesData
+        title: title || '',
+        series: seriesData,
+        extraData: [
+            `Total: ${totalValue}`,
+            `Maior segmento: ${largestSegment.name} (${((largestSegment.value / totalValue) * 100).toFixed(1)}%)`,
+            `Menor segmento: ${smallestSegment.name} (${((smallestSegment.value / totalValue) * 100).toFixed(1)}%)`,
+        ]
     };
 }
 
@@ -37,6 +53,7 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
         name: seriesName || 'Total',  // Use provided name or default to 'Total'
         data: data.map(item => parseInt(item.total, 10)) // Convert total to number
     };
+
 
     return {
         type: 'line',
