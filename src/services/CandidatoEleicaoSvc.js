@@ -1,4 +1,4 @@
-const { Op, where, QueryTypes } = require("sequelize")
+const { Op, where, QueryTypes, Sequelize } = require("sequelize")
 const CandidatoEleicaoModel = require("../models/CandidatoEleicao")
 const EleicaoModel = require("../models/Eleicao")
 const CandidatoModel = require("../models/Candidato")
@@ -8,10 +8,70 @@ const CargoModel = require("../models/Cargo")
 const nomeUrnaModel = require("../models/NomeUrna")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
 const municipiosVotacaoModel = require("../models/MunicipiosVotacao")
+const BensCandidatoEleicao = require("../models/BensCandidatoEleicao")
+const GeneroModel = require("../models/Genero")
+const SituacaoTurnoModel = require("../models/SituacaoTurno")
+const ocupacaoModel = require("../models/Ocupacao")
+const categoriaModel = require("../models/Categoria")
+const categoria2Model = require("../models/Categoria2")
+
+
+const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    // UF, cidade
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        finder.where.unidade_eleitoral_id = { [Op.in]: unidadesEleitoraisIds };
+    }
+
+    // is_elected
+    if (isElected && isElected > 0) {
+        const include = {
+            model: SituacaoTurnoModel,
+            required: true, //INNER JOIN
+            where: {
+                foi_eleito: Number(isElected) === 1
+            },
+            attributes: []
+        }
+        finder.include.push(include)
+    }
+
+    // partido
+    if (partidos && partidos.length > 0) {
+        finder.where.partido_id = { [Op.in]: partidos };
+    }
+
+    // cargo
+    if (cargosIds && cargosIds.length > 0) {
+        finder.where.cargo_id = { [Op.in]: cargosIds };
+    }
+
+    // categoria
+    if (ocupacoesIds && ocupacoesIds.length > 0) {
+        finder.where.ocupacao_id = { [Op.in]: ocupacoesIds }
+    }
+
+    return finder
+}
+
+const parseByDimension = (finder, dimension) => {
+    switch (Number(dimension)) {
+        case 0:
+            finder.attributes.push([Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('candidato.id'))), 'total'])
+            break;
+        case 1:
+            finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] });
+            finder.attributes.push([Sequelize.fn('SUM', Sequelize.col('votacao_candidato_municipios.quantidade_votos')), 'total'])
+            break;
+        case 2:
+            finder.include.push({ model: BensCandidatoEleicao, attributes: [] });
+            finder.attributes.push([Sequelize.fn('SUM', Sequelize.col('bens_candidatos.valor')), 'total'])
+            break;
+    }
+}
 
 const getLatestElectionsForSearch = async (candidateIds, skip, limit, electoralUnitIds, page) => {
     try {
-        let whereClause = { }
+        let whereClause = {}
 
         if (!candidateIds && !electoralUnitIds) {
             throw new Error("É necessário informar ao menos um candidato ou uma unidade eleitoral para buscar resultados.")
@@ -433,6 +493,202 @@ const getLastAllElections = async (candidatoId) => {
     }
 }
 
+const getCandidatesGenderByElection = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    include: [
+                        { model: GeneroModel, attributes: [] }
+                    ], attributes: []
+                },
+            ],
+            group: [
+                [Sequelize.col("candidato.genero.nome_genero")]
+            ],
+            attributes: [
+                [Sequelize.col("candidato.genero.nome_genero"), "genero"],
+            ],
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesGenderByElection:", error)
+        throw error
+    }
+}
+
+const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    attributes: []
+                },
+                {
+                    model: EleicaoModel,
+                    attributes: []
+                }
+            ],
+            attributes: [
+                [Sequelize.col("eleicao.ano_eleicao"), "ano"],
+            ],
+            group: [
+                "ano"
+            ],
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesByYear:", error)
+        throw error
+    }
+}
+
+// TODO: mandar as 3 para o gráfico de barrra
+const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    attributes: []
+                },
+                {
+                    model: ocupacaoModel,
+                    attributes: [],
+                    include: [
+                        // {
+                        //     model: categoriaModel, attributes: [],
+                        // },
+                        {
+                            model: categoria2Model, attributes: [],
+                        },
+                    ]
+                },
+
+            ],
+            attributes: [
+                // [Sequelize.col("ocupacao.categorium.nome"), "categoria_ocupacao"],
+                [Sequelize.col("ocupacao.categoria_2.nome"), "categoria_ocupacao"],
+            ],
+            group: [
+                "categoria_ocupacao"
+            ],
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesGenderByElection:", error)
+        throw error
+    }
+}
+
+const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+
+        let sqlQuery = `
+                SELECT
+                    ce.eleicao_id,
+                    COUNT (c.id) as total_candidatos,
+                    SUM(vcm.quantidade_votos) AS total_votos,
+                    SUM(ce.despesa_campanha) AS total_despesas,
+                    SUM(bce.valor) AS total_bens
+                FROM candidato_eleicaos ce
+                    JOIN candidatos c ON ce.candidato_id = c.id
+                    JOIN eleicaos e ON ce.eleicao_id = e.id
+                    JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+                    LEFT JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+                    LEFT JOIN bens_candidatos bce ON ce.candidato_id  = bce.candidato_eleicao_id
+                WHERE ce.eleicao_id IN (:elecionIds)
+                `;
+
+        const replacements = { elecionIds };
+
+        // Dynamic Filter Conditions
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            sqlQuery += ` AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)`;
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds; // Add to replacements
+        }
+
+        if (isElected && isElected > 0) {
+            sqlQuery += ` AND st.foi_eleito = (:isElected)`;
+            replacements.isElected = (Number(isElected) === 1);
+        }
+
+        if (partidos && partidos.length > 0) {
+            sqlQuery += ` AND ce.partido_id IN (:partidos)`;
+            replacements.partidos = partidos;
+        }
+
+        if (cargosIds && cargosIds.length > 0) {
+            sqlQuery += ` AND ce.cargo_id IN (:cargosIds)`;
+            replacements.cargosIds = cargosIds;
+        }
+
+        if (ocupacoesIds && ocupacoesIds.length > 0) {
+            sqlQuery += ` AND ce.ocupacao_id IN (:ocupacoesIds)`;
+            replacements.ocupacoesIds = ocupacoesIds;
+        }
+
+        sqlQuery += ` GROUP BY ce.eleicao_id;`;
+
+        const results = await sequelize.query(sqlQuery, {
+            replacements: replacements, // Replace placeholders in the query
+            type: Sequelize.QueryTypes.SELECT, // Indicate this is a SELECT query
+        });
+
+        return results
+    } catch (error) {
+        console.error("Error getCandidatesByYear:", error)
+        throw error
+    }
+}
+
 module.exports = {
     getLastAllElections,
     getCandidatesIdsByCandidateElectionsIds,
@@ -440,4 +696,8 @@ module.exports = {
     getLast5LastElections,
     getLatestElectionsForSearch,
     getLastElectionVotesByRegion,
+    getCandidatesGenderByElection,
+    getCandidatesByYear,
+    getCandidatesByOccupation,
+    getCandidatesProfileKPIs
 }
