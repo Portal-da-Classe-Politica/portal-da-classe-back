@@ -19,7 +19,7 @@ const getFiltersForSearch = async (req, res) => {
                 categoriaSvc.getAllCategorias(),
                 partidoSvc.getAllPartidos(),
                 EleicaoSvc.getAllElectionsYears()
-                
+
             ],
         )
         return res.json({
@@ -64,7 +64,7 @@ const getFiltersForSearch = async (req, res) => {
                 "anos": {
                     type: "select",
                     values: anos.map(i => i.ano_eleicao)
-                        
+
                 }
             },
             message: "Dados buscados com sucesso.",
