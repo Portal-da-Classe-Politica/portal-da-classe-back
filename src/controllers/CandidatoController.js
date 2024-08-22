@@ -8,65 +8,14 @@ const nomeUrnaSvc = require("../services/NomeUrnaSvc")
 const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
+const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
     try {
-        const [cargos, generos, estados, categorias, partidos, anos] = await Promise.all(
-            [
-                cargoService.getAllCargos(),
-                generoSvc.getAllGenders(),
-                unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1),
-                categoriaSvc.getAllCategorias(),
-                partidoSvc.getAllPartidos(),
-                EleicaoSvc.getAllElectionsYears()
-
-            ],
-        )
+        const data = await getFiltersForSearchesByOrigin("candidates")
         return res.json({
             success: true,
-            data: {
-                cargo: {
-                    values: cargos,
-                    type: "multiselect"
-                },
-                foiEleito: {
-                    type: "select",
-                    values: [
-                        { id: 0, label: "Ambos" },
-                        { id: 1, label: "Sim" },
-                        { id: 2, label: "Não" }
-                    ]
-                },
-                genero: {
-                    type: "multiselect",
-                    values: generos,
-                },
-                estado: {
-                    type: "select",
-                    values: estados
-                },
-                "categorias": {
-                    type: "multiselect",
-                    values: categorias
-                },
-                "partidos": {
-                    type: "multiselect",
-                    values: partidos
-                },
-                possibilities: {
-                    type: "select",
-                    values: [
-                        { id: 0, label: "Quantidade" },
-                        { id: 1, label: "Votos" },
-                        { id: 2, label: "Bens Declarados" },
-                    ]
-                },
-                "anos": {
-                    type: "select",
-                    values: anos.map(i => i.ano_eleicao)
-
-                }
-            },
+            data,
             message: "Dados buscados com sucesso.",
 
         })
