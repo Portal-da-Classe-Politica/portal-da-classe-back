@@ -691,7 +691,6 @@ const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitorai
 }
 
 const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
-
     // values: [
     //     { id: 0, label: "Volume total de financiamento" }, doacoes_candidato_eleicoes
     //     { id: 1, label: "Quantidade doações" }, doacoes_candidato_eleicoes
@@ -700,16 +699,28 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
     //     { id: 4, label: "Volume financiamento privado" }, where fonte_receita_id != 1 e fonte_receita_id != 5
     // ],
     try {
-        const select = `SELECT
-                    ce.eleicao_id,
-                    
+        let select = `SELECT
+                    ce.eleicao_id                    
                     `
+
+        if (dimension === 0) {
+            select += ", SUM(doacoes_candidato_eleicoes.valor) as resultado"
+        } else if (dimension === 1) {
+            select += ", COUNT(doacoes_candidato_eleicoes.id) as resultado"
+        } else if (dimension === 2) {
+            select += ", SUM(doacoes_candidato_eleicoes.valor) as resultado"
+        } else if (dimension === 3) {
+            select += ", SUM(doacoes_candidato_eleicoes.valor) as resultado"
+        } else if (dimension === 4) {
+            select += ", SUM(doacoes_candidato_eleicoes.valor) as resultado"
+        }
 
         const from = ` FROM candidato_eleicaos ce
                     JOIN candidatos c ON ce.candidato_id = c.id
                     JOIN eleicaos e ON ce.eleicao_id = e.id
                     JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
                     LEFT JOIN doacoes_candidato_eleicoes ON ce.id = doacoes_candidato_eleicoes.candidato_eleicao_id
+                                        
                     
                     `
 
@@ -745,6 +756,14 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
             replacements.ocupacoesIds = ocupacoesIds
         }
 
+        if (dimension === 2) {
+            sqlQuery += " AND doacoes_candidato_eleicoes.fonte_receita_id = 5"
+        } else if (dimension === 3) {
+            sqlQuery += " AND doacoes_candidato_eleicoes.fonte_receita_id = 1"
+        } else if (dimension === 4) {
+            sqlQuery += "AND doacoes_candidato_eleicoes.fonte_receita_id NOT IN (1, 5)"
+        }
+
         sqlQuery += " GROUP BY ce.eleicao_id;"
 
         const results = await sequelize.query(sqlQuery, {
@@ -754,7 +773,7 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
 
         return results
     } catch (error) {
-        console.error("Error getCandidatesByYear:", error)
+        console.error("Error getFinanceKPIs:", error)
         throw error
     }
 }

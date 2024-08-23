@@ -39,7 +39,7 @@ const validateParams = async (query, origin) => {
     }
 
     return {
-        dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+        dimension: parseInt(dimension), initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
     }
 }
 

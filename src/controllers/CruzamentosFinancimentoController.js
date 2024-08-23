@@ -13,10 +13,21 @@ const getFinanceKPIs = async (req, res) => {
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getFinanceKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        let data
+        if (resp && resp.length){
+            const finalYearId = elections.find((e) => e.ano_eleicao === parseInt(finalYear)).id
+            const initialYearId = elections.find((e) => e.ano_eleicao === parseInt(initialYear)).id
+            const lastYearResult = resp.find((r) => r.eleicao_id === finalYearId)
+            const initialYearResult = resp.find((r) => r.eleicao_id === initialYearId)
+            data = {
+                absolute_variation: `${(lastYearResult.resultado - initialYearResult.resultado).toFixed(2)}`,
+                percentage_variation: `${((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)}%`,
+            }
+        }
 
         return res.json({
             success: true,
-            data: resp,
+            data,
             message: "Dados buscados com sucesso.",
 
         })
@@ -25,7 +36,11 @@ const getFinanceKPIs = async (req, res) => {
         return res.status(500).json({
             success: false,
             data: {},
-            message: "Erro ao buscar candidatos por gênero",
+            message: "Erro ao buscar KPIs financeiros",
         })
     }
+}
+
+module.exports = {
+    getFinanceKPIs,
 }
