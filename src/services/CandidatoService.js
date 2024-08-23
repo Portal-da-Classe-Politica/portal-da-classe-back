@@ -71,7 +71,7 @@ const getCandidateDetailById = async (candidatoId) => {
                                 {
                                     model: partidoModel,
                                 },
-                                {
+                                 {
                                     model: grauDeInstrucaoModel,
                                     attributes: ["nome_agrupado"],
                                 },

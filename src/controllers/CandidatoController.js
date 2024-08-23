@@ -1,28 +1,21 @@
 const cargoService = require("../services/CargoService")
 const generoSvc = require("../services/GeneroService")
+const categoriaSvc = require("../services/CategoriaSvc")
+const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const candidatoSvc = require("../services/CandidatoService")
 const nomeUrnaSvc = require("../services/NomeUrnaSvc")
 const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
+const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
     try {
-        const [cargos, generos, estados] = await Promise.all(
-            [
-                cargoService.getAllCargos(),
-                generoSvc.getAllGenders(),
-                unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1),
-            ],
-        )
+        const data = await getFiltersForSearchesByOrigin("candidates")
         return res.json({
             success: true,
-            data: {
-                cargos,
-                generos,
-                estados,
-            },
+            data,
             message: "Dados buscados com sucesso.",
 
         })
@@ -68,7 +61,7 @@ const getCandidates = async (req, res) => {
         const UFsAllowed = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1, "ufAndId")
         let UFFinded
         if (UF) UFFinded = UFsAllowed.find((uf) => uf.sigla_unidade_federacao === UF.toUpperCase())
-        if (abrangencyId === "1"){
+        if (abrangencyId === "1") {
             if (UF && !UFFinded) {
                 return res.json({
                     success: false,
@@ -79,17 +72,17 @@ const getCandidates = async (req, res) => {
         }
 
         // se escolher apenas abrangencia
-        if (!UF && !electoralUnitId){
-            if (abrangencyId === "1"){
+        if (!UF && !electoralUnitId) {
+            if (abrangencyId === "1") {
                 electoralUnitiesIds = UFsAllowed.map((uf) => uf.id)
             } else {
-                electoralUnitiesIds =[]
+                electoralUnitiesIds = []
             }
         }
 
         // se escolher apenas UF
-        if (UF && !electoralUnitId){
-            if (abrangencyId === "1"){
+        if (UF && !electoralUnitId) {
+            if (abrangencyId === "1") {
                 electoralUnitiesIds = [UFFinded.id]
             } else if (abrangencyId === "2") {
                 const electoralUnities = await unidadeEleitoralSvc.getFederativeUnitsByAbrangency(2, "ufAndId", UF.toUpperCase())
