@@ -37,7 +37,7 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
     }
 }
 
-function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
+function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, dataType = "integer") {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
     }
@@ -46,7 +46,12 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
 
     const seriesData = {
         name: seriesName || "Total", // Use provided name or default to 'Total'
-        data: data.map((item) => parseInt(item.total, 10)), // Convert total to number
+        data: data.map((item) => {
+            if (dataType === "integer") {
+                return parseInt(item.total)
+            }
+            return Number(Number(item.total).toFixed(2))
+        }), // Convert total to number
     }
 
     return {

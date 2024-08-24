@@ -16,6 +16,7 @@ const SituacaoTurnoModel = require("../models/SituacaoTurno")
 const ocupacaoModel = require("../models/Ocupacao")
 const categoriaModel = require("../models/Categoria")
 const categoria2Model = require("../models/Categoria2")
+const doacoesCandidatoEleicaoModel = require("../models/DoacoesCandidatoEleicao")
 
 const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     // UF, cidade
@@ -67,6 +68,7 @@ const parseByDimension = (finder, dimension) => {
         finder.include.push({ model: BensCandidatoEleicao, attributes: [] })
         finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("bens_candidatos.valor")), "total"])
         break
+    default: break
     }
 }
 
@@ -778,7 +780,69 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
     }
 }
 
+const parseDimensionFinance = (finder, dimension) => {
+    if (dimension === 0) {
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("doacoes_candidato_eleicoes.valor")), "total"])
+    } else if (dimension === 1) {
+        finder.attributes.push([Sequelize.fn("COUNT", Sequelize.col("doacoes_candidato_eleicoes.id")), "total"])
+    } else if (dimension === 2) {
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("doacoes_candidato_eleicoes.valor")), "total"])
+        finder.include[0].where = { fonte_receita_id: 5 }
+    } else if (dimension === 3) {
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("doacoes_candidato_eleicoes.valor")), "total"])
+        finder.include[0].where = { fonte_receita_id: 1 }
+    } else if (dimension === 4) {
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("doacoes_candidato_eleicoes.valor")), "total"])
+        finder.include[0].where = { fonte_receita_id: { [Sequelize.Op.notIn]: [1, 5] } }
+    }
+}
+
+const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: doacoesCandidatoEleicaoModel,
+                    attributes: [],
+                },
+                {
+                    model: EleicaoModel,
+                    attributes: [],
+                },
+            ],
+            attributes: [
+                [Sequelize.col("eleicao.ano_eleicao"), "ano"],
+            ],
+            group: [
+                "ano",
+            ],
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseDimensionFinance(finder, dimension)
+
+        console.log(finder.include[0])
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesByYear:", error)
+        throw error
+    }
+}
+
 module.exports = {
+    getFinanceCandidatesByYear,
     getFinanceKPIs,
     getLastAllElections,
     getCandidatesIdsByCandidateElectionsIds,
