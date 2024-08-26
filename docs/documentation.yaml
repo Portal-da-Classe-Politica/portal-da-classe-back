@@ -1024,5 +1024,183 @@ paths:
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
       responses:
         '200':
+          description: Resposta bem-sucedida.
+  /noauth/cruzamentos/finance/by-year:
+    get:
+      operationId: "15"  
+      tags:
+        - cruzamentos financimento
+      summary: Cruzamentos financiamento de campanhas por ano
+      description: Retorna ruzamentos financiamento de campanhas por ano
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: unidadesEleitoraisIds
+          schema:
+            type: array
+          required: false
+          description: IDs das unidades eleitorais desejadas.
+        - in: query
+          name: isElected
+          schema:
+            type: integer
+          required: false
+          description: Situação se foi deleito (0 para ambos, 1, para sim; 2 para não eleitos)
+        - in: query
+          name: partidos
+          schema:
+            type: array
+          required: false
+          description: IDs dos partidos
+        - in: query
+          name: categoriasOcupacoes
+          schema:
+            type: array
+          required: false
+          description: Categoria 1 das ocupações (1,2 ...)
+        - in: query
+          name: cargosIds
+          schema:
+            type: array
+          required: false
+          description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: dimension
+          schema:
+            type: number
+          required: false
+          description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+      responses:
+        '200':
+          description: Resposta bem-sucedida.
+  /noauth/cruzamentos/finance/by-party:
+    get:
+      operationId: "16"  
+      tags:
+        - cruzamentos financimento
+      summary: Cruzamentos financiamento de campanhas por partido
+      description: Cruzamentos financiamento de campanhas por partido
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: unidadesEleitoraisIds
+          schema:
+            type: array
+          required: false
+          description: IDs das unidades eleitorais desejadas.
+        - in: query
+          name: isElected
+          schema:
+            type: integer
+          required: false
+          description: Situação se foi deleito (0 para ambos, 1, para sim; 2 para não eleitos)
+        - in: query
+          name: partidos
+          schema:
+            type: array
+          required: false
+          description: IDs dos partidos
+        - in: query
+          name: categoriasOcupacoes
+          schema:
+            type: array
+          required: false
+          description: Categoria 1 das ocupações (1,2 ...)
+        - in: query
+          name: cargosIds
+          schema:
+            type: array
+          required: false
+          description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: dimension
+          schema:
+            type: number
+          required: false
+          description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+      responses:
+        '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
-
+  /noauth/cruzamentos/finance/by-location:
+    get:
+      operationId: "17"  
+      tags:
+        - cruzamentos financimento
+      summary: Cruzamentos financiamento de campanhas por municpio ou estado
+      description: Cruzamentos financiamento de campanhas por municpio ou estado
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: UF
+          schema:
+            type: array
+          required: false
+          description: só envie caso deseje agregar por municipio, caso for enviar deve ser a string da UF. Exemplo RS.
+          example: "RS"
+        - in: query
+          name: isElected
+          schema:
+            type: integer
+          required: false
+          description: Situação se foi deleito (0 para ambos, 1, para sim; 2 para não eleitos)
+        - in: query
+          name: partidos
+          schema:
+            type: array
+          required: false
+          description: IDs dos partidos
+        - in: query
+          name: categoriasOcupacoes
+          schema:
+            type: array
+          required: false
+          description: Categoria 1 das ocupações (1,2 ...)
+        - in: query
+          name: cargosIds
+          schema:
+            type: array
+          required: false
+          description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: dimension
+          schema:
+            type: number
+          required: false
+          description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+      responses:
+        '200':
+          description: Resposta bem-sucedida .
+        

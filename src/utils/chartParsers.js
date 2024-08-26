@@ -96,18 +96,38 @@ function parseDataToBarChart(data, title, seriesName) {
         title,
         seriesName,
         series: finalData.map((item) => ({ name: item.categoria_ocupacao, value: item.total })),
-        extraData: {
+
+    }
+
+    if (title == "Distribuição do total por categoria de ocupação") {
+        output.extraData = {
             bigNumbers: [
                 { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
                 { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" }, // Add top 20% big number
             ],
-        },
+        }
+    }
+
+    return output
+}
+
+const parseFinanceDataToBarChart = (data, title, seriesName) => {
+    // Parse totals to numbers and sort descending
+    data.sort((a, b) => parseInt(b.mediana) - parseInt(a.mediana))
+
+    const output = {
+        type: "bar",
+        title,
+        seriesName,
+        series: data.map((item) => ({ name: item.partido, value: item.mediana })),
+
     }
 
     return output
 }
 
 module.exports = {
+    parseFinanceDataToBarChart,
     parseDataToDonutChart,
     parseDataToLineChart,
     parseDataToBarChart,
