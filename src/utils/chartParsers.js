@@ -37,7 +37,7 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
     }
 }
 
-function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
+function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, dataType = "integer") {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
     }
@@ -46,7 +46,12 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title) {
 
     const seriesData = {
         name: seriesName || "Total", // Use provided name or default to 'Total'
-        data: data.map((item) => parseInt(item.total, 10)), // Convert total to number
+        data: data.map((item) => {
+            if (dataType === "integer") {
+                return parseInt(item.total)
+            }
+            return Number(Number(item.total).toFixed(2))
+        }), // Convert total to number
     }
 
     return {
@@ -91,18 +96,38 @@ function parseDataToBarChart(data, title, seriesName) {
         title,
         seriesName,
         series: finalData.map((item) => ({ name: item.categoria_ocupacao, value: item.total })),
-        extraData: {
+
+    }
+
+    if (title == "Distribuição do total por categoria de ocupação") {
+        output.extraData = {
             bigNumbers: [
                 { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
                 { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" }, // Add top 20% big number
             ],
-        },
+        }
+    }
+
+    return output
+}
+
+const parseFinanceDataToBarChart = (data, title, seriesName) => {
+    // Parse totals to numbers and sort descending
+    data.sort((a, b) => parseInt(b.mediana) - parseInt(a.mediana))
+
+    const output = {
+        type: "bar",
+        title,
+        seriesName,
+        series: data.map((item) => ({ name: item.partido, value: item.mediana })),
+
     }
 
     return output
 }
 
 module.exports = {
+    parseFinanceDataToBarChart,
     parseDataToDonutChart,
     parseDataToLineChart,
     parseDataToBarChart,

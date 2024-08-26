@@ -59,6 +59,89 @@ const validateFinalAndInitialYearsByOrigin = async (origin, initialYear, finalYe
     }
 }
 
+const validateDimensionByOrigin = async (origin, dimension) => {
+    if (origin === "candidates") {
+        if (dimension < 0 || dimension > 3) {
+            throw new Error(`ERRO: Dimension ${origin} deve ser entre 0 e 3.`)
+        }
+    } else if (origin === "donations") {
+        if (dimension < 0 || dimension > 4) {
+            throw new Error(`ERRO: Dimension ${origin} deve ser entre 0 e 4.`)
+        }
+    }
+}
+
+const validateParams2 = async (query, origin) => {
+    try {
+        let {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF,
+        } = query
+        let ocupacoesIds = undefined
+
+        if (!initialYear || !finalYear) {
+            throw new Error("ERRO: initialYear e finalYear são obrigatórios.")
+        }
+
+        await validateFinalAndInitialYearsByOrigin(origin, initialYear, finalYear)
+
+        if (!dimension) {
+            dimension = 0
+        }
+        dimension = parseInt(dimension)
+
+        await validateDimensionByOrigin(origin, dimension)
+
+        if (unidadesEleitoraisIds) {
+            if (Array.isArray(unidadesEleitoraisIds)){
+                unidadesEleitoraisIds = unidadesEleitoraisIds.map(Number)
+            } else {
+                unidadesEleitoraisIds = [Number(unidadesEleitoraisIds)]
+            }
+        }
+
+        if (partidos) {
+            if (Array.isArray(partidos)){
+                partidos = partidos.map(Number)
+            } else {
+                partidos = [Number(partidos)]
+            }
+        }
+
+        if (cargosIds) {
+            if (Array.isArray(cargosIds)){
+                cargosIds = cargosIds.map(Number)
+            } else {
+                cargosIds = [Number(cargosIds)]
+            }
+        }
+
+        if (categoriasOcupacoes) {
+            if (Array.isArray(categoriasOcupacoes)){
+                categoriasOcupacoes = categoriasOcupacoes.map(Number)
+            } else {
+                categoriasOcupacoes = [Number(categoriasOcupacoes)]
+            }
+            const ocupacoes = await CategoriaSvc.getOcubacoesByCategories(categoriasOcupacoes)
+            ocupacoesIds = ocupacoes.map((i) => i.id)
+        }
+
+        if (UF) {
+            if (Array.isArray(UF)){
+                UF = UF.map((u) => u.toUpperCase())
+            } else {
+                UF = [UF.toUpperCase()]
+            }
+        }
+
+        return {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
 module.exports = {
     validateParams,
+    validateParams2,
 }
