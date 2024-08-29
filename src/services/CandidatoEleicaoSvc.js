@@ -18,6 +18,7 @@ const categoriaModel = require("../models/Categoria")
 const categoria2Model = require("../models/Categoria2")
 const doacoesCandidatoEleicaoModel = require("../models/DoacoesCandidatoEleicao")
 const unidadeEleitoralSvc = require("./UnidateEleitoralService")
+const { fatoresDeCorreção } = require("../utils/ipca")
 
 const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     // UF, cidade
@@ -856,20 +857,41 @@ const getFinanceMedianCandidatesByParty = async (elecionIds, dimension, unidades
                 PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana
             `
 
-        // Base da subquery
         let subquerySelect = `SELECT
                             p.sigla AS partido,
-                            doacoes_candidato_eleicoes.valor AS total
+                            doacoes_candidato_eleicoes.valor * COALESCE(fator.fator, 1) AS total                           
                         `
 
         let subqueryFrom = ` FROM candidato_eleicaos ce
                         JOIN partidos p ON ce.partido_id = p.id
                         LEFT JOIN doacoes_candidato_eleicoes ON ce.id = doacoes_candidato_eleicoes.candidato_eleicao_id
                         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+                        JOIN eleicaos e ON ce.eleicao_id = e.id
+                        LEFT JOIN (
+                            SELECT 
+                                ano, 
+                                valor AS fator 
+                            FROM (
+                                VALUES
+                                    (1998, ${fatoresDeCorreção[1998]}),
+                                    (2000, ${fatoresDeCorreção[2000]}),
+                                    (2002, ${fatoresDeCorreção[2002]}),
+                                    (2004, ${fatoresDeCorreção[2004]}),
+                                    (2006, ${fatoresDeCorreção[2006]}),
+                                    (2008, ${fatoresDeCorreção[2008]}),
+                                    (2010, ${fatoresDeCorreção[2010]}),
+                                    (2012, ${fatoresDeCorreção[2012]}),
+                                    (2014, ${fatoresDeCorreção[2014]}),
+                                    (2016, ${fatoresDeCorreção[2016]}),
+                                    (2018, ${fatoresDeCorreção[2018]}),
+                                    (2020, ${fatoresDeCorreção[2020]}),
+                                    (2022, ${fatoresDeCorreção[2022]})
+                            ) AS fator(ano, valor)
+                        ) AS fator ON e.ano_eleicao = fator.ano
                     `
 
         let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
-        let subqueryGroupBy = " GROUP BY p.sigla, doacoes_candidato_eleicoes.valor"
+        let subqueryGroupBy = " GROUP BY p.sigla, total"
 
         const replacements = { elecionIds }
 
@@ -943,17 +965,39 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
 
         // Base da subquery
         let subquerySelect = `SELECT                           
-                            doacoes_candidato_eleicoes.valor AS total
+                            doacoes_candidato_eleicoes.valor * COALESCE(fator.fator, 1) AS total
                         `
 
         let subqueryFrom = ` FROM candidato_eleicaos ce
                         JOIN unidade_eleitorals ue ON ce.unidade_eleitoral_id = ue.id
                         LEFT JOIN doacoes_candidato_eleicoes ON ce.id = doacoes_candidato_eleicoes.candidato_eleicao_id
                         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+                        JOIN eleicaos e ON ce.eleicao_id = e.id
+                        LEFT JOIN (
+                            SELECT 
+                                ano, 
+                                valor AS fator 
+                            FROM (
+                                VALUES
+                                    (1998, ${fatoresDeCorreção[1998]}),
+                                    (2000, ${fatoresDeCorreção[2000]}),
+                                    (2002, ${fatoresDeCorreção[2002]}),
+                                    (2004, ${fatoresDeCorreção[2004]}),
+                                    (2006, ${fatoresDeCorreção[2006]}),
+                                    (2008, ${fatoresDeCorreção[2008]}),
+                                    (2010, ${fatoresDeCorreção[2010]}),
+                                    (2012, ${fatoresDeCorreção[2012]}),
+                                    (2014, ${fatoresDeCorreção[2014]}),
+                                    (2016, ${fatoresDeCorreção[2016]}),
+                                    (2018, ${fatoresDeCorreção[2018]}),
+                                    (2020, ${fatoresDeCorreção[2020]}),
+                                    (2022, ${fatoresDeCorreção[2022]})
+                            ) AS fator(ano, valor)
+                        ) AS fator ON e.ano_eleicao = fator.ano
                     `
 
         let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
-        let subqueryGroupBy = " GROUP BY ue.id, doacoes_candidato_eleicoes.valor, ue.nome, ue.codigo_ibge"
+        let subqueryGroupBy = " GROUP BY ue.id, total, ue.nome, ue.codigo_ibge"
 
         const replacements = { elecionIds }
 
@@ -980,7 +1024,7 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
                 select += ", subquery.nome_unidade_eleitoral,  subquery.codigo_ibge"
             } else {
                 subquerySelect += ", ue.nome AS nome_unidade_eleitoral, ue.codigo_ibge"
-                subqueryGroupBy = " GROUP BY ue.id, doacoes_candidato_eleicoes.valor, ue.nome, ue.codigo_ibge"
+                subqueryGroupBy = " GROUP BY ue.id, total, ue.nome, ue.codigo_ibge"
                 select += ", subquery.nome_unidade_eleitoral, subquery.codigo_ibge"
             }
 
@@ -993,7 +1037,7 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
                 select += ", subquery.sigla_unidade_federacao"
             } else {
                 subquerySelect += ", ue.sigla_unidade_federacao"
-                subqueryGroupBy = " GROUP BY ue.sigla_unidade_federacao, doacoes_candidato_eleicoes.valor"
+                subqueryGroupBy = " GROUP BY ue.sigla_unidade_federacao, total"
                 select += ", subquery.sigla_unidade_federacao"
             }
         }
