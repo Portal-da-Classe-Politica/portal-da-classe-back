@@ -5,6 +5,7 @@ const { validateParams, validateParams2 } = require("../utils/validators")
 const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
+const ipcaUtil = require("../utils/ipca")
 
 const possibilitiesByDimension = {
     0: "Volume total de financiamento",
@@ -28,8 +29,12 @@ const getFinanceKPIs = async (req, res) => {
         if (resp && resp.length){
             const finalYearId = elections.find((e) => e.ano_eleicao === parseInt(finalYear)).id
             const initialYearId = elections.find((e) => e.ano_eleicao === parseInt(initialYear)).id
-            const lastYearResult = resp.find((r) => r.eleicao_id === finalYearId)
-            const initialYearResult = resp.find((r) => r.eleicao_id === initialYearId)
+            let lastYearResult = resp.find((r) => r.eleicao_id === finalYearId)
+            let initialYearResult = resp.find((r) => r.eleicao_id === initialYearId)
+            if (dimension !== 1){
+                lastYearResult.resultado = ipcaUtil.atualizarValor(lastYearResult.resultado, finalYear)
+                initialYearResult.resultado = ipcaUtil.atualizarValor(initialYearResult.resultado, initialYear)
+            }
             data = {
                 absolute_variation: `${(lastYearResult.resultado - initialYearResult.resultado).toFixed(2)}`,
                 percentage_variation: `${((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)}%`,
@@ -69,7 +74,9 @@ const getFinanceByYear = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getFinanceCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
-        const parsedData = parseDataToLineChart(resp, "Total", "Anos", possibilitiesByDimension[dimension], "Financiamento Série Histórica", "float")
+        const typeOfData = dimension === 1 ? "integer" : "float"
+
+        const parsedData = parseDataToLineChart(resp, "Total", "Anos", possibilitiesByDimension[dimension], "Financiamento Série Histórica", typeOfData)
 
         return res.json({
             success: true,

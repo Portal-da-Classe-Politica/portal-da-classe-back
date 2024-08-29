@@ -1,3 +1,5 @@
+const ipcaUtil = require("./ipca")
+
 function parseDataToDonutChart(data, nameKey, valueKey, title) {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
@@ -47,11 +49,14 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, d
     const seriesData = {
         name: seriesName || "Total", // Use provided name or default to 'Total'
         data: data.map((item) => {
+            const anoDoacao = item.ano
+            const valorOriginal = parseFloat(item.total)
+            const valorAtualizado = atualizarValor(valorOriginal, anoDoacao)
             if (dataType === "integer") {
                 return parseInt(item.total)
             }
-            return Number(Number(item.total).toFixed(2))
-        }), // Convert total to number
+            return Number(valorAtualizado.toFixed(2))
+        }),
     }
 
     return {
