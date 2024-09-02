@@ -1,3 +1,5 @@
+const CategoriaSvc = require("../services/CategoriaSvc")
+
 const availableYearsByOrigin = {
     "candidates": { initialYear: 1998, finalYear: 2022 },
     "donations": { initialYear: 2002, finalYear: 2022 },
