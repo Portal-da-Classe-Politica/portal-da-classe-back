@@ -581,6 +581,55 @@ const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds,
     }
 }
 
+const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+        let finder = {
+            where: {
+                eleicao_id: { [Sequelize.Op.in]: elecionIds },
+            },
+            include: [
+                {
+                    model: CandidatoModel,
+                    attributes: [],
+                },
+                {
+                    model: EleicaoModel,
+                    attributes: [],
+                },
+                {
+                    model: SituacaoTurnoModel,
+                    required: true, // INNER JOIN
+                    attributes: ["foi_eleito"],
+                }
+            ],
+            attributes: [
+                [Sequelize.col("eleicao.ano_eleicao"), "ano"],
+            ],
+            group: [
+                "ano",
+                "situacao_turno.foi_eleito"
+            ],
+            raw: true,
+        }
+
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+
+        parseByDimension(finder, dimension)
+
+        const candidateElection = await CandidatoEleicaoModel.findAll(finder)
+
+        if (!candidateElection) {
+            throw new Error("Resultado não encontrado")
+        }
+
+        return candidateElection
+    } catch (error) {
+        console.error("Error getCandidatesByYear:", error)
+        throw error
+    }
+}
+
+
 // TODO: mandar as 3 para o gráfico de barrra
 const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
@@ -957,7 +1006,7 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
         let select = `SELECT              
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana
     `
-        if (dimension === 1){
+        if (dimension === 1) {
             select = `SELECT              
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS total_doacoes
         `
@@ -1099,4 +1148,5 @@ module.exports = {
     getCandidatesByYear,
     getCandidatesByOccupation,
     getCandidatesProfileKPIs,
+    getCompetitionByYear
 }
