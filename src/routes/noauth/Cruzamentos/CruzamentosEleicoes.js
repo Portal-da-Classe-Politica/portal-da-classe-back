@@ -6,7 +6,7 @@ router.get("/kpis/", EleicoesController.getEleicoesKpis)
 
 router.get("/competition-by-year/", EleicoesController.getCompetitionByYear)
 
-// router.get("/by-party/", CruzamentosController.getFinanceMedianByParty)
+router.get("/top-candidates/", EleicoesController.getTopCandidates)
 
 // router.get("/by-location/", CruzamentosController.getFinanceMedianByLocation)
 

@@ -111,9 +111,38 @@ const getCompetitionByYear = async (req, res) => {
     }
 }
 
+const getTopCandidates = async (req, res) => {
+    try {
+        let {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit
+        } = await validateParams(req.query, "elections")
+
+        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const electionsIds = elections.map((i) => i.id)
+
+        const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
+
+        const data = parseDataToBarChart(resp, title='Candidatos mais votados', seriesNames="Candidatos", itemKey='nome', totalKey="mediana")
+     
+        return res.json({
+            success: true,
+            data,
+            message: "Dados buscados com sucesso.",
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar getTopCandidates",
+        })
+    }
+}
 
 
 module.exports = {
     getEleicoesKpis,
-    getCompetitionByYear
+    getCompetitionByYear,
+    getTopCandidates
 }

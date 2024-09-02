@@ -73,40 +73,47 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, d
     }
 }
 
-function parseDataToBarChart(data, title, seriesName) {
+function parseDataToBarChart(data, title, seriesName, itemKey = "categoria_ocupacao", totalKey = "total", topX = 100) {
     // Parse totals to numbers and sort descending
-    data.sort((a, b) => parseInt(b.total) - parseInt(a.total))
+    data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
 
     // Calculate total votes
-    const totalVotes = data.reduce((sum, item) => sum + parseInt(item.total), 0)
+    const totalVotes = data.reduce((sum, item) => sum + parseInt(item[totalKey]), 0)
 
     // Calculate top 20%
     const top20PercentIndex = Math.ceil(data.length * 0.2) // Get the index for top 20%
-    const top20PercentTotal = data.slice(0, top20PercentIndex).reduce((sum, item) => sum + parseInt(item.total), 0)
+    const top20PercentTotal = data.slice(0, top20PercentIndex).reduce((sum, item) => sum + parseInt(item[totalKey]), 0)
 
     // Calculate the percentage of total votes represented by the top 20%
     const top20PercentPercentage = (top20PercentTotal / totalVotes) * 100
 
     // Extract top 100 categories and combine the rest into "Outros"
-    const top100 = data.slice(0, 100)
+    const top100 = data.slice(0, topX)
     // const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
     const finalData = [...top100,
         // { categoria_ocupacao: "Outras ocupações", total: outrosTotal }
     ]
 
     // Calculate percentage increase (first to second)
-    const percentageIncrease = ((data[0].total - data[1].total) / data[1].total) * 100
+    const percentageIncrease = ((data[0][totalKey] - data[1][totalKey]) / data[1][totalKey]) * 100
 
     // Format the output for the chart
     const output = {
         type: "bar",
         title,
         seriesName,
-        series: finalData.map((item) => ({ name: item.categoria_ocupacao, value: item.total })),
+        series: finalData.map((item) => ({ name: item[itemKey], value: item[totalKey] })),
 
     }
 
     if (title == "Distribuição do total por categoria de ocupação") {
+        output.extraData = {
+            bigNumbers: [
+                { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
+                { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" }, // Add top 20% big number
+            ],
+        }
+    } else if (title == "Candidatos mais votados") {
         output.extraData = {
             bigNumbers: [
                 { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
