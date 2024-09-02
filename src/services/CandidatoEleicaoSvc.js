@@ -612,7 +612,7 @@ const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds
             raw: true,
         }
 
-        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        finder = parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds=ocupacoesIds, cargosIds)
 
         parseByDimension(finder, dimension)
 
@@ -874,7 +874,7 @@ const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitor
 
         parseDimensionFinance(finder, dimension)
 
-        console.log(finder.include[0])
+        // console.log(finder.include[0])
 
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 

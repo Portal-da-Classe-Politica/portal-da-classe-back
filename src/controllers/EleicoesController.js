@@ -5,7 +5,6 @@ const { validateParams, validateParams2 } = require("../utils/validators")
 const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
-const ipcaUtil = require("../utils/ipca")
 
 const possibilitiesByDimension = {
     0: "Quantidade de candidatos",
@@ -31,7 +30,7 @@ const getEleicoesKpis = async (req, res) => {
             const initialYearTotal = resp.find((e) => e.ano === parseInt(initialYear)).total
             const resp_eleitos_total = resp_eleitos.find((e) => e.ano === parseInt(finalYear)).total
             const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear)).total
-            console.log({finalYear, finalYearTotal, resp})
+            // console.log({finalYear, finalYearTotal, resp})
 
             data = {
                 absolute_variation: `${(finalYearTotal - initialYearTotal)}`,
@@ -59,13 +58,13 @@ const getCompetitionByYear = async (req, res) => {
     
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, partidos, ocupacoesIds, cargosIds,
-        } = await validateParams(req.query, "candidates")
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+        } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getCompetitionByYear(electionsIds, dimension, unidadesEleitoraisIds, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getCompetitionByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
         const transformedData = resp.reduce((acc, curr) => {
             const year = curr.ano;
