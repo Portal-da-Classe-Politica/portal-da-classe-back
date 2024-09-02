@@ -39,21 +39,23 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
     }
 }
 
-function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, dataType = "integer") {
+function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, dataType = "integer", xAxisKey = "ano", yAxisKey = "total") {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
     }
 
-    const xAxisValues = data.map((item) => item.ano)
+    const xAxisValues = data.map((item) => item[xAxisKey])
 
     const seriesData = {
         name: seriesName || "Total", // Use provided name or default to 'Total'
         data: data.map((item) => {
-            const anoDoacao = item.ano
-            const valorOriginal = parseFloat(item.total)
-            const valorAtualizado = atualizarValor(valorOriginal, anoDoacao)
+            const anoDoacao = item[xAxisKey]
+            const valorOriginal = parseFloat(item[yAxisKey])
+            const valorAtualizado = ipcaUtil.atualizarValor(valorOriginal, anoDoacao)
             if (dataType === "integer") {
-                return parseInt(item.total)
+                return parseInt(item[yAxisKey])
+            } else if (dataType === "float") {
+                return Number(item[yAxisKey]).toFixed(2)
             }
             return Number(valorAtualizado.toFixed(2))
         }),

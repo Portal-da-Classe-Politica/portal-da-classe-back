@@ -19,13 +19,13 @@ const getEleicoesKpis = async (req, res) => {
 
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
-        
+
         const resp = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
         const resp_eleitos = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds)
         const resp_cands = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds)
 
         let data
-        if (resp && resp.length){
+        if (resp && resp.length) {
             const finalYearTotal = resp.find((e) => e.ano === parseInt(finalYear)).total
             const initialYearTotal = resp.find((e) => e.ano === parseInt(initialYear)).total
             const resp_eleitos_total = resp_eleitos.find((e) => e.ano === parseInt(finalYear)).total
@@ -35,7 +35,7 @@ const getEleicoesKpis = async (req, res) => {
             data = {
                 absolute_variation: `${(finalYearTotal - initialYearTotal)}`,
                 percentage_variation: `${((finalYearTotal / initialYearTotal - 1) * 100).toFixed(2)}%`,
-                competition : `${(resp_cands_total / resp_eleitos_total ).toFixed(2)}`
+                competition: `${(resp_cands_total / resp_eleitos_total).toFixed(2)}`
             }
         }
 
@@ -55,7 +55,7 @@ const getEleicoesKpis = async (req, res) => {
     }
 }
 const getCompetitionByYear = async (req, res) => {
-    
+
     try {
         let {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
@@ -70,13 +70,13 @@ const getCompetitionByYear = async (req, res) => {
             const year = curr.ano;
             const total = parseInt(curr.total);
             const wasElected = curr["situacao_turno.foi_eleito"];
-        
+
             if (!acc[year]) {
                 acc[year] = { true: 0, false: 0 };
             }
-        
+
             acc[year][wasElected] += total;
-        
+
             return acc;
         }, {});
 
@@ -85,10 +85,19 @@ const getCompetitionByYear = async (req, res) => {
             competition: (totals.false / totals.true).toFixed(2)
         }));
 
+        const parsedData = parseDataToLineChart(result,
+            "Total",
+            "Anos",
+            "Candidatos por Eleito",
+            "Competição - histórico",
+            dataType = 'float',
+            xAxisKey = "year",
+            yAxisKey = 'competition')
+
 
         return res.json({
             success: true,
-            result,
+            parsedData,
             message: "Dados buscados com sucesso.",
 
         })
