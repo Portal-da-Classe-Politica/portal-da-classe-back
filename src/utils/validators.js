@@ -1,6 +1,9 @@
+const CategoriaSvc = require("../services/CategoriaSvc")
+
 const availableYearsByOrigin = {
     "candidates": { initialYear: 1998, finalYear: 2022 },
     "donations": { initialYear: 2002, finalYear: 2022 },
+    "elections": { initialYear: 1998, finalYear: 2022 },
 
 }
 
@@ -67,6 +70,10 @@ const validateDimensionByOrigin = async (origin, dimension) => {
     } else if (origin === "donations") {
         if (dimension < 0 || dimension > 4) {
             throw new Error(`ERRO: Dimension ${origin} deve ser entre 0 e 4.`)
+        }
+    } else if (origin === "elections") {
+        if (dimension < 0 || dimension > 4) {
+            throw new Error(`ERRO: Dimension ${origin} deve ser entre 0 ou 1.`)
         }
     }
 }
