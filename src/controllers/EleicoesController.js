@@ -54,6 +54,7 @@ const getEleicoesKpis = async (req, res) => {
         })
     }
 }
+
 const getCompetitionByYear = async (req, res) => {
 
     try {
@@ -140,9 +141,53 @@ const getTopCandidates = async (req, res) => {
     }
 }
 
+const getVotesByLocation = async(req, res) => {
+    try {
+        let {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+        } = await validateParams2(req.query, "donations")
+
+        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const electionsIds = elections.map((i) => i.id)
+
+        let electoralUnits = []
+
+        if (UF && UF.length){
+            // vai pegar apenas as cidades dos estados enviados
+            const electoralUnitsResp = await UnidadeEleitoralService.getAllElectoralUnitsByArrayOfUFs(UF)
+            if (!electoralUnitsResp.length){
+                return res.status(400).json({
+                    success: false,
+                    data: {},
+                    message: "UF não encontrada",
+                })
+            }
+            electoralUnits = electoralUnitsResp.map((i) => i.id)
+        }
+
+        const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds)
+
+        return res.json({
+            success: true,
+            data: resp,
+            message: "Dados buscados com sucesso.",
+
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar cruzamento de financiamento por partido",
+        })
+    }
+
+}
+
 
 module.exports = {
     getEleicoesKpis,
     getCompetitionByYear,
-    getTopCandidates
+    getTopCandidates,
+    getVotesByLocation
 }

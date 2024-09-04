@@ -1205,6 +1205,82 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
     }
 }
 
+const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    try {
+
+        // Base da subquery
+        let subquerySelect = `select ce.eleicao_id, ue.sigla_unidade_federacao, `
+        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao"
+        let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
+
+        const replacements = { elecionIds }
+
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            subquerySelect += "ue.id, ue.nome, ue.codigo_ibge, "
+            subqueryGroupBy += ", ue.id, ue.nome, ue.codigo_ibge"
+            subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        }
+
+        subquerySelect += "SUM(vcm.quantidade_votos) AS total "
+
+
+        let subqueryFrom = ` FROM candidato_eleicaos ce
+            JOIN eleicaos e ON ce.eleicao_id = e.id
+            JOIN unidade_eleitorals ue ON ce.unidade_eleitoral_id = ue.id
+            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+            JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+        `
+
+        if (isElected && isElected > 0) {
+            subqueryWhere += " AND st.foi_eleito = (:isElected)"
+            replacements.isElected = (Number(isElected) === 1)
+        }
+
+        if (partidos && partidos.length > 0) {
+            subqueryWhere += " AND ce.partido_id IN (:partidos)"
+            replacements.partidos = partidos
+        }
+
+        if (cargosIds && cargosIds.length > 0) {
+            subqueryWhere += " AND ce.cargo_id IN (:cargosIds)"
+            replacements.cargosIds = cargosIds
+        }
+
+        if (ocupacoesIds && ocupacoesIds.length > 0) {
+            subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)"
+            replacements.ocupacoesIds = ocupacoesIds
+        }
+
+        // Montagem final da subquery e da query principal
+        let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
+        let sqlQuery
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            sqlQuery = `SELECT 
+            subquery.nome AS nome_unidade_eleitoral,
+            subquery.codigo_ibge,
+            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana` + 
+            ` FROM (${subquery}) AS subquery GROUP BY subquery.nome, subquery.codigo_ibge`
+        } else {
+            sqlQuery = `SELECT 
+            subquery.sigla_unidade_federacao,
+            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana` + 
+            ` FROM (${subquery}) AS subquery GROUP BY subquery.sigla_unidade_federacao`
+        }
+
+        // Executa a consulta
+        const results = await sequelize.query(sqlQuery, {
+            replacements, // Substitui os placeholders
+            type: Sequelize.QueryTypes.SELECT, // Define como SELECT
+        })
+
+        return results
+    } catch (error) {
+        console.error("Error getFinanceMedianCandidatesByLocation:", error)
+        throw error
+    }
+}
+
 module.exports = {
     getFinanceMedianCandidatesByLocation,
     getFinanceMedianCandidatesByParty,
@@ -1221,5 +1297,6 @@ module.exports = {
     getCandidatesByOccupation,
     getCandidatesProfileKPIs,
     getCompetitionByYear,
-    getTopCandidatesByVotes
+    getTopCandidatesByVotes,
+    getVotesMedianCandidatesByLocation
 }
