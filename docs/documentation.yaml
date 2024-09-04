@@ -1204,3 +1204,163 @@ paths:
         '200':
           description: Resposta bem-sucedida .
         
+   /noauth/elections/kpis:
+    get:
+      operationId: "18"  # New operation ID
+      tags:
+        - eleições
+      summary: KPIs para a página de eleições
+      description: Retorna os KPIs relacionados às eleições.
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os KPIs das eleições.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "KPIs das eleições encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  /noauth/cruzamentos/elections/competition-by-year:
+    get:
+      operationId: "19"  # New operation ID
+      tags:
+        - eleições
+      summary: Competição por ano nas eleições
+      description: Retorna dados de competição por ano nas eleições.
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os dados de competição por ano.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Dados de competição por ano encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /noauth/cruzamentos/elections/top-candidates:
+    get:
+      operationId: "20"  # New operation ID
+      tags:
+        - eleições
+      summary: Principais candidatos nas eleições
+      description: Retorna os principais candidatos nas eleições.
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os principais candidatos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Principais candidatos encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /noauth/cruzamentos/elections/by-location:
+    get:
+      operationId: "21"  # New operation ID
+      tags:
+        - eleições
+      summary: Votos por localização nas eleições
+      description: Retorna os votos por localização nas eleições.
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: UF
+          schema:
+            type: string
+          required: false
+          description: Filtra por Unidade Federativa (UF). Exemplo: RS
+          example: "RS"
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os votos por localização.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Votos por localização encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
