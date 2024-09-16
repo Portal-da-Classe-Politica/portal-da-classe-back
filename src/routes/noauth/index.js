@@ -13,4 +13,7 @@ router.use("/electoral-unit", UnidadeEleitoral)
 const Cruzamentos = require("./Cruzamentos/index")
 router.use("/cruzamentos", Cruzamentos)
 
+const Indicadores = require("./Indicadores")
+router.use("/indicadores", Indicadores)
+
 module.exports = router
