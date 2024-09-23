@@ -52,12 +52,14 @@ const cargosGlossary = {
 
 const indicatorsPossibilities = {
     "1": {
+        "id": '1',
         "nome": "Número Efetivo de Partidos (Legislativo)",
         "grupo": "eleitoral",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador],
         // vereador, deputado estadual, deputado federal, senador
     },
     "2": {
+        "id": "2",
         "nome": "Índice de Volatilidade Eleitoral (Pedersen)",
         "grupo": "eleitoral",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente],
@@ -65,31 +67,36 @@ const indicatorsPossibilities = {
 
     },
     "3": {
+        "id": "3",
         "nome": "Quociente Eleitoral",
         "grupo": "eleitoral",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal],
         // vereador	deputado estadual	deputado federal
     },
     "4": {
+        "id": "4",
         "nome": "Quociente Partidário",
         "grupo": "eleitoral",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal],
         // vereador	deputado estadual	deputado federal
     },
     "5": {
+        "id": "5",
         "nome": "Taxa de Renovação Líquida",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador
     },
     "6": {
+        "id": "6",
         "nome": "Taxa de Reeleição",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
     },
     "7": {
+        "id": "7",
         "nome": "Taxa de Migração Partidária",
         "grupo": "partidário",
         "cargos": [
@@ -99,89 +106,98 @@ const indicatorsPossibilities = {
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "8": {
+        "id": "8",
         "nome": "Índice de Paridade Eleitoral de Gênero",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador],
         // vereador	deputado estadual	deputado federal	senador
     },
     "9": {
+        "id": "9",
         "nome": "Distribuição de Votos por Região",
         "grupo": "geográfico",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "10": {
+        "id": "10",
         "nome": "Índice de Concentração Regional do Voto",
         "grupo": "geográfico",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "11": {
+        "id": "11",
         "nome": "Índice de Dispersão do Voto",
         "grupo": "geográfico",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "12": {
+        "id": "12",
         "nome": "Índice de Eficiência do Voto",
         "grupo": "geográfico",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "13": {
+        "id": "13",
         "nome": "Taxa de Custo por Voto",
         "grupo": "financeiro",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "14": {
+        "id": "14",
         "nome": "Índice de Igualdade de Acesso a Recursos",
         "grupo": "financeiro",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "15": {
+        "id": "15",
         "nome": "Índice de Diversidade Econômica entre Candidatos",
         "grupo": "financeiro",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "16": {
+        "id": "16",
         "nome": "Média e Mediana de Patrimônio da Classe Política",
         "grupo": "financeiro",
         "cargos":
-        [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-        ],
+            [
+                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
 }
