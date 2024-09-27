@@ -9,50 +9,57 @@ const cargosGlossary = {
     "deputado_estadual": {
         name: "DEPUTADO ESTADUAL",
         id: 1,
-        groupBy: "UF",
+        agregacao_regional: ["UF"],
+        filter_by: "UF",
         abrangencia: 1,
     },
     "deputado_federal": {
         name: "DEPUTADO FEDERAL",
         id: 2,
-        groupBy: "UF",
+        agregacao_regional: ["UF", "BR"],
+        filter_by: "UF",
         abrangencia: 1,
     },
     "senador": {
         name: "SENADOR",
         id: 4,
-        groupBy: "UF",
+        agregacao_regional: ["BR"],
+        filter_by: null,
         abrangencia: 1,
     },
     "governador": {
         name: "GOVERNADOR",
         id: 8,
-        groupBy: "UF",
+        agregacao_regional: ["UF"],
+        filter_by: null,
         abrangencia: 1,
     },
     "presidente": {
         name: "PRESIDENTE",
         id: 9,
-        groupBy: "BRASIL",
+        agregacao_regional: ["BR"],
+        filter_by: null,
         abrangencia: 1,
     },
     "vereador": {
         name: "VEREADOR",
         id: 11,
-        groupBy: "MUNICIPIO",
+        agregacao_regional: ["MUNICIPIO"],
+        filter_by: "MUNICIPIO",
         abrangencia: 2,
     },
     "prefeito": {
         name: "PREFEITO",
         id: 12,
-        groupBy: "MUNICIPIO",
+        agregacao_regional: ["UF", "BR"],
+        filter_by: "MUNICIPIO",
         abrangencia: 2,
     },
 }
 
 const indicatorsPossibilities = {
     "1": {
-        "id": '1',
+        "id": "1",
         "nome": "Número Efetivo de Partidos (Legislativo)",
         "grupo": "eleitoral",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador],
@@ -85,7 +92,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Renovação Líquida",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador
     },
     "6": {
@@ -93,7 +100,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Reeleição",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
     },
     "7": {
         "id": "7",

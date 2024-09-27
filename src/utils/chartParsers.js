@@ -39,7 +39,16 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
     }
 }
 
-function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, dataType = "integer", xAxisKey = "ano", yAxisKey = "total") {
+function parseDataToLineChart(
+    data,
+    seriesName,
+    xAxisLabel,
+    yAxisLabel,
+    title,
+    dataType = "integer",
+    xAxisKey = "ano",
+    yAxisKey = "total",
+) {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
     }
@@ -54,7 +63,7 @@ function parseDataToLineChart(data, seriesName, xAxisLabel, yAxisLabel, title, d
             const valorAtualizado = ipcaUtil.atualizarValor(valorOriginal, anoDoacao)
             if (dataType === "integer") {
                 return parseInt(item[yAxisKey])
-            } else if (dataType === "float") {
+            } if (dataType === "float") {
                 return Number(item[yAxisKey]).toFixed(2)
             }
             return Number(valorAtualizado.toFixed(2))

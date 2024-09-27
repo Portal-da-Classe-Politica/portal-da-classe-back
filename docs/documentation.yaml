@@ -18,7 +18,11 @@ tags:
   - name: cruzamentos candidato
     description: Rotas para buscar candidatos      
   - name: cruzamentos financimento
-    description: Rotas para buscar candidatos    
+    description: Rotas para buscar candidatos
+  - name: indicadores carreira
+    description: Rotas para indicadores de carreira e representacao
+  - name: eleições
+    description: eleicoes
 
 paths:
   /noauth/abrangency:
@@ -1168,8 +1172,7 @@ paths:
           schema:
             type: array
           required: false
-          description: só envie caso deseje agregar por municipio, caso for enviar deve ser a string da UF. Exemplo RS.
-          example: "RS"
+          description: só envie caso deseje agregar por municipio, caso for enviar deve ser a string da UF. Exemplo RS.          
         - in: query
           name: isElected
           schema:
@@ -1202,9 +1205,8 @@ paths:
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
       responses:
         '200':
-          description: Resposta bem-sucedida .
-        
-   /noauth/elections/kpis:
+          description: Resposta bem-sucedida .        
+  /noauth/elections/kpis:
     get:
       operationId: "18"  # New operation ID
       tags:
@@ -1344,8 +1346,7 @@ paths:
           schema:
             type: string
           required: false
-          description: Filtra por Unidade Federativa (UF). Exemplo: RS
-          example: "RS"
+          description: Filtra por Unidade Federativa (UF)       
       responses:
         '200':
           description: Resposta bem-sucedida com os votos por localização.
@@ -1360,6 +1361,131 @@ paths:
                   message:
                     type: string
                     example: "Votos por localização encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /noauth/indicadores/partidarios:
+    get:
+      operationId: "22"  # New operation ID
+      tags:
+        - indicadores carreira
+      summary: Indicadores possiveis de carreira e representacao
+      description: Retorna todos indicadores possiveis para o grupo de carreira e representacao
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os indicadores possiveis.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Indicadores encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /noauth/indicadores/partidarios/5:
+    get:
+      operationId: "23"  # New operation ID
+      tags:
+        - indicadores carreira
+      summary: Indicadores Taxa de Renovação Líquida
+      description: Leva em consideração todos os candidatos que se reapresentaram para a reeleição, tanto os derrotados, quanto os reeleitos que obtiveram êxitos no seu pleito
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: false
+          description: cargo desejado
+        - in: query
+          name: unidadesEleitorais
+          schema:
+            type: array
+          required: false
+          description: Ids das unidades eleitorais desejadas
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os indicadores possiveis.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Indicadores encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /noauth/indicadores/partidarios/6:
+    get:
+      operationId: "24"  # New operation ID
+      tags:
+        - indicadores carreira
+      summary: Indicadores Taxa de Renovação Bruta
+      description: Leva em consideração todos os candidatos que se reapresentaram para a reeleição, tanto os derrotados, quanto os reeleitos que obtiveram êxitos no seu pleito
+      parameters:
+        - in: query
+          name: initialYear
+          schema:
+            type: integer
+          required: true
+          description: Ano inicial do intervalo.
+        - in: query
+          name: finalYear
+          schema:
+            type: integer
+          required: true
+          description: Ano final do intervalo.
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: false
+          description: cargo desejado
+        - in: query
+          name: unidadesEleitorais
+          schema:
+            type: array
+          required: false
+          description: Ids das unidades eleitorais desejadas
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os indicadores possiveis.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Indicadores encontrados com sucesso."
                   data:
                     type: array
                     items:
