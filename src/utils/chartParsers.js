@@ -82,7 +82,14 @@ function parseDataToLineChart(
     }
 }
 
-function parseDataToBarChart(data, title, seriesName, itemKey = "categoria_ocupacao", totalKey = "total", topX = 100) {
+function parseDataToBarChart(
+    data,
+    title,
+    seriesName,
+    itemKey = "categoria_ocupacao",
+    totalKey = "total",
+    topX = 100,
+) {
     // Parse totals to numbers and sort descending
     data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
 
@@ -98,6 +105,7 @@ function parseDataToBarChart(data, title, seriesName, itemKey = "categoria_ocupa
 
     // Extract top 100 categories and combine the rest into "Outros"
     const top100 = data.slice(0, topX)
+    console.log({ top100 })
     // const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
     const finalData = [...top100,
         // { categoria_ocupacao: "Outras ocupações", total: outrosTotal }
@@ -149,9 +157,158 @@ const parseFinanceDataToBarChart = (data, title, seriesName) => {
     return output
 }
 
+function parseDataToBarChart2(
+    data,
+    title,
+    seriesName,
+    itemKey = "categoria_ocupacao",
+    totalKey = "total",
+){
+    // Parse totals to numbers and sort descending
+    data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
+
+    // Format the output for the chart
+    const output = {
+        type: "bar",
+        title,
+        seriesName,
+        series: data.map((item) => ({ name: item[itemKey], value: item[totalKey] })),
+
+    }
+
+    return output
+}
+
+/**
+ * Gera um grafico de linhas onde podemos agrupamos conjuntos de dados em categorias
+ * @example agrupa resultados de partidos em anos diferentes para uma linha
+ * @param {*} data
+ * @param {*} xField
+ * @param {*} yField
+ * @param {*} categoryField
+ * @param {*} title
+ * @param {*} xAxisLabel
+ * @param {*} yAxisLabel
+ * @param {*} type
+ * @returns
+ */
+const generateLineChartData = (
+    data,
+    xField,
+    yField,
+    categoryField,
+    title,
+    xAxisLabel,
+    yAxisLabel,
+    type = "integer",
+) => {
+    // Extraindo valores únicos do eixo X (Exemplo: anos)
+    const xAxisValues = [...new Set(data.map((item) => item[xField]))]
+
+    // Organizando os dados por categoria (Exemplo: partido)
+    const groupedByCategory = data.reduce((acc, curr) => {
+        if (!acc[curr[categoryField]]) {
+            acc[curr[categoryField]] = {}
+        }
+        acc[curr[categoryField]][curr[xField]] = curr[yField]
+        return acc
+    }, {})
+
+    // Criando as séries de dados
+    const seriesData = Object.keys(groupedByCategory).map((category) => {
+        return {
+            name: category,
+            data: xAxisValues.map((xValue) => groupedByCategory[category][xValue] || 0), // Preencher valores faltantes com 0
+        }
+    })
+
+    // Estrutura do gráfico a ser retornada
+    return {
+        type: "line",
+        title: title || "", // Título fornecido ou vazio
+        xAxis: xAxisValues, // Valores do eixo X (exemplo: anos)
+        series: seriesData, // Dados da série
+        extraData: {
+            xAxisLabel: xAxisLabel || "", // Rótulo do eixo X
+            yAxisLabel: yAxisLabel || "", // Rótulo do eixo Y
+        },
+    }
+}
+
+/**
+ *
+ * @param {*} data
+ * @param {*} xField
+ * @param {*} yField
+ * @param {*} categoryField
+ * @param {*} title
+ * @param {*} xAxisLabel
+ * @param {*} yAxisLabel
+ * @param {*} type
+ * @returns
+ */
+const generateLineChartDataForMultipleLines = (
+    data,
+    xField,
+    title,
+    xAxisLabel,
+    yAxisLabel,
+    type = "integer",
+) => {
+    // Extraindo valores únicos do eixo X (Exemplo: anos)
+    const xAxisValues = [...new Set(data.map((item) => item[xField]))]
+
+    // Organizando os dados por categoria (Exemplo: Média, Mediana, Tendência, Total Patrimônio)
+    const seriesData = [
+        {
+            name: "Média do Patrimônio",
+            data: xAxisValues.map((xValue) => {
+                const item = data.find((d) => d[xField] === xValue)
+                return item ? item.media : 0
+            }),
+        },
+        {
+            name: "Mediana do Patrimônio",
+            data: xAxisValues.map((xValue) => {
+                const item = data.find((d) => d[xField] === xValue)
+                return item ? item.mediana : 0
+            }),
+        },
+        {
+            name: "Linha de Tendência",
+            data: xAxisValues.map((xValue) => {
+                const item = data.find((d) => d[xField] === xValue)
+                return item ? item.tendencia : 0
+            }),
+        },
+        {
+            name: "Valor Total do Patrimônio",
+            data: xAxisValues.map((xValue) => {
+                const item = data.find((d) => d[xField] === xValue)
+                return item ? item.total_patrimonio : 0
+            }),
+        },
+    ]
+
+    // Estrutura do gráfico a ser retornada
+    return {
+        type: "line",
+        title: title || "", // Título fornecido ou vazio
+        xAxis: xAxisValues, // Valores do eixo X (exemplo: anos)
+        series: seriesData, // Dados da série
+        extraData: {
+            xAxisLabel: xAxisLabel || "", // Rótulo do eixo X
+            yAxisLabel: yAxisLabel || "", // Rótulo do eixo Y
+        },
+    }
+}
+
 module.exports = {
     parseFinanceDataToBarChart,
     parseDataToDonutChart,
     parseDataToLineChart,
     parseDataToBarChart,
+    parseDataToBarChart2,
+    generateLineChartData,
+    generateLineChartDataForMultipleLines,
 }

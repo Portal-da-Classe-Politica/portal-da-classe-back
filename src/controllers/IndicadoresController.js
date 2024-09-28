@@ -109,11 +109,19 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         // TCP é o tempo de carreira política do candidato (em anos)
         return // JOCA TODO
     case 8:
-        // Índice de Paridade Eleitoral de Gênero
-        // IPEG = (PME / PCM) * 100
-        // PME é a proporção de mulheres eleitas (nº de mulheres eleitas pelo nº total de eleitos)
-        // PCM é proporção de candidatas mulheres (nº de candidatas mulheres pelo nº total de candidatos)
-        return // JOCA TODO
+        const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        // Gráfico de linhas:
+        // Eixo X: Tempo (por ano ou eleição)
+        // Eixo Y: Índice de Paridade Eleitoral de Gênero
+        //console.log({ dataIPEG })
+        return chartsUtil.parseDataToBarChart2(
+            dataIPEG, // data
+            "Índice de Paridade Eleitoral de Gênero", // ttile
+            "Ano", // seriesName
+            "ano", // itemKey
+            "total", // totalKey
+        )
+
     case 9:
         return //  acacio TODO
     case 10:
@@ -123,17 +131,38 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 12:
         return //  acacio TODO
     case 13:
-        // Taxa de Custo por Voto
-        // TCV = (C / V)
-        // C é o custo da campanha
-        // V é o número de votos obtidos
-        return // JOCA TODO
+        const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        // Gráfico de Linhas:
+        // Eixo X: Tempo (por ano, eleição)
+        // Eixo Y: Taxa de Custo por Voto
+        // Linhas: partido
+        return chartsUtil.generateLineChartData(
+            dataCustoVoto, // data
+            "ano", // xAxisLabel
+            "TCV", // yAxisLabel
+            "partido", // Campo categórico (Exemplo: 'partido')
+            "Taxa de Custo por Voto", // Título do gráfico
+            "Ano", /// / Rótulo do eixo X
+            "TCV (Taxa de Custo por Voto)", // Rótulo do eixo Y
+            "float", // type
+        )
+
     case 14:
-        // Índice de Igualdade de Acesso a Recursos
-        // IEAR = (R / A)
-        // R é a variância dos recursos disponíveis entre os candidatos
-        // R é a média dos recursos disponíveis entre os candidatos
-        return // JOCA TODO
+        // Gráfico de Linhas:
+        // Eixo X: Tempo (por ano, eleição)
+        // Eixo Y: Índice de Igualdade de Acesso a Recursos
+        const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataIEAR,
+            "Índice de Igualdade de Acesso a Recursos",
+            "Ano",
+            "Índice de Igualdade de Acesso a Recursos",
+            "Índice de Igualdade de Acesso a Recursos",
+            "float",
+            "ano",
+            "IEAR",
+        )
+
     case 15:
         // Índice de Diversidade Econômica entre Candidatos
         // HHI = ∑(Si)^2
@@ -143,7 +172,16 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 16:
         // Média e Mediana de Patrimônio da Classe Política
         // Média e mediana dos patrimônios declarados pelos candidatos
-        return // JOCA TODO
+        const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+
+        return chartsUtil.generateLineChartDataForMultipleLines(
+            dataPatrimonio, // data
+            "ano", // xAxisLabel
+            "Média e Mediana de Patrimônio da Classe Política",
+            "Ano",
+            "Valor (R$)",
+            "float", // type
+        )
     default:
         return null
     }
