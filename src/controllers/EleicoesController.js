@@ -98,7 +98,7 @@ const getCompetitionByYear = async (req, res) => {
 
         return res.json({
             success: true,
-            parsedData,
+            data: parsedData,
             message: "Dados buscados com sucesso.",
 
         })
