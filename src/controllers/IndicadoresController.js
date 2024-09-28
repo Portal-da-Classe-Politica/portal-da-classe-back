@@ -71,10 +71,19 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 1:
         return IndicatorsSvc.getNEPP(cargoId, initialYear, finalYear)
     case 2:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 3:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 4:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 5:
         // Gráfico de linhas:
@@ -102,6 +111,10 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             "Taxa de Reeleição",
             "float",
         )
+        /**
+         * @AcacioTelechi
+         * Taxa de Migração Partidária teria que passar um determinado candidato e isso não esta previsto nos filtros
+         */
     case 7:
         // Taxa de Migração Partidária
         // TMP = (NMP / TCP)
@@ -113,7 +126,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         // Gráfico de linhas:
         // Eixo X: Tempo (por ano ou eleição)
         // Eixo Y: Índice de Paridade Eleitoral de Gênero
-        //console.log({ dataIPEG })
+        // console.log({ dataIPEG })
         return chartsUtil.parseDataToBarChart2(
             dataIPEG, // data
             "Índice de Paridade Eleitoral de Gênero", // ttile
@@ -123,12 +136,24 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
 
     case 9:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 10:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 11:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 12:
+        /**
+         * @AcacioTelechi Todo
+         */
         return //  acacio TODO
     case 13:
         const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
@@ -163,6 +188,10 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             "IEAR",
         )
 
+        /**
+         * @AcacioTelechi
+         * Índice de Diversidade Econômica entre Candidatos teria que passar um determinado candidato e isso não esta previsto nos filtros
+         */
     case 15:
         // Índice de Diversidade Econômica entre Candidatos
         // HHI = ∑(Si)^2
