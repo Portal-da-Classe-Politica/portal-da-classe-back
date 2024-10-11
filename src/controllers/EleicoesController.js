@@ -24,7 +24,11 @@ const getEleicoesKpis = async (req, res) => {
         const resp_eleitos = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds)
         const resp_cands = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds)
 
-        let data
+        let data = {
+            absolute_variation: 0,
+            percentage_variation: 0,
+            competition: 0,
+        }
         if (resp && resp.length) {
             const finalYearTotal = resp.find((e) => e.ano === parseInt(finalYear)).total
             const initialYearTotal = resp.find((e) => e.ano === parseInt(initialYear)).total
@@ -120,11 +124,13 @@ const getTopCandidates = async (req, res) => {
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
-
+        
         const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
+        
+        console.log('TESTEEE', {resp})
+        const data = parseDataToBarChart(resp, title = 'Candidatos mais votados', seriesNames = "Candidatos", itemKey = 'nome', totalKey = "mediana")
 
-        const data = parseDataToBarChart(resp, title='Candidatos mais votados', seriesNames="Candidatos", itemKey='nome', totalKey="mediana")
-     
+        console.log('TESTEEE', {resp, data})
         return res.json({
             success: true,
             data,
@@ -141,21 +147,21 @@ const getTopCandidates = async (req, res) => {
     }
 }
 
-const getVotesByLocation = async(req, res) => {
+const getVotesByLocation = async (req, res) => {
     try {
         let {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
-        } = await validateParams2(req.query, "donations")
+        } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
         let electoralUnits = []
 
-        if (UF && UF.length){
+        if (UF && UF.length) {
             // vai pegar apenas as cidades dos estados enviados
             const electoralUnitsResp = await UnidadeEleitoralService.getAllElectoralUnitsByArrayOfUFs(UF)
-            if (!electoralUnitsResp.length){
+            if (!electoralUnitsResp.length) {
                 return res.status(400).json({
                     success: false,
                     data: {},

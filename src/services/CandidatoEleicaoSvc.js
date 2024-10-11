@@ -634,73 +634,77 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
         SELECT 
             subquery.candidato_id,
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total_votos) AS mediana
-    `
+    `;
 
     let subquerySelect = `SELECT
-    ce.eleicao_id,
-    ce.candidato_id, 
-    SUM(vcm.quantidade_votos) as "total_votos" `                  
+        ce.eleicao_id,
+        ce.candidato_id, 
+        SUM(vcm.quantidade_votos) as "total_votos" `;
 
     let subqueryFrom = ` FROM candidato_eleicaos ce
-            JOIN votacao_candidato_municipios as vcm on ce.candidato_id = vcm.candidato_eleicao_id
-        `
+        JOIN votacao_candidato_municipios as vcm on ce.candidato_id = vcm.candidato_eleicao_id `;
 
-    let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
-    let subqueryGroupBy = " GROUP BY ce.eleicao_id, ce.candidato_id"
+    // Include situacao_turnos JOIN only if isElected is set
+    if (isElected && isElected > 0) {
+        subqueryFrom += " JOIN situacao_turnos st ON st.id = ce.situacao_turno_id ";
+    }
 
-    const replacements = { elecionIds }
+    let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)";
+    let subqueryGroupBy = " GROUP BY ce.eleicao_id, ce.candidato_id";
 
+    const replacements = { elecionIds };
 
-    // Filtros adicionais dinâmicos
+    // Additional dynamic filters
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
-        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)";
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds;
     }
 
     if (isElected && isElected > 0) {
-        subquerySelect += " JOIN situacao_turnos st ON st.id = ce.situacao_turno_id "
-        subqueryWhere += " AND st.foi_eleito = (:isElected)"
-        replacements.isElected = (Number(isElected) === 1)
+        subqueryWhere += " AND st.foi_eleito = :isElected";
+        replacements.isElected = (Number(isElected) === 1);
     }
 
     if (partidos && partidos.length > 0) {
-        subqueryWhere += " AND ce.partido_id IN (:partidos)"
-        replacements.partidos = partidos
+        subqueryWhere += " AND ce.partido_id IN (:partidos)";
+        replacements.partidos = partidos;
     }
 
     if (cargosIds && cargosIds.length > 0) {
-        subqueryWhere += " AND ce.cargo_id IN (:cargosIds)"
-        replacements.cargosIds = cargosIds
+        subqueryWhere += " AND ce.cargo_id IN (:cargosIds)";
+        replacements.cargosIds = cargosIds;
     }
 
     if (ocupacoesIds && ocupacoesIds.length > 0) {
-        subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)"
-        replacements.ocupacoesIds = ocupacoesIds
+        subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)";
+        replacements.ocupacoesIds = ocupacoesIds;
     }
 
-    // Montagem final da subquery e da query principal    
-    let limitClause = " LIMIT (:limit)"
-    replacements.limit = limit
-    
-    let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
-    let sqlQuery = select + ` FROM (${subquery}) AS subquery GROUP BY subquery.candidato_id ORDER BY mediana DESC ` + limitClause
+    // Final assembly of the subquery and main query    
+    let limitClause = " LIMIT :limit";
+    replacements.limit = limit;
+
+    console.log({ replacements });
+
+    let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
+    let sqlQuery = select + ` FROM (${subquery}) AS subquery GROUP BY subquery.candidato_id ORDER BY mediana DESC ` + limitClause;
 
     let sqlQueryFinal = `SELECT 
-            c.nome,
-            subqueryMediana.candidato_id,
-            subqueryMediana.mediana
-            FROM (${sqlQuery}) as subqueryMediana
-            JOIN candidatos c ON c.id = subqueryMediana.candidato_id
-        `
+        c.nome,
+        subqueryMediana.candidato_id,
+        subqueryMediana.mediana
+        FROM (${sqlQuery}) as subqueryMediana
+        JOIN candidatos c ON c.id = subqueryMediana.candidato_id
+    `;
 
-    // Executa a consulta
+    // Execute the query
     const results = await sequelize.query(sqlQueryFinal, {
-        replacements, // Substitui os placeholders
-        type: Sequelize.QueryTypes.SELECT, // Define como SELECT
-    })
+        replacements, // Substitute placeholders
+        type: Sequelize.QueryTypes.SELECT, // Define as SELECT
+    });
 
-    return results
-}
+    return results;
+};
 
 // TODO: mandar as 3 para o gráfico de barrra
 const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
@@ -1207,79 +1211,84 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
 
 const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
     try {
-
         // Base da subquery
-        let subquerySelect = `select ce.eleicao_id, ue.sigla_unidade_federacao, `
-        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao"
-        let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
+        let subquerySelect = `SELECT ce.eleicao_id, ue.sigla_unidade_federacao, `;
+        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao";
+        let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)";
 
-        const replacements = { elecionIds }
+        const replacements = { elecionIds };
 
+        // Conditional handling for unidadesEleitoraisIds
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            subquerySelect += "ue.id, ue.nome, ue.codigo_ibge, "
-            subqueryGroupBy += ", ue.id, ue.nome, ue.codigo_ibge"
-            subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
-            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+            subquerySelect += "ue.id, ue.nome, ue.codigo_ibge, ";
+            subqueryGroupBy += ", ue.id, ue.nome, ue.codigo_ibge";
+            subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)";
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds;
         }
 
-        subquerySelect += "SUM(vcm.quantidade_votos) AS total "
+        subquerySelect += "SUM(vcm.quantidade_votos) AS total ";
 
-
+        // FROM clause with necessary JOINs
         let subqueryFrom = ` FROM candidato_eleicaos ce
             JOIN eleicaos e ON ce.eleicao_id = e.id
             JOIN unidade_eleitorals ue ON ce.unidade_eleitoral_id = ue.id
             JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
             JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
-        `
+        `;
 
+        // Additional filters
         if (isElected && isElected > 0) {
-            subqueryWhere += " AND st.foi_eleito = (:isElected)"
-            replacements.isElected = (Number(isElected) === 1)
+            subqueryWhere += " AND st.foi_eleito = (:isElected)";
+            replacements.isElected = (Number(isElected) === 1);
         }
 
         if (partidos && partidos.length > 0) {
-            subqueryWhere += " AND ce.partido_id IN (:partidos)"
-            replacements.partidos = partidos
+            subqueryWhere += " AND ce.partido_id IN (:partidos)";
+            replacements.partidos = partidos;
         }
 
         if (cargosIds && cargosIds.length > 0) {
-            subqueryWhere += " AND ce.cargo_id IN (:cargosIds)"
-            replacements.cargosIds = cargosIds
+            subqueryWhere += " AND ce.cargo_id IN (:cargosIds)";
+            replacements.cargosIds = cargosIds;
         }
 
         if (ocupacoesIds && ocupacoesIds.length > 0) {
-            subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)"
-            replacements.ocupacoesIds = ocupacoesIds
+            subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)";
+            replacements.ocupacoesIds = ocupacoesIds;
         }
 
-        // Montagem final da subquery e da query principal
-        let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
-        let sqlQuery
+        // Final assembly of the subquery and main query
+        let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
+        let sqlQuery;
+
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
             sqlQuery = `SELECT 
-            subquery.nome AS nome_unidade_eleitoral,
-            subquery.codigo_ibge,
-            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana` + 
-            ` FROM (${subquery}) AS subquery GROUP BY subquery.nome, subquery.codigo_ibge`
+                subquery.nome AS nome_unidade_eleitoral,
+                subquery.codigo_ibge,
+                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana 
+                FROM (${subquery}) AS subquery 
+                GROUP BY subquery.nome, subquery.codigo_ibge`;
         } else {
             sqlQuery = `SELECT 
-            subquery.sigla_unidade_federacao,
-            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana` + 
-            ` FROM (${subquery}) AS subquery GROUP BY subquery.sigla_unidade_federacao`
+                subquery.sigla_unidade_federacao,
+                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana 
+                FROM (${subquery}) AS subquery 
+                GROUP BY subquery.sigla_unidade_federacao`;
         }
 
-        // Executa a consulta
+        // Execute the query
         const results = await sequelize.query(sqlQuery, {
-            replacements, // Substitui os placeholders
-            type: Sequelize.QueryTypes.SELECT, // Define como SELECT
-        })
+            replacements, // Substitute placeholders
+            type: Sequelize.QueryTypes.SELECT, // Define as SELECT
+        });
 
-        return results
+        return results;
     } catch (error) {
-        console.error("Error getFinanceMedianCandidatesByLocation:", error)
-        throw error
+        console.error("Error in getVotesMedianCandidatesByLocation:", error);
+        throw error;
     }
-}
+};
+
 
 module.exports = {
     getFinanceMedianCandidatesByLocation,
