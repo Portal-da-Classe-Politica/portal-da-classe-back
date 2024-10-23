@@ -85,10 +85,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         case 3:
             return indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         case 4:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            return indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         case 5:
             // Gráfico de linhas:
             // Eixo X: Tempo (por ano ou eleição)

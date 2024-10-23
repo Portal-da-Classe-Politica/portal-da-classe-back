@@ -1,78 +1,8 @@
 const {
-    Op, where, QueryTypes, Sequelize,
+    Sequelize,
 } = require("sequelize")
-const CandidatoEleicaoModel = require("../../models/CandidatoEleicao")
 const EleicaoModel = require("../../models/Eleicao")
-const CandidatoModel = require("../../models/Candidato")
-const PartidoModel = require("../../models/Partido")
-const SituacaoCandidatoModel = require("../../models/SituacaoCandidatura")
-const CargoModel = require("../../models/Cargo")
-const nomeUrnaModel = require("../../models/NomeUrna")
-const votacaoCandidatoMunicipioModel = require("../../models/VotacaoCandidatoMunicipio")
-const municipiosVotacaoModel = require("../../models/MunicipiosVotacao")
-const BensCandidatoEleicao = require("../../models/BensCandidatoEleicao")
-const GeneroModel = require("../../models/Genero")
-const SituacaoTurnoModel = require("../../models/SituacaoTurno")
-const ocupacaoModel = require("../../models/Ocupacao")
-const categoriaModel = require("../../models/Categoria")
-const categoria2Model = require("../../models/Categoria2")
-const doacoesCandidatoEleicaoModel = require("../../models/DoacoesCandidatoEleicao")
-const unidadeEleitoralSvc = require("../UnidateEleitoralService")
-const { fatoresDeCorreção } = require("../../utils/ipca")
 
-const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
-    // UF, cidade
-    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        finder.where.unidade_eleitoral_id = { [Op.in]: unidadesEleitoraisIds }
-    }
-
-    // is_elected
-    if (isElected && isElected > 0) {
-        const include = {
-            model: SituacaoTurnoModel,
-            required: true, // INNER JOIN
-            where: {
-                foi_eleito: Number(isElected) === 1,
-            },
-            attributes: [],
-        }
-        finder.include.push(include)
-    }
-
-    // partido
-    if (partidos && partidos.length > 0) {
-        finder.where.partido_id = { [Op.in]: partidos }
-    }
-
-    // cargo
-    if (cargosIds && cargosIds.length > 0) {
-        finder.where.cargo_id = { [Op.in]: cargosIds }
-    }
-
-    // categoria
-    if (ocupacoesIds && ocupacoesIds.length > 0) {
-        finder.where.ocupacao_id = { [Op.in]: ocupacoesIds }
-    }
-
-    return finder
-}
-
-const parseByDimension = (finder, dimension) => {
-    switch (Number(dimension)) {
-        case 0:
-            finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
-            break
-        case 1:
-            finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] })
-            finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total"])
-            break
-        case 2:
-            finder.include.push({ model: BensCandidatoEleicao, attributes: [] })
-            finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("bens_candidatos.valor")), "total"])
-            break
-        default: break
-    }
-}
 
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
@@ -131,7 +61,6 @@ const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) =
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
         subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-        console.log("TESTE", {subqueryWhere, replacements})
     }
 
 
@@ -251,6 +180,7 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
         throw error;
     }
 }
+
 const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     try {
         const elections = await getElectionsByYearInterval(initialYear, finalYear)
@@ -298,6 +228,70 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
     }
 }
 
+const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+    try {
+        const elections = await getElectionsByYearInterval(initialYear, finalYear)
+        const electionIds = elections.map(e => e.id)
+
+        const replacements = { electionIds, cargoId };
+
+        const quociente_eleitoral = await getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+
+        let query = `
+            SELECT
+                ce.partido_id,
+                e.ano_eleicao,
+                SUM(vcm.quantidade_votos) total_votos
+            FROM candidato_eleicaos ce
+            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+            JOIN eleicaos e ON e.id = ce.eleicao_id
+            WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
+        `
+
+        // Filtros adicionais dinâmicos
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        }
+
+        query += `
+            GROUP BY ce.partido_id, e.ano_eleicao
+            ORDER BY ce.partido_id, e.ano_eleicao
+        `;
+
+        const results = await sequelize.query(query, {
+            replacements,
+            type: Sequelize.QueryTypes.SELECT,
+        });
+
+        const {data} = quociente_eleitoral
+
+        const mergedData = results.map(result => {
+            // Find the corresponding entry in 'data' with the same 'ano_eleicao'
+            const quocienteEntry = data.find(d => d.ano === result.ano_eleicao);
+        
+            // Calculate the 'quociente_partidario' if the matching year is found
+            const quociente_partidario = quocienteEntry 
+                ? parseFloat(result.total_votos) / quocienteEntry.quociente_eleitoral 
+                : null;
+        
+            // Return the new object
+            return {
+                ano: result.ano_eleicao,
+                partido_id: result.partido_id,
+                quociente_partidario: quociente_partidario ? quociente_partidario.toFixed(2) : null, // rounding to 2 decimals
+            };
+        });
+        
+        return {
+            data: mergedData
+        };
+        
+    } catch (error) {
+        console.error("Error in getVolatilidadeEleitoral:", error);
+        throw error;
+    }
+}
 
 // Function to compute sum of 1/s_i^2 for each year
 function computeSum(data) {
@@ -321,5 +315,6 @@ function computeSum(data) {
 module.exports = {
     getNEPP,
     getVolatilidadeEleitoral,
-    getQuocienteEleitoral
+    getQuocienteEleitoral,
+    getQuocientePartidario
 }
