@@ -128,7 +128,6 @@ const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) =
 
 
     // Filtros adicionais dinâmicos
-    console.log({unidadesEleitoraisIds})
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
         subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
@@ -183,7 +182,6 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
             WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
         `
         // Filtros adicionais dinâmicos
-        console.log({unidadesEleitoraisIds})
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
             query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
             replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
@@ -193,7 +191,7 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
             GROUP BY ce.partido_id, e.ano_eleicao
             ORDER BY ce.partido_id, e.ano_eleicao
         `;
-        
+
         const results = await sequelize.query(query, {
             replacements,
             type: Sequelize.QueryTypes.SELECT,
@@ -253,6 +251,52 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
         throw error;
     }
 }
+const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+    try {
+        const elections = await getElectionsByYearInterval(initialYear, finalYear)
+        const electionIds = elections.map(e => e.id)
+
+        const replacements = { electionIds, cargoId };
+
+        let query = `
+            SELECT
+                ce.cargo_id,
+                e.ano_eleicao,
+	            SUM(vcm.quantidade_votos) / COUNT(DISTINCT CASE WHEN ce.situacao_turno_id IN (2, 7, 11, 13) THEN ce.candidato_id END) AS quociente_eleitoral
+            FROM candidato_eleicaos ce
+            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+            JOIN eleicaos e ON e.id = ce.eleicao_id
+            WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
+        `
+        // Filtros adicionais dinâmicos
+        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        }
+
+        query += `
+            GROUP BY ce.cargo_id, e.ano_eleicao
+            ORDER BY ce.cargo_id, e.ano_eleicao
+        `;
+
+        const results = await sequelize.query(query, {
+            replacements,
+            type: Sequelize.QueryTypes.SELECT,
+        });
+
+
+        // Convert the result into the desired format
+        return {
+            data: results.map(v => ({
+                ano: v.ano_eleicao,
+                quociente_eleitoral: parseInt(v.quociente_eleitoral),
+            })),
+        };
+    } catch (error) {
+        console.error("Error in getVolatilidadeEleitoral:", error);
+        throw error;
+    }
+}
 
 
 // Function to compute sum of 1/s_i^2 for each year
@@ -276,5 +320,6 @@ function computeSum(data) {
 
 module.exports = {
     getNEPP,
-    getVolatilidadeEleitoral
+    getVolatilidadeEleitoral,
+    getQuocienteEleitoral
 }

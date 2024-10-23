@@ -83,10 +83,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         case 2:
             return indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         case 3:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            return indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         case 4:
             /**
              * @AcacioTelechi Todo
