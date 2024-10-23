@@ -1,7 +1,7 @@
 const {
     verifyIfIndicatorIsInGroup, getIndicatorByID, getCargoFilterByID, verifyIfCargoIsAllowedForIndicator, indicatorsGroupsGlossary,
 } = require("../utils/filterParsers")
-const IndicatorsSvc = require("../services/IndicatorsSvc")
+const indicadoresEleitoraisSvc = require("../services/indicadores/indicadoresEleitoraisSvc")
 const IndicatorCarreiraSvc = require("../services/indicadores/indicadorCarreira")
 const chartsUtil = require("../utils/chartParsers")
 
@@ -32,8 +32,18 @@ const getIndicador = async (req, res) => {
             return res.status(400).json({ success: false, message: `Cargo ${cargoId} não é permitido para o indicador ${indicator.nome}` })
         }
 
-        if (unidadesEleitorais && !Array.isArray(unidadesEleitorais)) {
-            unidadesEleitorais = [unidadesEleitorais]
+        // if (unidadesEleitorais && !Array.isArray(unidadesEleitorais)) {
+        //     unidadesEleitorais = [unidadesEleitorais]
+        // }
+        if (unidadesEleitorais) {
+            // If it's a string, split it into an array based on commas
+            if (typeof unidadesEleitorais === 'string') {
+                unidadesEleitorais = unidadesEleitorais.split(',').map(Number);
+            }
+            // If it's not already an array, wrap it in an array
+            else if (!Array.isArray(unidadesEleitorais)) {
+                unidadesEleitorais = [Number(unidadesEleitorais)];
+            }
         }
 
         const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais)
