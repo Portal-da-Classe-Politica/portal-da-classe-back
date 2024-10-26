@@ -3,6 +3,7 @@ const {
 } = require("../utils/filterParsers")
 const indicadoresEleitoraisSvc = require("../services/indicadores/indicadoresEleitoraisSvc")
 const IndicatorCarreiraSvc = require("../services/indicadores/indicadorCarreira")
+const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGeograficosSvc")
 const chartsUtil = require("../utils/chartParsers")
 
 const getIndicador = async (req, res) => {
@@ -178,25 +179,56 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             )
 
         case 9:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return  chartsUtil.parseDataToMultipleSeriesLineChart(
+                dataDistribGeoVotos,
+                seriesName = 'Distribuição de Votos por Região',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'Distribuição de Votos por Região',
+                title = 'Distribuição de Votos por Região',
+                dataType = 'integer',
+                xAxisKey = 'year',
+                yAxisKey = 'percentual_votos',
+                seriesKey = "regiao"
+            )
         case 10:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataConceGeoVotos,
+                seriesName = 'Índice de Concentração Regional do Voto',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'Índice de Concentração Regional do Voto',
+                title = 'Índice de Concentração Regional do Voto',
+                dataType = 'float',
+                xAxisKey = 'year',
+                yAxisKey = 'sum'
+            )
         case 11:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToMultipleSeriesLineChart(
+                dataDispereoVotos,
+                seriesName = 'Índice de Dispersão do Voto',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'Índice de Dispersão do Voto',
+                title = 'Índice de Dispersão do Voto',
+                dataType = 'float',
+                xAxisKey = 'year',
+                yAxisKey = 'coefficient_variation',
+                seriesKey = "nome"
+            )
         case 12:
-            /**
-             * @AcacioTelechi Todo
-             */
-            return //  acacio TODO
+            const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToMultipleSeriesLineChart(
+                dataEficienciaVotos,
+                seriesName = 'Índice de Eficiência do Voto',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'Índice de Eficiência do Voto',
+                title = 'Índice de Eficiência do Voto',
+                dataType = 'float',
+                xAxisKey = 'year',
+                yAxisKey = 'iev',
+                seriesKey = 'sigla'
+            )
         case 13:
             const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
             // Gráfico de Linhas:
