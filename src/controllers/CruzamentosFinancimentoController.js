@@ -26,23 +26,36 @@ const getFinanceKPIs = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getFinanceKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
         let data
-        if (resp && resp.length){
+        if (resp && resp.length) {
             const finalYearId = elections.find((e) => e.ano_eleicao === parseInt(finalYear)).id
             const initialYearId = elections.find((e) => e.ano_eleicao === parseInt(initialYear)).id
             let lastYearResult = resp.find((r) => r.eleicao_id === finalYearId)
             let initialYearResult = resp.find((r) => r.eleicao_id === initialYearId)
-            if (dimension !== 1){
+            if (dimension !== 1) {
                 lastYearResult.resultado = ipcaUtil.atualizarValor(lastYearResult.resultado, finalYear)
                 initialYearResult.resultado = ipcaUtil.atualizarValor(initialYearResult.resultado, initialYear)
             }
-            data = {
-                absolute_variation: `${(lastYearResult.resultado - initialYearResult.resultado).toFixed(2)}`,
-                percentage_variation: `${((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)}%`,
-            }
+
+            const abs_var = `${(lastYearResult.resultado - initialYearResult.resultado).toFixed(2)}`
+            const per_var = ((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)
+            const per_var_text = `${per_var}%`
+            data = [
+                {
+                    label: "Variação Absoluta",
+                    value: abs_var,
+                    description: `O financiamento dos candidatos variou R$ ${abs_var} entre ${initialYear} e ${finalYear}.`
+                },
+                {
+                    label: "Variação Percentual",
+                    value: per_var_text,
+                    description: `O financiamento dos candidatos em ${finalYear} foi ${(Number(per_var) - 100).toFixed(2)}% ${Number(per_var) - 1 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
+                },
+            ]
         }
 
         return res.json({
             success: true,
+            title: "Título Teste",
             data,
             message: "Dados buscados com sucesso.",
 
@@ -143,10 +156,10 @@ const getFinanceMedianByLocation = async (req, res) => {
 
         let electoralUnits = []
 
-        if (UF && UF.length){
+        if (UF && UF.length) {
             // vai pegar apenas as cidades dos estados enviados
             const electoralUnitsResp = await UnidadeEleitoralService.getAllElectoralUnitsByArrayOfUFs(UF)
-            if (!electoralUnitsResp.length){
+            if (!electoralUnitsResp.length) {
                 return res.status(400).json({
                     success: false,
                     data: {},
