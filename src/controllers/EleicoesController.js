@@ -36,19 +36,36 @@ const getEleicoesKpis = async (req, res) => {
             const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear)).total
             // console.log({finalYear, finalYearTotal, resp})
 
-            data = {
-                absolute_variation: `${(finalYearTotal - initialYearTotal)}`,
-                percentage_variation: `${((finalYearTotal / initialYearTotal - 1) * 100).toFixed(2)}%`,
-                competition: `${(resp_cands_total / resp_eleitos_total).toFixed(2)}`
-            }
+            const abs_var = finalYearTotal - initialYearTotal
+            const per_var = ((finalYearTotal / initialYearTotal - 1) * 100).toFixed(2)
+            const competition = (resp_cands_total / resp_eleitos_total).toFixed(2)
+            const selectedDimension = `${dimension ? possibilitiesByDimension[dimension] : 'quantidade de candidatos'}`
+            data = [
+                {
+                    label: "Variação Absoluta",
+                    value: abs_var,
+                    description: `A ${selectedDimension} variou ${abs_var} entre ${initialYear} e ${finalYear}.`
+                },
+                {
+                    label: "Variação Percentual",
+                    value: `${per_var}%`,
+                    description: `A ${selectedDimension} em ${finalYear} foi ${(Number(per_var) - 100).toFixed(2)}% ${Number(per_var) - 100 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
+                },
+                {
+                    label: "Competição",
+                    value: `${competition}`,
+                    description: `Para cada candidato eleito, houve ${competition} candidatos não eleitos.`
+                }
+            ]
+
+            return res.json({
+                success: true,
+                title: `Variação em ${selectedDimension} em relação aos anos selecionados`,
+                data,
+                message: "Dados buscados com sucesso.",
+
+            })
         }
-
-        return res.json({
-            success: true,
-            data,
-            message: "Dados buscados com sucesso.",
-
-        })
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -124,13 +141,13 @@ const getTopCandidates = async (req, res) => {
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
-        
+
         const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
-        
-        console.log('TESTEEE', {resp})
+
+        console.log('TESTEEE', { resp })
         const data = parseDataToBarChart(resp, title = 'Candidatos mais votados', seriesNames = "Candidatos", itemKey = 'nome', totalKey = "mediana")
 
-        console.log('TESTEEE', {resp, data})
+        console.log('TESTEEE', { resp, data })
         return res.json({
             success: true,
             data,
