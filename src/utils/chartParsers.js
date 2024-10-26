@@ -82,6 +82,57 @@ function parseDataToLineChart(
     }
 }
 
+function parseDataToMultipleSeriesLineChart(
+    data,
+    seriesName,
+    xAxisLabel,
+    yAxisLabel,
+    title,
+    dataType = "integer",
+    xAxisKey = "ano",
+    yAxisKey = "total",
+    seriesKey = "partido_id"
+) {
+    if (!Array.isArray(data)) {
+        throw new Error("Input data must be an array");
+    }
+
+    // Step 1: Extract unique xAxis values
+    const xAxis = [...new Set(data.map(item => item[xAxisKey]))].sort((a, b) => a - b);
+
+    // Step 2: Group data by seriesKey
+    const mapper = {};
+    data.forEach(item => {
+        const sk = item[seriesKey];
+        if (!mapper[sk]) {
+            mapper[sk] = Array(xAxis.length).fill("0.0"); // Initialize with "0.0" or 0.0
+        }
+        const xIndex = xAxis.indexOf(item[xAxisKey]);
+        const value = dataType === "integer" ? parseFloat(item[yAxisKey]) : item[yAxisKey];
+        mapper[sk][xIndex] = value;
+    });
+
+    // Step 3: Create series array
+    const series = Object.keys(mapper).map(key => ({
+        name: `${key}`,
+        data: mapper[key],
+    }));
+
+    // Step 4: Construct the final result object
+    const result = {
+        type: "line",
+        title: title,
+        xAxis: xAxis,
+        series: series,
+        extraData: {
+            xAxisLabel: xAxisLabel,
+            yAxisLabel: yAxisLabel
+        }
+    };
+    return result;
+}
+
+
 function parseDataToBarChart(
     data,
     title,
@@ -163,7 +214,7 @@ function parseDataToBarChart2(
     seriesName,
     itemKey = "categoria_ocupacao",
     totalKey = "total",
-){
+) {
     // Parse totals to numbers and sort descending
     data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
 
@@ -311,4 +362,5 @@ module.exports = {
     parseDataToBarChart2,
     generateLineChartData,
     generateLineChartDataForMultipleLines,
+    parseDataToMultipleSeriesLineChart
 }
