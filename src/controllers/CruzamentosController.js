@@ -101,15 +101,47 @@ const getCandidatesKPIs = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getCandidatesProfileKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
-        // const parsedData = parseDataToDonutChart(resp, 'genero', 'total', 'Proporção de candidatos por gênero')
+        if (resp && resp.length) {
+            const finalYearTotalCandidatos = resp[resp.length - 1].total_candidatos
+            const initialYearTotalCandidatos = resp[0].total_candidatos
 
-        return res.json({
-            success: true,
-            data: resp,
-            title: "Variação no financiamento dos candidatos",
-            message: "Dados buscados com sucesso.",
+            const totalCandidatos = resp.reduce((sum, item) => sum + Number(item.total_candidatos), 0);
+            const totalBensSum = resp.reduce((sum, item) => sum + Number(item.total_bens), 0);
+            const totalDespesasSum = resp.reduce((sum, item) => sum + Number(item.total_despesas), 0);
+ 
+            const kpi1 = finalYearTotalCandidatos - initialYearTotalCandidatos
+            const kpi2 = (totalBensSum / totalCandidatos).toFixed(2)
+            const kpi3 = (totalDespesasSum / totalCandidatos).toFixed(2)
 
-        })
+            const finalData = [
+                {
+                    label: "Variação Absoluta no número de candidatos",
+                    value: kpi1,
+                    description: `A quantidade de candidatos variou ${kpi1} entre ${initialYear} e ${finalYear}.`
+                },
+                {
+                    label: "Média de bens declarados por candidato",
+                    value: `R$ ${kpi2}`,
+                    description: `A média de bens declarados por candidato foi de R$ ${kpi2} no período entre ${initialYear} e ${finalYear}.`
+                },
+                {
+                    label: "Média de despesas por candidato",
+                    value: `R$ ${kpi3}`,
+                    description: `A média de despesas por candidato foi de R$ ${kpi3} no período entre ${initialYear} e ${finalYear}.`
+                },
+
+            ]
+
+
+            return res.json({
+                success: true,
+                data: finalData,
+                // resp,
+                title: "Variação no financiamento dos candidatos",
+                message: "Dados buscados com sucesso.",
+
+            })
+        }
     } catch (error) {
         console.log(error)
         return res.status(500).json({

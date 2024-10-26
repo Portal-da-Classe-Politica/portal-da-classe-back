@@ -763,7 +763,7 @@ const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitorai
     try {
         let sqlQuery = `
                 SELECT
-                    ce.eleicao_id,
+                    e.ano_eleicao,
                     COUNT (c.id) as total_candidatos,
                     SUM(vcm.quantidade_votos) AS total_votos,
                     SUM(ce.despesa_campanha) AS total_despesas,
@@ -805,7 +805,7 @@ const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitorai
             replacements.ocupacoesIds = ocupacoesIds
         }
 
-        sqlQuery += " GROUP BY ce.eleicao_id;"
+        sqlQuery += " GROUP BY e.ano_eleicao ORDER BY e.ano_eleicao;"
 
         const results = await sequelize.query(sqlQuery, {
             replacements, // Replace placeholders in the query
