@@ -55,7 +55,7 @@ const getFinanceKPIs = async (req, res) => {
 
         return res.json({
             success: true,
-            title: "Título Teste",
+            title: "Indicadores de Financiamento",
             data,
             message: "Dados buscados com sucesso.",
 
