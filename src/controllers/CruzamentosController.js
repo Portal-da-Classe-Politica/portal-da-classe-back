@@ -135,9 +135,9 @@ const getCandidatesKPIs = async (req, res) => {
 
             return res.json({
                 success: true,
+                title: "Indicadores sobre candidatos",
                 data: finalData,
                 // resp,
-                title: "Variação no financiamento dos candidatos",
                 message: "Dados buscados com sucesso.",
 
             })
