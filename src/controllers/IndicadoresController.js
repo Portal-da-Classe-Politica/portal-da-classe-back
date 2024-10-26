@@ -79,13 +79,54 @@ const getAllIndicadorByType = async (req, res) => {
 const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     switch (parseInt(indicatorId)) {
         case 1:
-            return indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataNepp,
+                seriesName = 'Número Efetivo de Partidos',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'NEPP',
+                title = 'Número Efetivo de Partidos',
+                dataType = 'float',
+                xAxisKey = 'year',
+                yAxisKey = 'sum'
+            )
         case 2:
-            return indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataPersen,
+                seriesName = 'Índice de Volatilidade Eleitoral (Pedersen)',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'Volatilidade',
+                title = 'Índice de Volatilidade Eleitoral (Pedersen)',
+                dataType = 'float',
+                xAxisKey = 'year',
+                yAxisKey = 'volatility'
+            )
         case 3:
-            return indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataQE,
+                seriesName = 'Quociente Eleitoral (QE)',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'QE',
+                title = 'Quociente Eleitoral (QE)',
+                dataType = 'integer',
+                xAxisKey = 'ano',
+                yAxisKey = 'quociente_eleitoral'
+            )
         case 4:
-            return indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            const dataQP = await indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToMultipleSeriesLineChart(
+                dataQP,
+                seriesName = 'Quociente Partidário (QP)',
+                xAxisLabel = 'Ano',
+                yAxisLabel = 'QP',
+                title = 'Quociente Partidário (QP)',
+                dataType = 'integer',
+                xAxisKey = 'ano',
+                yAxisKey = 'quociente_partidario',
+                seriesKey = "sigla"
+            )
         case 5:
             // Gráfico de linhas:
             // Eixo X: Tempo (por ano ou eleição)

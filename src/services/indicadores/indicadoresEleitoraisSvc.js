@@ -169,12 +169,10 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
         }
 
         // Convert the result into the desired format
-        return {
-            data: volatilityResults.map(v => ({
-                year: v.year,
-                volatility: v.sum,
-            })),
-        };
+        return volatilityResults.map(v => ({
+            year: v.year,
+            volatility: v.sum,
+        }));
     } catch (error) {
         console.error("Error in getVolatilidadeEleitoral:", error);
         throw error;
@@ -216,12 +214,10 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
 
 
         // Convert the result into the desired format
-        return {
-            data: results.map(v => ({
-                ano: v.ano_eleicao,
-                quociente_eleitoral: parseInt(v.quociente_eleitoral),
-            })),
-        };
+        return results.map(v => ({
+            ano: v.ano_eleicao,
+            quociente_eleitoral: parseInt(v.quociente_eleitoral),
+        }));
     } catch (error) {
         console.error("Error in getVolatilidadeEleitoral:", error);
         throw error;
@@ -239,12 +235,13 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
 
         let query = `
             SELECT
-                ce.partido_id,
+                p.sigla,
                 e.ano_eleicao,
                 SUM(vcm.quantidade_votos) total_votos
             FROM candidato_eleicaos ce
             JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
+            JOIN partidos p ON p.id = ce.partido_id
             WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
         `
 
@@ -255,8 +252,8 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
         }
 
         query += `
-            GROUP BY ce.partido_id, e.ano_eleicao
-            ORDER BY ce.partido_id, e.ano_eleicao
+            GROUP BY p.sigla, e.ano_eleicao
+            ORDER BY p.sigla, e.ano_eleicao
         `;
 
         const results = await sequelize.query(query, {
@@ -264,29 +261,27 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
             type: Sequelize.QueryTypes.SELECT,
         });
 
-        const {data} = quociente_eleitoral
-
+        const  data  = quociente_eleitoral
+  
         const mergedData = results.map(result => {
             // Find the corresponding entry in 'data' with the same 'ano_eleicao'
             const quocienteEntry = data.find(d => d.ano === result.ano_eleicao);
-        
+
             // Calculate the 'quociente_partidario' if the matching year is found
-            const quociente_partidario = quocienteEntry 
-                ? parseFloat(result.total_votos) / quocienteEntry.quociente_eleitoral 
+            const quociente_partidario = quocienteEntry
+                ? parseFloat(result.total_votos) / quocienteEntry.quociente_eleitoral
                 : null;
-        
+
             // Return the new object
             return {
                 ano: result.ano_eleicao,
-                partido_id: result.partido_id,
+                sigla: result.sigla,
                 quociente_partidario: quociente_partidario ? quociente_partidario.toFixed(2) : null, // rounding to 2 decimals
             };
         });
-        
-        return {
-            data: mergedData
-        };
-        
+
+        return mergedData;
+
     } catch (error) {
         console.error("Error in getVolatilidadeEleitoral:", error);
         throw error;
