@@ -186,7 +186,7 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
