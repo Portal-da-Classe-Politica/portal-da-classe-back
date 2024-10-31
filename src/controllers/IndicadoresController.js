@@ -157,13 +157,25 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         /**
          * @AcacioTelechi
          * Taxa de Migração Partidária teria que passar um determinado candidato e isso não esta previsto nos filtros
+         * AT: Alterado para calcular a medidana da quantidade de partidos dos candidatos
          */
         case 7:
             // Taxa de Migração Partidária
             // TMP = (NMP / TCP)
             // NMP é o número de mudanças de partido que o candidato realizou ao longo de sua carreira
             // TCP é o tempo de carreira política do candidato (em anos)
-            return // JOCA TODO
+            const dataMedianaMigraca = await IndicatorCarreiraSvc.getMedianaMigracao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataMedianaMigraca,
+                "Média de Migração Partidária",
+                "Ano",
+                "Média de Migração Partidária",
+                "Média de Migração Partidária",
+                "float",
+                "ano_eleicao",
+                "average_unique_parties",
+            )
+
         case 8:
             const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
             // Gráfico de linhas:
