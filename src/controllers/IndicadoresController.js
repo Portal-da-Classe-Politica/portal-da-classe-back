@@ -180,7 +180,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
 
         case 9:
             const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return  chartsUtil.parseDataToMultipleSeriesLineChart(
+            return chartsUtil.parseDataToMultipleSeriesLineChart(
                 dataDistribGeoVotos,
                 seriesName = 'Distribuição de Votos por Região',
                 xAxisLabel = 'Ano',
@@ -271,7 +271,18 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             // HHI = ∑(Si)^2
             // Si é a participação dos recursos financeiros do candidato i no total de recursos (como uma fração ou porcentagem)
             // n é o número total de candidatos
-            return // JOCA TODO
+
+            const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataDiversidadeEcon,
+                "Índice de Diversidade Econômica",
+                "Ano",
+                "Índice de Diversidade Econômica",
+                "Índice de Diversidade Econômica",
+                "float",
+                "ano_eleicao",
+                "sum",
+            )
         case 16:
             // Média e Mediana de Patrimônio da Classe Política
             // Média e mediana dos patrimônios declarados pelos candidatos

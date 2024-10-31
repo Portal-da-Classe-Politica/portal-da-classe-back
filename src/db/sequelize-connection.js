@@ -7,13 +7,14 @@ const sequelize = new Sequelize({
     host: config.urldb,
     database: "eleicao_v2",
     dialect: "postgres",
+    port: 5433,
     logging: false,
     dialectOptions: {
         statement_timeout: 30000, // 30 segundos (valor em milissegundos)
-        ssl: {
-            require: true,
-            rejectUnauthorized: false,
-        },
+        // ssl: {
+        //     require: true,
+        //     rejectUnauthorized: false,
+        // },
     },
     // pool: {
     //     max: 10, // Ajuste conforme necessário

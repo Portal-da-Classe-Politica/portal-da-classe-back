@@ -378,6 +378,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
 
     return TCV
 }
+
 /**
  *  @name Índice de Igualdade de Acesso a Recursos
     @formula IEAR = (R / A)
@@ -482,6 +483,80 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
     return patrimonioPorAno
 }
 
+/**
+ *  @name Índice de Igualdade de Acesso a Recursos
+    @formula IEAR = (R / A)
+    @R é a variância dos recursos disponíveis entre os candidatos -> variancia dos bens declarados de todos candidatos
+    @A é a média dos recursos disponíveis entre os candidatos -> media dos bens declarados de todos candidatos
+ * @param {*} cargoId
+ * @param {*} initialYear
+ * @param {*} finalYear
+ * @param {*} unidadesEleitorais
+ */
+const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+    const electionsIds = elections.map(e => e.id)
+
+    let select = `
+    SELECT 
+        e.ano_eleicao,
+        ce.id,
+        SUM(dce.valor) AS resultado,
+        (SUM(dce.valor) / SUM(SUM(dce.valor)) OVER (PARTITION BY e.ano_eleicao)) * 100 AS percentual
+`
+
+    let queryFrom = `FROM candidato_eleicaos ce
+        JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+        JOIN eleicaos e ON e.id = ce.eleicao_id
+        LEFT JOIN doacoes_candidato_eleicoes dce ON ce.id = dce.candidato_eleicao_id  
+    `
+
+    let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
+        AND ce.cargo_id = :cargoId 
+    `
+    let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
+
+    const replacements = { electionsIds, cargoId }
+
+
+    // Filtros adicionais dinâmicos
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        queryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+    }
+
+    let sqlQuery = select + queryFrom + queryWhere + queryGroupBy
+
+
+    // Executa a consulta
+    const data = await sequelize.query(sqlQuery, {
+        replacements, // Substitui os placeholders
+        type: Sequelize.QueryTypes.SELECT, // Define como SELECT
+    })
+
+    return computeSum(data);
+}
+
+
+// Function to compute sum of 1/s_i^2 for each year
+function computeSum(data) {
+    const sumsByYear = {};
+
+    // Group data by year and compute the sum for each year
+    data.forEach(({ ano_eleicao, percentual }) => {
+        if (!sumsByYear[ano_eleicao]) {
+            sumsByYear[ano_eleicao] = 0;
+        }
+        sumsByYear[ano_eleicao] += Math.pow(percentual, 2);
+    });
+
+    // Convert result to an array of objects
+    return Object.keys(sumsByYear).map(ano_eleicao => ({
+        ano_eleicao: parseInt(ano_eleicao),
+        sum: sumsByYear[ano_eleicao]
+    }));
+}
+
 module.exports = {
     getTaxaDeRenovacaoLiquida,
     getTaxaReeleicao,
@@ -489,4 +564,5 @@ module.exports = {
     getTaxaCustoPorVoto,
     getIndiceIgualdadeAcessoRecursos,
     getMediaMedianaPatrimonio,
+    getIndiceDiversidadeEconomica
 }
