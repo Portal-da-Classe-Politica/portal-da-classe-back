@@ -555,7 +555,17 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
             JOIN eleicaos e ON ce.eleicao_id = e.id
             WHERE ce.eleicao_id IN (:electionsIds)
                 AND ce.cargo_id = :cargoId
-        ),
+        `
+
+    const replacements = { electionsIds, cargoId }
+
+
+    // Filtros adicionais dinâmicos
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        select += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+    }
+    select += `),
         unique_parties AS (
             SELECT 
                 candidato_id,
@@ -576,30 +586,7 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
         FROM unique_parties
         ORDER BY candidato_id, ano_eleicao;
         `
-
-    // let queryFrom = `FROM candidato_eleicaos ce
-    //     JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
-    //     JOIN eleicaos e ON e.id = ce.eleicao_id
-    //     LEFT JOIN doacoes_candidato_eleicoes dce ON ce.id = dce.candidato_eleicao_id  
-    // `
-
-    // let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
-    //     AND ce.cargo_id = :cargoId 
-    // `
-    // let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
-
-    const replacements = { electionsIds, cargoId }
-
-
-    // // Filtros adicionais dinâmicos
-    // if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-    //     queryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
-    //     replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-    // }
-
-    // let sqlQuery = select + queryFrom + queryWhere + queryGroupBy
-
-
+        
     // Executa a consulta
     const data = await sequelize.query(select, {
         replacements, // Substitui os placeholders
