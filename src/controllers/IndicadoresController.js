@@ -157,13 +157,25 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         /**
          * @AcacioTelechi
          * Taxa de Migração Partidária teria que passar um determinado candidato e isso não esta previsto nos filtros
+         * AT: Alterado para calcular a medidana da quantidade de partidos dos candidatos
          */
         case 7:
             // Taxa de Migração Partidária
             // TMP = (NMP / TCP)
             // NMP é o número de mudanças de partido que o candidato realizou ao longo de sua carreira
             // TCP é o tempo de carreira política do candidato (em anos)
-            return // JOCA TODO
+            const dataMedianaMigraca = await IndicatorCarreiraSvc.getMedianaMigracao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataMedianaMigraca,
+                "Média de Migração Partidária",
+                "Ano",
+                "Média de Migração Partidária",
+                "Média de Migração Partidária",
+                "float",
+                "ano_eleicao",
+                "average_unique_parties",
+            )
+
         case 8:
             const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
             // Gráfico de linhas:
@@ -180,7 +192,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
 
         case 9:
             const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return  chartsUtil.parseDataToMultipleSeriesLineChart(
+            return chartsUtil.parseDataToMultipleSeriesLineChart(
                 dataDistribGeoVotos,
                 seriesName = 'Distribuição de Votos por Região',
                 xAxisLabel = 'Ano',
@@ -271,7 +283,18 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             // HHI = ∑(Si)^2
             // Si é a participação dos recursos financeiros do candidato i no total de recursos (como uma fração ou porcentagem)
             // n é o número total de candidatos
-            return // JOCA TODO
+
+            const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+            return chartsUtil.parseDataToLineChart(
+                dataDiversidadeEcon,
+                "Índice de Diversidade Econômica",
+                "Ano",
+                "Índice de Diversidade Econômica",
+                "Índice de Diversidade Econômica",
+                "float",
+                "ano_eleicao",
+                "sum",
+            )
         case 16:
             // Média e Mediana de Patrimônio da Classe Política
             // Média e mediana dos patrimônios declarados pelos candidatos
