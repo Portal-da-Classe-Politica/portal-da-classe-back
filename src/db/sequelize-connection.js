@@ -11,10 +11,10 @@ const sequelize = new Sequelize({
     logging: false,
     dialectOptions: {
         statement_timeout: 30000, // 30 segundos (valor em milissegundos)
-        // ssl: {
-        //     require: true,
-        //     rejectUnauthorized: false,
-        // },
+        ssl: {
+            require: true,
+            rejectUnauthorized: false,
+        },
     },
     // pool: {
     //     max: 10, // Ajuste conforme necessário
