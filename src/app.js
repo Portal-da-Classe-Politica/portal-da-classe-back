@@ -1,19 +1,29 @@
-sequelize = require("./db/sequelize-connection")
+sequelize = require("./db/sequelize-connection").sequelize
+const connect = require("./db/sequelize-connection").connect
 const express = require("express")
 config = require("./config/config")
 const app = express()
-const sync = require("./models/sync")
-
 require("dotenv").config()
 app.use(express.urlencoded({
     extended: true,
 }))
 
 app.set("port", config.port)
+const sync = require("./models/sync")
 
-app.listen(app.get("port"), function () {
-    console.log("servidor ligado porta " + app.get("port"))
-})
+const start = async () => {
+    try {
+        await connect()
 
-const noAuthRoutes = require("./routes/noauth/index")
-app.use("/noauth", noAuthRoutes)
+        app.listen(app.get("port"), function () {
+            console.log("servidor ligado porta " + app.get("port"))
+        })
+
+        const noAuthRoutes = require("./routes/noauth/index")
+        app.use("/noauth", noAuthRoutes)
+    } catch (error) {
+        console.error("Não foi possível conectar ao banco de dados:", error)
+    }
+}
+
+start()

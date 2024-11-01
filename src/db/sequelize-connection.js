@@ -24,13 +24,17 @@ const sequelize = new Sequelize({
     //   },
 })
 
-sequelize.authenticate()
-    .then(async () => {
-        console.log("Connection has been established successfully.")
+const connect = async () => {
+    try {
+        await sequelize.authenticate()
         sequelize.sync()
-        console.log("sync ok")
-    }).catch((error) => {
-        console.log("Unable to connect to the database:", error)
-    })
+        console.log("Conexão com o banco de dados estabelecida com sucesso.")
+    } catch (error) {
+        console.error("Não foi possível conectar ao banco de dados:", error)
+    }
+}
 
-module.exports = sequelize
+module.exports = {
+    sequelize,
+    connect,
+}
