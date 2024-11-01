@@ -43,7 +43,7 @@ const syncModels = async () => {
     UnidadeEleitoral.belongsTo(Abrangencia)
 
     Abrangencia.hasMany(Eleicao)
-    Eleicao.belongsTo(Abrangencia)
+    Eleicao.belongsTo(Abrangencia, { targetKey: "id", foreignKey: "abrangencium_id" })
 
     Cargo.belongsTo(Abrangencia)
     Abrangencia.hasMany(Cargo)
