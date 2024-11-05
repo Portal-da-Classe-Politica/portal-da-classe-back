@@ -36,19 +36,26 @@ const getFinanceKPIs = async (req, res) => {
                 initialYearResult.resultado = ipcaUtil.atualizarValor(initialYearResult.resultado, initialYear)
             }
 
-            const abs_var = `${(lastYearResult.resultado - initialYearResult.resultado).toFixed(2)}`
+            const abs_var = lastYearResult.resultado - initialYearResult.resultado;
+            const formattedAbsVar = abs_var.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
             const per_var = ((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)
-            const per_var_text = `${per_var}%`
+            
+            const perVarValue = Number(per_var) - 100;
+            const formattedPerVar = perVarValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const per_var_text = `${formattedPerVar}%`
+            const comparison = (Number(per_var) - 1) > 0 ? 'maior' : 'menor';
+
             data = [
                 {
                     label: "Variação Absoluta",
-                    value: abs_var,
-                    description: `O financiamento dos candidatos variou R$ ${abs_var} entre ${initialYear} e ${finalYear}.`
+                    value: formattedAbsVar,
+                    description: `O financiamento dos candidatos variou R$ ${formattedAbsVar} entre ${initialYear} e ${finalYear}.`
                 },
                 {
                     label: "Variação Percentual",
                     value: per_var_text,
-                    description: `O financiamento dos candidatos em ${finalYear} foi ${(Number(per_var) - 100).toFixed(2)}% ${Number(per_var) - 1 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
+                    description: `O financiamento dos candidatos em ${finalYear} foi ${formattedPerVar}% ${comparison} em relação a ${initialYear}.`
                 },
             ]
         }
