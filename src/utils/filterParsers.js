@@ -262,7 +262,7 @@ const possibilitiesByOrigin = {
             { id: 2, label: "Bens Declarados" },
         ],
     },
-    "eleicoes": {
+    "elections": {
         type: "select",
         values: [
             { id: 0, label: "Quantidade de candidatos" },
