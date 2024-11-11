@@ -108,10 +108,10 @@ const getCandidatesKPIs = async (req, res) => {
             const totalCandidatos = resp.reduce((sum, item) => sum + Number(item.total_candidatos), 0);
             const totalBensSum = resp.reduce((sum, item) => sum + Number(item.total_bens), 0);
             const totalDespesasSum = resp.reduce((sum, item) => sum + Number(item.total_despesas), 0);
- 
-            const kpi1 = finalYearTotalCandidatos - initialYearTotalCandidatos
-            const kpi2 = (totalBensSum / totalCandidatos).toFixed(2)
-            const kpi3 = (totalDespesasSum / totalCandidatos).toFixed(2)
+
+            const kpi1 = (finalYearTotalCandidatos - initialYearTotalCandidatos).toLocaleString('pt-BR');
+            const kpi2 = (totalBensSum / totalCandidatos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const kpi3 = (totalDespesasSum / totalCandidatos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             const finalData = [
                 {

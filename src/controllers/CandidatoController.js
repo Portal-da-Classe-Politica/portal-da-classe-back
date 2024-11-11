@@ -11,8 +11,10 @@ const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoS
 const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
+    const { dimension } = req.query
+
     try {
-        const data = await getFiltersForSearchesByOrigin("candidates")
+        const data = await getFiltersForSearchesByOrigin(dimension ? dimension : "candidates")
         return res.json({
             success: true,
             data,
@@ -93,7 +95,7 @@ const getCandidates = async (req, res) => {
             }
         }
 
-        if (electoralUnitId && (!electoralUnitiesIds || !electoralUnitiesIds.length)){
+        if (electoralUnitId && (!electoralUnitiesIds || !electoralUnitiesIds.length)) {
             electoralUnitiesIds = [electoralUnitId]
         }
 

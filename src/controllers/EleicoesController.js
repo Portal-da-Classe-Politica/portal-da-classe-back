@@ -36,9 +36,9 @@ const getEleicoesKpis = async (req, res) => {
             const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear)).total
             // console.log({finalYear, finalYearTotal, resp})
 
-            const abs_var = finalYearTotal - initialYearTotal
-            const per_var = ((finalYearTotal / initialYearTotal - 1) * 100).toFixed(2)
-            const competition = (resp_cands_total / resp_eleitos_total).toFixed(2)
+            const abs_var = (finalYearTotal - initialYearTotal)?.toLocaleString('pt-BR')
+            const per_var = ((finalYearTotal / initialYearTotal - 1) * 100)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const competition = (resp_cands_total / resp_eleitos_total)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const selectedDimension = `${dimension ? possibilitiesByDimension[dimension] : 'quantidade de candidatos'}`
             data = [
                 {
@@ -49,7 +49,7 @@ const getEleicoesKpis = async (req, res) => {
                 {
                     label: "Variação Percentual",
                     value: `${per_var}%`,
-                    description: `A ${selectedDimension} em ${finalYear} foi ${(Number(per_var) - 100).toFixed(2)}% ${Number(per_var) - 100 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
+                    description: `A ${selectedDimension} em ${finalYear} foi ${per_var}% ${Number(per_var) - 100 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
                 },
                 {
                     label: "Competição",

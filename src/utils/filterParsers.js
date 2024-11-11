@@ -92,7 +92,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Renovação Líquida",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador
     },
     "6": {
@@ -100,7 +100,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Reeleição",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
     },
     "7": {
         "id": "7",
@@ -260,6 +260,13 @@ const possibilitiesByOrigin = {
             { id: 0, label: "Quantidade" },
             { id: 1, label: "Votos" },
             { id: 2, label: "Bens Declarados" },
+        ],
+    },
+    "elections": {
+        type: "select",
+        values: [
+            { id: 0, label: "Quantidade de candidatos" },
+            { id: 1, label: "Quantidade de votos" },
         ],
     },
     "donations": {

@@ -27,14 +27,16 @@ function parseDataToDonutChart(data, nameKey, valueKey, title) {
     // const otherSegmentsTotal = seriesData.slice(3).reduce((sum, item) => sum + item.value, 0);
     // const averageValue = (totalValue / seriesData.length).toFixed(2);
 
+    const largestSegmentValue = ((largestSegment.value / totalValue) * 100)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const smallestSegmentValue = ((smallestSegment.value / totalValue) * 100)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     return {
         type: "donut",
         title: title || "",
         series: seriesData,
         extraData: [
-            `Total: ${totalValue}`,
-            `Maior segmento: ${largestSegment.name} (${((largestSegment.value / totalValue) * 100).toFixed(1)}%)`,
-            `Menor segmento: ${smallestSegment.name} (${((smallestSegment.value / totalValue) * 100).toFixed(1)}%)`,
+            `Total: ${totalValue?.toLocaleString('pt-BR')}`,
+            `Maior segmento: ${largestSegment.name} (${largestSegmentValue}%)`,
+            `Menor segmento: ${smallestSegment.name} (${smallestSegmentValue}%)`,
         ],
     }
 }
@@ -177,15 +179,15 @@ function parseDataToBarChart(
     if (title == "Distribuição do total por categoria de ocupação") {
         output.extraData = {
             bigNumbers: [
-                { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
-                { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" }, // Add top 20% big number
+                { value: `+${percentageIncrease?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Aumento percentual do primeiro para o segundo" },
+                { value: `${top20PercentPercentage?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Total dos top 20%" }, // Add top 20% big number
             ],
         }
     } else if (title == "Candidatos mais votados") {
         output.extraData = {
             bigNumbers: [
-                { value: `+${percentageIncrease.toFixed(0)}%`, label: "Aumento percentual do primeiro para o segundo" },
-                { value: `${top20PercentPercentage.toFixed(0)}%`, label: "Total dos top 20%" }, // Add top 20% big number
+                { value: `+${percentageIncrease?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Aumento percentual do primeiro para o segundo" },
+                { value: `${top20PercentPercentage?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Total dos top 20%" }, // Add top 20% big number
             ],
         }
     }
