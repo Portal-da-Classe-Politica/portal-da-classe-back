@@ -10,18 +10,18 @@ const sequelize = new Sequelize({
     port: 5432,
     logging: false,
     dialectOptions: {
-        statement_timeout: 30000, // 30 segundos (valor em milissegundos)
+        statement_timeout: 29999, // 30 segundos (valor em milissegundos)
         ssl: {
             require: true,
             rejectUnauthorized: false,
         },
     },
-    // pool: {
-    //     max: 10, // Ajuste conforme necessário
-    //     min: 0,
-    //     acquire: 30000,
-    //     idle: 10000,
-    //   },
+    pool: {
+        max: 20, // Ajuste conforme necessário
+        min: 0,
+        acquire: 29999,
+        idle: 10000,
+    },
 })
 
 const connect = async () => {
