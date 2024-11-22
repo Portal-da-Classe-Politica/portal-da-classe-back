@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
     port: 5432,
     logging: false,
     dialectOptions: {
-        statement_timeout: 29999, // 30 segundos (valor em milissegundos)
+        statement_timeout: 120000, // 30 segundos (valor em milissegundos)
         ssl: {
             require: true,
             rejectUnauthorized: false,
@@ -19,7 +19,7 @@ const sequelize = new Sequelize({
     pool: {
         max: 20, // Ajuste conforme necessário
         min: 0,
-        acquire: 29999,
+        acquire: 120000,
         idle: 10000,
     },
 })
