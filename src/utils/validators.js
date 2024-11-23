@@ -17,7 +17,7 @@ const validateParams = async (query, origin) => {
         throw new Error("ERRO: initialYear e finalYear são obrigatórios.")
     }
 
-    validateFinalAndInitialYearsByOrigin(origin, initialYear, finalYear)
+    await validateFinalAndInitialYearsByOrigin(origin, initialYear, finalYear)
 
     if (!dimension) {
         dimension = 0
