@@ -45,7 +45,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
@@ -88,7 +88,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
@@ -135,7 +135,7 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
