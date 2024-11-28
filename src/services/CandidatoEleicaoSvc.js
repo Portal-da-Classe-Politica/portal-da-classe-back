@@ -582,6 +582,7 @@ const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds,
 }
 
 const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+    // console.log('TESTE', ocupacoesIds)
     try {
         let finder = {
             where: {
