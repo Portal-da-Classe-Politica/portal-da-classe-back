@@ -112,6 +112,12 @@ const validateParams2 = async (query, origin) => {
             }
         }
 
+        if (round && round == "0"){
+            round = "all"
+        } else if (round && (round == "1" || round == "2")){
+            round = parseInt(round)
+        }
+
         if (partidos) {
             if (Array.isArray(partidos)){
                 partidos = partidos.map(Number)
