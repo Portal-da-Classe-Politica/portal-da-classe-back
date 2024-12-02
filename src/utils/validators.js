@@ -27,6 +27,12 @@ const validateParams = async (query, origin) => {
         unidadesEleitoraisIds = unidadesEleitoraisIds.split(",").map(Number)
     }
 
+    if (round && round == "0"){
+        round = "all"
+    } else if (round && (round == "1" || round == "2")){
+        round = parseInt(round)
+    }
+
     if (partidos) {
         partidos = partidos.split(",").map(Number)
     }
@@ -104,6 +110,12 @@ const validateParams2 = async (query, origin) => {
             } else {
                 unidadesEleitoraisIds = [Number(unidadesEleitoraisIds)]
             }
+        }
+
+        if (round && round == "0"){
+            round = "all"
+        } else if (round && (round == "1" || round == "2")){
+            round = parseInt(round)
         }
 
         if (partidos) {

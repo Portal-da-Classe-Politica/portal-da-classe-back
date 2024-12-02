@@ -331,7 +331,14 @@ const getFiltersForSearchesByOrigin = async (origin) => {
         "anos": {
             type: "select",
             values: anos.map((i) => i.ano_eleicao),
-
+        },
+        turnos: {
+            type: "select",
+            values: [
+                { id: 0, label: "Ambos" },
+                { id: 1, label: "1º Turno" },
+                { id: 2, label: "2º Turno" },
+            ],
         },
     }
 

@@ -35,6 +35,9 @@ const getAllElectionsYears = async () => {
 
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
+        if (round === "all"){
+            round = undefined
+        }
         const election = await EleicaoModel.findAll({
             where: {
                 ano_eleicao: {
