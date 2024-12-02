@@ -635,15 +635,16 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
         SELECT 
             subquery.candidato_id,
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total_votos) AS mediana
+            -- MAX(subquery.total_votos) AS mediana
     `;
 
     let subquerySelect = `SELECT
         ce.eleicao_id,
         ce.candidato_id, 
-        SUM(vcm.quantidade_votos) as "total_votos" `;
+        SUM(vcm.quantidade_votos) as total_votos `;
 
     let subqueryFrom = ` FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios as vcm on ce.candidato_id = vcm.candidato_eleicao_id `;
+        JOIN votacao_candidato_municipios as vcm on ce.id = vcm.candidato_eleicao_id `;
 
     // Include situacao_turnos JOIN only if isElected is set
     if (isElected && isElected > 0) {
@@ -685,7 +686,7 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
     let limitClause = " LIMIT :limit";
     replacements.limit = limit;
 
-    console.log({ replacements });
+    console.log('getTopCandidatesByVotes', { replacements });
 
     let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
     let sqlQuery = select + ` FROM (${subquery}) AS subquery GROUP BY subquery.candidato_id ORDER BY mediana DESC ` + limitClause;
@@ -699,6 +700,7 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
     `;
 
     // Execute the query
+    console.log({sqlQueryFinal})
     const results = await sequelize.query(sqlQueryFinal, {
         replacements, // Substitute placeholders
         type: Sequelize.QueryTypes.SELECT, // Define as SELECT
