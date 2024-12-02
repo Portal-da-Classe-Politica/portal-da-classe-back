@@ -144,7 +144,7 @@ const getTopCandidates = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
 
-        const data = parseDataToBarChart(resp, title = 'Candidatos mais votados', seriesNames = "Candidatos", itemKey = 'nome', totalKey = "mediana")
+        const data = parseDataToBarChart(resp, title = 'Candidatos mais votados (mediana de votos por eleição)', seriesNames = "Candidatos", itemKey = 'nome', totalKey = "mediana")
 
         return res.json({
             success: true,
