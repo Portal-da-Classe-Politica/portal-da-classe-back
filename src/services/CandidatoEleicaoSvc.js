@@ -700,7 +700,7 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
     `;
 
     // Execute the query
-    console.log({sqlQueryFinal})
+    console.log({ sqlQueryFinal })
     const results = await sequelize.query(sqlQueryFinal, {
         replacements, // Substitute placeholders
         type: Sequelize.QueryTypes.SELECT, // Define as SELECT
@@ -1212,32 +1212,29 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
     }
 }
 
-const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, round, partidos, ocupacoesIds, cargosIds) => {
     try {
         // Base da subquery
-        let subquerySelect = `SELECT ce.eleicao_id, ue.sigla_unidade_federacao, `;
-        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao";
+        let subquerySelect = `SELECT ce.eleicao_id,  ue.sigla_unidade_federacao, `;
         let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)";
+        let subqueryFrom = ` FROM candidato_eleicaos ce
+            JOIN eleicaos e ON ce.eleicao_id = e.id
+            JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
+            JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id
+            JOIN unidade_eleitorals ue ON ue.sigla_unidade_eleitoral = mv.codigo_municipio
+            JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
+        `;
+        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao";
 
         const replacements = { elecionIds };
 
         // Conditional handling for unidadesEleitoraisIds
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            subquerySelect += "ue.id, ue.nome, ue.codigo_ibge, ";
-            subqueryGroupBy += ", ue.id, ue.nome, ue.codigo_ibge";
-            subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)";
+            subqueryWhere += ` AND ue.id IN (:unidadesEleitoraisIds)`;
             replacements.unidadesEleitoraisIds = unidadesEleitoraisIds;
         }
 
         subquerySelect += "SUM(vcm.quantidade_votos) AS total ";
-
-        // FROM clause with necessary JOINs
-        let subqueryFrom = ` FROM candidato_eleicaos ce
-            JOIN eleicaos e ON ce.eleicao_id = e.id
-            JOIN unidade_eleitorals ue ON ce.unidade_eleitoral_id = ue.id
-            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
-            JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
-        `;
 
         // Additional filters
         if (isElected && isElected > 0) {
@@ -1264,26 +1261,20 @@ const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidade
         let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
         let sqlQuery;
 
-        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            sqlQuery = `SELECT 
-                subquery.nome AS nome_unidade_eleitoral,
-                subquery.codigo_ibge,
-                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana 
-                FROM (${subquery}) AS subquery 
-                GROUP BY subquery.nome, subquery.codigo_ibge`;
-        } else {
-            sqlQuery = `SELECT 
+
+        sqlQuery = `SELECT 
                 subquery.sigla_unidade_federacao,
                 PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana 
                 FROM (${subquery}) AS subquery 
                 GROUP BY subquery.sigla_unidade_federacao`;
-        }
+
 
         // Execute the query
         const results = await sequelize.query(sqlQuery, {
             replacements, // Substitute placeholders
             type: Sequelize.QueryTypes.SELECT, // Define as SELECT
         });
+
 
         return results;
     } catch (error) {

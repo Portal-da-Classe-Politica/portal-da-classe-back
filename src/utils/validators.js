@@ -9,7 +9,7 @@ const availableYearsByOrigin = {
 
 const validateParams = async (query, origin) => {
     let {
-        dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds,
+        dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF
     } = query
     let ocupacoesIds = undefined
 
@@ -47,8 +47,16 @@ const validateParams = async (query, origin) => {
         ocupacoesIds = ocupacoes.map((i) => i.id)
     }
 
+    if (UF) {
+        if (Array.isArray(UF)){
+            UF = UF.map((u) => u.toUpperCase())
+        } else {
+            UF = [UF.toUpperCase()]
+        }
+    }
+
     return {
-        dimension: parseInt(dimension), initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+        dimension: parseInt(dimension), initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF
     }
 }
 
