@@ -1,4 +1,4 @@
-const { Op } = require("sequelize")
+const { Op, Sequelize } = require("sequelize")
 const unidadeEleitoralModel = require("../models/UnidadeEleitoral")
 
 const getFederativeUnitsByAbrangency = (abrangency, show, UF) => {
@@ -10,7 +10,7 @@ const getFederativeUnitsByAbrangency = (abrangency, show, UF) => {
         raw: true,
     }
 
-    if (UF){
+    if (UF) {
         filter.where.sigla_unidade_federacao = UF
     }
 
@@ -50,8 +50,29 @@ const getAllElectoralUnitsByArrayOfUFs = (UFs) => {
     })
 }
 
+const getAllElectoralUnitsByArrayOfUnidadesEleitorais = async (unidadesIds) => {
+    const sqlQuery = ` 
+        SELECT id FROM unidade_eleitorals 
+        WHERE sigla_unidade_federacao in (
+            SELECT sigla_unidade_federacao 
+            FROM unidade_eleitorals 
+            WHERE id IN (:unidadesIds)
+        )`
+
+    const replacements = { unidadesIds }
+
+    const results = await sequelize.query(sqlQuery, {
+        replacements, // Substitute placeholders
+        type: Sequelize.QueryTypes.SELECT, // Define as SELECT
+    });
+
+    return results
+
+}
+
 module.exports = {
     getAllElectoralUnitsByArrayOfUFs,
     getFederativeUnitsByAbrangency,
     getAllElectoralUnitiesIdsByUF,
+    getAllElectoralUnitsByArrayOfUnidadesEleitorais
 }

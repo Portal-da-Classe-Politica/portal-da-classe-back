@@ -165,7 +165,7 @@ const getTopCandidates = async (req, res) => {
 const getVotesByLocation = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -184,9 +184,20 @@ const getVotesByLocation = async (req, res) => {
                 })
             }
             electoralUnits = electoralUnitsResp.map((i) => i.id)
+        } else if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+            const electoralUnitsResp = await UnidadeEleitoralService.getAllElectoralUnitsByArrayOfUnidadesEleitorais(unidadesEleitoraisIds)
+            if (!electoralUnitsResp.length) {
+                return res.status(400).json({
+                    success: false,
+                    data: {},
+                    message: "UF não encontrada",
+                })
+            }
+            electoralUnits = electoralUnitsResp.map((i) => i.id)
+
         }
 
-        const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, round, partidos, ocupacoesIds, cargosIds)
 
         return res.json({
             success: true,
