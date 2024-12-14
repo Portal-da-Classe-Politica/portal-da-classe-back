@@ -1,6 +1,6 @@
 const { sequelize } = require("../db/sequelize-connection")
 const EleicaoModel = require("../models/Eleicao")
-const { Sequelize } = require("sequelize")
+const { Sequelize, or } = require("sequelize")
 
 const getLastElectionFirstTurn = async (ano, turno) => {
     try {
@@ -26,6 +26,7 @@ const getAllElectionsYears = async () => {
             },
             attributes: [Sequelize.fn("DISTINCT", Sequelize.col("ano_eleicao")), "ano_eleicao"],
             raw: true,
+            order: [["ano_eleicao", "ASC"]],
         })
         return elections
     } catch (error) {
