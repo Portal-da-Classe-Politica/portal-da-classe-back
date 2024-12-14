@@ -1,3 +1,4 @@
+const { sequelize } = require("../db/sequelize-connection")
 const EleicaoModel = require("../models/Eleicao")
 const { Sequelize } = require("sequelize")
 
@@ -36,7 +37,7 @@ const getAllElectionsYears = async () => {
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
         if (round === "all"){
-            round = undefined
+            round = { [Sequelize.Op.in]: [1, 2] }
         }
         const election = await EleicaoModel.findAll({
             where: {
@@ -58,6 +59,9 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
 
 const getInitialAndLastElections = async (initialYear, finalYear, round = 1) => {
     try {
+        if (round === "all"){
+            round = { [Sequelize.Op.in]: [1, 2] }
+        }
         const election = await EleicaoModel.findAll({
             where: {
                 ano_eleicao: {
