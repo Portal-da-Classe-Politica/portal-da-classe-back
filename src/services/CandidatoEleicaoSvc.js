@@ -59,18 +59,18 @@ const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupaco
 
 const parseByDimension = (finder, dimension) => {
     switch (Number(dimension)) {
-        case 0:
-            finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
-            break
-        case 1:
-            finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] })
-            finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total"])
-            break
-        case 2:
-            finder.include.push({ model: BensCandidatoEleicao, attributes: [] })
-            finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("bens_candidatos.valor")), "total"])
-            break
-        default: break
+    case 0:
+        finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
+        break
+    case 1:
+        finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] })
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total"])
+        break
+    case 2:
+        finder.include.push({ model: BensCandidatoEleicao, attributes: [] })
+        finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("bens_candidatos.valor")), "total"])
+        break
+    default: break
     }
 }
 
@@ -316,7 +316,7 @@ const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
     }
 }
 
-const getLast5LastElections = async (candidatoId) => {
+const getLast5LastElections = async (candidatoId, limit = 5) => {
     try {
         const candidateElection = await CandidatoEleicaoModel.findAll({
             where: {
@@ -334,7 +334,7 @@ const getLast5LastElections = async (candidatoId) => {
             order: [
                 [sequelize.col("eleicao.ano_eleicao"), "DESC"],
             ],
-            limit: 5,
+            limit,
             raw: true,
             attributes: ["id", [sequelize.col("eleicao.id"), "eleicao_id"], [sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"]],
         })
@@ -601,14 +601,14 @@ const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds
                     model: SituacaoTurnoModel,
                     required: true, // INNER JOIN
                     attributes: ["foi_eleito"],
-                }
+                },
             ],
             attributes: [
                 [Sequelize.col("eleicao.ano_eleicao"), "ano"],
             ],
             group: [
                 "ano",
-                "situacao_turno.foi_eleito"
+                "situacao_turno.foi_eleito",
             ],
             raw: true,
         }
@@ -636,60 +636,60 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
             subquery.candidato_id,
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total_votos) AS mediana
             -- MAX(subquery.total_votos) AS mediana
-    `;
+    `
 
     let subquerySelect = `SELECT
         ce.eleicao_id,
         ce.candidato_id, 
-        SUM(vcm.quantidade_votos) as total_votos `;
+        SUM(vcm.quantidade_votos) as total_votos `
 
     let subqueryFrom = ` FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios as vcm on ce.id = vcm.candidato_eleicao_id `;
+        JOIN votacao_candidato_municipios as vcm on ce.id = vcm.candidato_eleicao_id `
 
     // Include situacao_turnos JOIN only if isElected is set
     if (isElected && isElected > 0) {
-        subqueryFrom += " JOIN situacao_turnos st ON st.id = ce.situacao_turno_id ";
+        subqueryFrom += " JOIN situacao_turnos st ON st.id = ce.situacao_turno_id "
     }
 
-    let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)";
-    let subqueryGroupBy = " GROUP BY ce.eleicao_id, ce.candidato_id";
+    let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
+    let subqueryGroupBy = " GROUP BY ce.eleicao_id, ce.candidato_id"
 
-    const replacements = { elecionIds };
+    const replacements = { elecionIds }
 
     // Additional dynamic filters
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)";
-        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds;
+        subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
     if (isElected && isElected > 0) {
-        subqueryWhere += " AND st.foi_eleito = :isElected";
-        replacements.isElected = (Number(isElected) === 1);
+        subqueryWhere += " AND st.foi_eleito = :isElected"
+        replacements.isElected = (Number(isElected) === 1)
     }
 
     if (partidos && partidos.length > 0) {
-        subqueryWhere += " AND ce.partido_id IN (:partidos)";
-        replacements.partidos = partidos;
+        subqueryWhere += " AND ce.partido_id IN (:partidos)"
+        replacements.partidos = partidos
     }
 
     if (cargosIds && cargosIds.length > 0) {
-        subqueryWhere += " AND ce.cargo_id IN (:cargosIds)";
-        replacements.cargosIds = cargosIds;
+        subqueryWhere += " AND ce.cargo_id IN (:cargosIds)"
+        replacements.cargosIds = cargosIds
     }
 
     if (ocupacoesIds && ocupacoesIds.length > 0) {
-        subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)";
-        replacements.ocupacoesIds = ocupacoesIds;
+        subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)"
+        replacements.ocupacoesIds = ocupacoesIds
     }
 
-    // Final assembly of the subquery and main query    
-    let limitClause = " LIMIT :limit";
-    replacements.limit = limit;
+    // Final assembly of the subquery and main query
+    let limitClause = " LIMIT :limit"
+    replacements.limit = limit
 
-    console.log('getTopCandidatesByVotes', { replacements });
+    console.log("getTopCandidatesByVotes", { replacements })
 
-    let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
-    let sqlQuery = select + ` FROM (${subquery}) AS subquery GROUP BY subquery.candidato_id ORDER BY mediana DESC ` + limitClause;
+    let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
+    let sqlQuery = select + ` FROM (${subquery}) AS subquery GROUP BY subquery.candidato_id ORDER BY mediana DESC ` + limitClause
 
     let sqlQueryFinal = `SELECT 
         c.nome,
@@ -697,17 +697,17 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
         subqueryMediana.mediana
         FROM (${sqlQuery}) as subqueryMediana
         JOIN candidatos c ON c.id = subqueryMediana.candidato_id
-    `;
+    `
 
     // Execute the query
     console.log({ sqlQueryFinal })
     const results = await sequelize.query(sqlQueryFinal, {
         replacements, // Substitute placeholders
         type: Sequelize.QueryTypes.SELECT, // Define as SELECT
-    });
+    })
 
-    return results;
-};
+    return results
+}
 
 // TODO: mandar as 3 para o gráfico de barrra
 const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
@@ -1215,74 +1215,70 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
 const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, round, partidos, ocupacoesIds, cargosIds) => {
     try {
         // Base da subquery
-        let subquerySelect = `SELECT ce.eleicao_id,  ue.sigla_unidade_federacao, `;
-        let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)";
+        let subquerySelect = "SELECT ce.eleicao_id,  ue.sigla_unidade_federacao, "
+        let subqueryWhere = " WHERE ce.eleicao_id IN (:elecionIds)"
         let subqueryFrom = ` FROM candidato_eleicaos ce
             JOIN eleicaos e ON ce.eleicao_id = e.id
             JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
             JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id
             JOIN unidade_eleitorals ue ON ue.sigla_unidade_eleitoral = mv.codigo_municipio
             JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
-        `;
-        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao";
+        `
+        let subqueryGroupBy = " GROUP BY ce.eleicao_id, ue.sigla_unidade_federacao"
 
-        const replacements = { elecionIds };
+        const replacements = { elecionIds }
 
         // Conditional handling for unidadesEleitoraisIds
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            subqueryWhere += ` AND ue.id IN (:unidadesEleitoraisIds)`;
-            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds;
+            subqueryWhere += " AND ue.id IN (:unidadesEleitoraisIds)"
+            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
         }
 
-        subquerySelect += "SUM(vcm.quantidade_votos) AS total ";
+        subquerySelect += "SUM(vcm.quantidade_votos) AS total "
 
         // Additional filters
         if (isElected && isElected > 0) {
-            subqueryWhere += " AND st.foi_eleito = (:isElected)";
-            replacements.isElected = (Number(isElected) === 1);
+            subqueryWhere += " AND st.foi_eleito = (:isElected)"
+            replacements.isElected = (Number(isElected) === 1)
         }
 
         if (partidos && partidos.length > 0) {
-            subqueryWhere += " AND ce.partido_id IN (:partidos)";
-            replacements.partidos = partidos;
+            subqueryWhere += " AND ce.partido_id IN (:partidos)"
+            replacements.partidos = partidos
         }
 
         if (cargosIds && cargosIds.length > 0) {
-            subqueryWhere += " AND ce.cargo_id IN (:cargosIds)";
-            replacements.cargosIds = cargosIds;
+            subqueryWhere += " AND ce.cargo_id IN (:cargosIds)"
+            replacements.cargosIds = cargosIds
         }
 
         if (ocupacoesIds && ocupacoesIds.length > 0) {
-            subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)";
-            replacements.ocupacoesIds = ocupacoesIds;
+            subqueryWhere += " AND ce.ocupacao_id IN (:ocupacoesIds)"
+            replacements.ocupacoesIds = ocupacoesIds
         }
 
         // Final assembly of the subquery and main query
-        let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy;
-        let sqlQuery;
-
+        let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
+        let sqlQuery
 
         sqlQuery = `SELECT 
                 subquery.sigla_unidade_federacao,
                 PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana 
                 FROM (${subquery}) AS subquery 
-                GROUP BY subquery.sigla_unidade_federacao`;
-
+                GROUP BY subquery.sigla_unidade_federacao`
 
         // Execute the query
         const results = await sequelize.query(sqlQuery, {
             replacements, // Substitute placeholders
             type: Sequelize.QueryTypes.SELECT, // Define as SELECT
-        });
+        })
 
-
-        return results;
+        return results
     } catch (error) {
-        console.error("Error in getVotesMedianCandidatesByLocation:", error);
-        throw error;
+        console.error("Error in getVotesMedianCandidatesByLocation:", error)
+        throw error
     }
-};
-
+}
 
 module.exports = {
     getFinanceMedianCandidatesByLocation,
@@ -1301,5 +1297,5 @@ module.exports = {
     getCandidatesProfileKPIs,
     getCompetitionByYear,
     getTopCandidatesByVotes,
-    getVotesMedianCandidatesByLocation
+    getVotesMedianCandidatesByLocation,
 }
