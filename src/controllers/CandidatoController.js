@@ -188,7 +188,7 @@ const getLast5LastElectionsVotes = async (req, res) => {
         if (!candidateId) throw new Error("ID do candidato é obrigatório")
         const candidate = await candidatoSvc.getCandidate(candidateId)
         if (!candidate) throw new Error("Candidato não encontrado")
-        const elections = await candidatoEleicaoSvc.getLast5LastElections(candidateId)
+        const elections = await candidatoEleicaoSvc.getLast5LastElections(candidateId, 20)
         if (!elections) throw new Error("Nenhuma eleição encontrada.")
         const candidateElectionsIds = elections.map((election) => election.id)
         const votes = await candidatoEleicaoSvc.getLast5LastElectionsVotes(candidateElectionsIds)
