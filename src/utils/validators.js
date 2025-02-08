@@ -9,7 +9,7 @@ const availableYearsByOrigin = {
 
 const validateParams = async (query, origin) => {
     let {
-        dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF
+        dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF, raca,
     } = query
     let ocupacoesIds = undefined
 
@@ -55,8 +55,18 @@ const validateParams = async (query, origin) => {
         }
     }
 
+    if (raca) {
+        if (raca == "0") {
+            raca = null
+        } else if (raca == "1") {
+            raca = [1, 7]
+        } else {
+            raca = Number(raca)
+        }
+    }
+
     return {
-        dimension: parseInt(dimension), initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF
+        dimension: parseInt(dimension), initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
     }
 }
 
@@ -95,7 +105,7 @@ const validateDimensionByOrigin = async (origin, dimension) => {
 const validateParams2 = async (query, origin) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, categoriasOcupacoes, cargosIds, UF, raca,
         } = query
         let ocupacoesIds = undefined
 
@@ -160,8 +170,18 @@ const validateParams2 = async (query, origin) => {
             }
         }
 
+        if (raca) {
+            if (raca == "0") {
+                raca = null
+            } else if (raca == "1") {
+                raca = [1, 7]
+            } else {
+                raca = Number(raca)
+            }
+        }
+
         return {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
         }
     } catch (error) {
         throw error

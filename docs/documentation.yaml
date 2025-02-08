@@ -779,6 +779,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ano.
@@ -857,6 +863,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por gênero.  
@@ -916,6 +928,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -969,6 +987,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                          
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1028,6 +1052,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1087,6 +1117,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1146,6 +1182,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1205,10 +1247,16 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida .        
-  /noauth/elections/kpis:
+  /noauth/cruzamentos/elections/kpis:
     get:
       operationId: "18"  # New operation ID
       tags:
@@ -1228,6 +1276,12 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                              
       responses:
         '200':
           description: Resposta bem-sucedida com os KPIs das eleições.
@@ -1246,7 +1300,6 @@ paths:
                     type: array
                     items:
                       type: object
-
   /noauth/cruzamentos/elections/competition-by-year:
     get:
       operationId: "19"  # New operation ID
@@ -1303,6 +1356,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                              
       responses:
         '200':
           description: Resposta bem-sucedida com os dados de competição por ano.
@@ -1377,7 +1436,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
-        
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                            
       responses:
         '200':
           description: Resposta bem-sucedida com os principais candidatos.
@@ -1452,6 +1516,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                              
       responses:
         '200':
           description: Resposta bem-sucedida com os votos por localização.

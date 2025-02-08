@@ -18,13 +18,13 @@ const possibilitiesByDimension = {
 const getFinanceKPIs = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "donations")
 
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getFinanceKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getFinanceKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
         let data
         if (resp && resp.length) {
             const finalYearId = elections.find((e) => e.ano_eleicao === parseInt(finalYear)).id
@@ -36,26 +36,26 @@ const getFinanceKPIs = async (req, res) => {
                 initialYearResult.resultado = ipcaUtil.atualizarValor(initialYearResult.resultado, initialYear)
             }
 
-            const abs_var = lastYearResult.resultado - initialYearResult.resultado;
-            const formattedAbsVar = abs_var.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const abs_var = lastYearResult.resultado - initialYearResult.resultado
+            const formattedAbsVar = abs_var.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
             const per_var = ((lastYearResult.resultado / initialYearResult.resultado) * 100).toFixed(2)
-            
-            const perVarValue = Number(per_var) - 100;
-            const formattedPerVar = perVarValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const perVarValue = Number(per_var) - 100
+            const formattedPerVar = perVarValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             const per_var_text = `${formattedPerVar}%`
-            const comparison = (Number(per_var) - 1) > 0 ? 'maior' : 'menor';
+            const comparison = (Number(per_var) - 1) > 0 ? "maior" : "menor"
 
             data = [
                 {
                     label: "Variação Absoluta",
                     value: formattedAbsVar,
-                    description: `O financiamento dos candidatos variou R$ ${formattedAbsVar} entre ${initialYear} e ${finalYear}.`
+                    description: `O financiamento dos candidatos variou R$ ${formattedAbsVar} entre ${initialYear} e ${finalYear}.`,
                 },
                 {
                     label: "Variação Percentual",
                     value: per_var_text,
-                    description: `O financiamento dos candidatos em ${finalYear} foi ${formattedPerVar}% ${comparison} em relação a ${initialYear}.`
+                    description: `O financiamento dos candidatos em ${finalYear} foi ${formattedPerVar}% ${comparison} em relação a ${initialYear}.`,
                 },
             ]
         }
@@ -86,13 +86,13 @@ const getFinanceKPIs = async (req, res) => {
 const getFinanceByYear = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "donations")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getFinanceCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getFinanceCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         const typeOfData = dimension === 1 ? "integer" : "float"
 
@@ -121,13 +121,13 @@ const getFinanceByYear = async (req, res) => {
 const getFinanceMedianByParty = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams2(req.query, "donations")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByParty(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByParty(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         const parsedData = parseFinanceDataToBarChart(resp, possibilitiesByDimension[dimension], "Total")
 
@@ -155,7 +155,7 @@ const getFinanceMedianByParty = async (req, res) => {
 const getFinanceMedianByLocation = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
         } = await validateParams2(req.query, "donations")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -176,7 +176,7 @@ const getFinanceMedianByLocation = async (req, res) => {
             electoralUnits = electoralUnitsResp.map((i) => i.id)
         }
 
-        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         return res.json({
             success: true,
