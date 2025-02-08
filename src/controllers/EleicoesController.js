@@ -139,7 +139,7 @@ const getCompetitionByYear = async (req, res) => {
 const getTopCandidates = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca,
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -168,7 +168,7 @@ const getTopCandidates = async (req, res) => {
 const getVotesByLocation = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -199,7 +199,7 @@ const getVotesByLocation = async (req, res) => {
             electoralUnits = electoralUnitsResp.map((i) => i.id)
         }
 
-        const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, round, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, round, partidos, ocupacoesIds, cargosIds, raca)
 
         return res.json({
             success: true,

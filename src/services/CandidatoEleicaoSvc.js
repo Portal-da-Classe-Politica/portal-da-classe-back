@@ -1275,7 +1275,7 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
     }
 }
 
-const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, round, partidos, ocupacoesIds, cargosIds) => {
+const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, round, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         // Base da subquery
         let subquerySelect = "SELECT ce.eleicao_id,  ue.sigla_unidade_federacao, "
@@ -1303,6 +1303,15 @@ const getVotesMedianCandidatesByLocation = async (elecionIds, dimension, unidade
         if (isElected && isElected > 0) {
             subqueryWhere += " AND st.foi_eleito = (:isElected)"
             replacements.isElected = (Number(isElected) === 1)
+        }
+
+        if (raca) {
+            subqueryFrom += " JOIN candidatos candidato ON candidato.id = ce.candidato_id "
+            if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+                subqueryWhere += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
+            } else {
+                subqueryWhere += ` AND candidato.raca_id = ${raca}`
+            }
         }
 
         if (partidos && partidos.length > 0) {
