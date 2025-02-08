@@ -521,7 +521,7 @@ const getLastAllElections = async (candidatoId) => {
     }
 }
 
-const getCandidatesGenderByElection = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCandidatesGenderByElection = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let finder = {
             where: {
@@ -545,7 +545,7 @@ const getCandidatesGenderByElection = async (elecionIds, dimension, unidadesElei
             raw: true,
         }
 
-        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         parseByDimension(finder, dimension)
 
