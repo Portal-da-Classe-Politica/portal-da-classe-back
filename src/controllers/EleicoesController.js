@@ -20,9 +20,14 @@ const getEleicoesKpis = async (req, res) => {
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
-        const resp_eleitos = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds)
-        const resp_cands = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds)
+        const [resp,
+            resp_eleitos,
+            resp_cands,
+        ] = await Promise.all([
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds),
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds),
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds),
+        ])
 
         let data = {
             absolute_variation: 0,
@@ -36,26 +41,26 @@ const getEleicoesKpis = async (req, res) => {
             const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear)).total
             // console.log({finalYear, finalYearTotal, resp})
 
-            const abs_var = (finalYearTotal - initialYearTotal)?.toLocaleString('pt-BR')
-            const per_var = ((finalYearTotal / initialYearTotal - 1) * 100)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const competition = (resp_cands_total / resp_eleitos_total)?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const selectedDimension = `${dimension ? possibilitiesByDimension[dimension] : 'quantidade de candidatos'}`
+            const abs_var = (finalYearTotal - initialYearTotal)?.toLocaleString("pt-BR")
+            const per_var = ((finalYearTotal / initialYearTotal - 1) * 100)?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            const competition = (resp_cands_total / resp_eleitos_total)?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            const selectedDimension = `${dimension ? possibilitiesByDimension[dimension] : "quantidade de candidatos"}`
             data = [
                 {
                     label: "Variação Absoluta",
                     value: abs_var,
-                    description: `A ${selectedDimension} variou ${abs_var} entre ${initialYear} e ${finalYear}.`
+                    description: `A ${selectedDimension} variou ${abs_var} entre ${initialYear} e ${finalYear}.`,
                 },
                 {
                     label: "Variação Percentual",
                     value: `${per_var}%`,
-                    description: `A ${selectedDimension} em ${finalYear} foi ${per_var}% ${Number(per_var) - 100 > 0 ? 'maior' : 'menor'} em relação a ${initialYear}.`
+                    description: `A ${selectedDimension} em ${finalYear} foi ${per_var}% ${Number(per_var) - 100 > 0 ? "maior" : "menor"} em relação a ${initialYear}.`,
                 },
                 {
                     label: "Competição",
                     value: `${competition}`,
-                    description: `Para cada candidato eleito, houve ${competition} candidatos não eleitos.`
-                }
+                    description: `Para cada candidato eleito, houve ${competition} candidatos não eleitos.`,
+                },
             ]
 
             return res.json({
@@ -77,7 +82,6 @@ const getEleicoesKpis = async (req, res) => {
 }
 
 const getCompetitionByYear = async (req, res) => {
-
     try {
         let {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
@@ -89,33 +93,32 @@ const getCompetitionByYear = async (req, res) => {
         const resp = await CandidatoEleicaoService.getCompetitionByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
 
         const transformedData = resp.reduce((acc, curr) => {
-            const year = curr.ano;
-            const total = parseInt(curr.total);
-            const wasElected = curr["situacao_turno.foi_eleito"];
+            const year = curr.ano
+            const total = parseInt(curr.total)
+            const wasElected = curr["situacao_turno.foi_eleito"]
 
             if (!acc[year]) {
-                acc[year] = { true: 0, false: 0 };
+                acc[year] = { true: 0, false: 0 }
             }
 
-            acc[year][wasElected] += total;
+            acc[year][wasElected] += total
 
-            return acc;
-        }, {});
+            return acc
+        }, {})
 
         const result = Object.entries(transformedData).map(([year, totals]) => ({
             year: parseInt(year),
-            competition: (totals.false / totals.true).toFixed(2)
-        }));
+            competition: (totals.false / totals.true).toFixed(2),
+        }))
 
         const parsedData = parseDataToLineChart(result,
             "Total",
             "Anos",
             "Candidatos por Eleito",
             "Competição - histórico",
-            dataType = 'float',
+            dataType = "float",
             xAxisKey = "year",
-            yAxisKey = 'competition')
-
+            yAxisKey = "competition")
 
         return res.json({
             success: true,
@@ -136,7 +139,7 @@ const getCompetitionByYear = async (req, res) => {
 const getTopCandidates = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit,
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -144,7 +147,7 @@ const getTopCandidates = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
 
-        const data = parseDataToBarChart(resp, title = 'Candidatos mais votados (mediana de votos por eleição)', seriesNames = "Candidatos", itemKey = 'nome', totalKey = "mediana")
+        const data = parseDataToBarChart(resp, title = "Candidatos mais votados (mediana de votos por eleição)", seriesNames = "Candidatos", itemKey = "nome", totalKey = "mediana")
 
         return res.json({
             success: true,
@@ -165,7 +168,7 @@ const getTopCandidates = async (req, res) => {
 const getVotesByLocation = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -194,7 +197,6 @@ const getVotesByLocation = async (req, res) => {
                 })
             }
             electoralUnits = electoralUnitsResp.map((i) => i.id)
-
         }
 
         const resp = await CandidatoEleicaoService.getVotesMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, round, partidos, ocupacoesIds, cargosIds)
@@ -213,13 +215,11 @@ const getVotesByLocation = async (req, res) => {
             message: "Erro ao buscar cruzamento de financiamento por partido",
         })
     }
-
 }
-
 
 module.exports = {
     getEleicoesKpis,
     getCompetitionByYear,
     getTopCandidates,
-    getVotesByLocation
+    getVotesByLocation,
 }
