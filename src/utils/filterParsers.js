@@ -92,7 +92,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Renovação Líquida",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador
     },
     "6": {
@@ -100,7 +100,7 @@ const indicatorsPossibilities = {
         "nome": "Taxa de Reeleição",
         "grupo": "partidário",
         "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-        cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
     },
     "7": {
         "id": "7",
@@ -338,6 +338,18 @@ const getFiltersForSearchesByOrigin = async (origin) => {
                 { id: 0, label: "Ambos" },
                 { id: 1, label: "1º Turno" },
                 { id: 2, label: "2º Turno" },
+            ],
+        },
+        racas: {
+            type: "select",
+            values: [
+                { id: 0, label: "Todas" },
+                { id: 1, label: "Não Divulgável ou não informada" },
+                { id: 2, label: "Parda" },
+                { id: 3, label: "Branca" },
+                { id: 4, label: "Amarela" },
+                { id: 5, label: "Preta" },
+                { id: 6, label: "Indígena" },
             ],
         },
     }
