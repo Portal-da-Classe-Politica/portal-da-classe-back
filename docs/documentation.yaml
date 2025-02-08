@@ -779,6 +779,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ano.
@@ -857,6 +863,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por gênero.  
@@ -916,6 +928,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                                    
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -969,6 +987,12 @@ paths:
             type: array
           required: false
           description: IDs dos cargos (1,2,3...)
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)                          
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
