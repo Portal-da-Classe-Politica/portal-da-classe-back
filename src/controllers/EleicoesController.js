@@ -14,7 +14,7 @@ const possibilitiesByDimension = {
 const getEleicoesKpis = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
@@ -24,9 +24,9 @@ const getEleicoesKpis = async (req, res) => {
             resp_eleitos,
             resp_cands,
         ] = await Promise.all([
-            CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds),
-            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds),
-            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds),
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca),
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 1, partidos, ocupacoesIds, cargosIds, raca),
+            CandidatoEleicaoService.getCandidatesByYear(electionsIds, 0, unidadesEleitoraisIds, 0, partidos, ocupacoesIds, cargosIds, raca),
         ])
 
         let data = {
