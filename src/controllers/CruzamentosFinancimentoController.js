@@ -155,7 +155,7 @@ const getFinanceMedianByParty = async (req, res) => {
 const getFinanceMedianByLocation = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
         } = await validateParams2(req.query, "donations")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -176,7 +176,7 @@ const getFinanceMedianByLocation = async (req, res) => {
             electoralUnits = electoralUnitsResp.map((i) => i.id)
         }
 
-        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getFinanceMedianCandidatesByLocation(electionsIds, dimension, electoralUnits, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         return res.json({
             success: true,

@@ -1113,7 +1113,7 @@ const getFinanceMedianCandidatesByParty = async (elecionIds, dimension, unidades
     }
 }
 
-const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let select = `SELECT              
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY subquery.total) AS mediana
@@ -1200,6 +1200,15 @@ const getFinanceMedianCandidatesByLocation = async (elecionIds, dimension, unida
                 subquerySelect += ", ue.sigla_unidade_federacao"
                 subqueryGroupBy = " GROUP BY ue.sigla_unidade_federacao, total"
                 select += ", subquery.sigla_unidade_federacao"
+            }
+        }
+
+        if (raca) {
+            subqueryFrom += " JOIN candidatos candidato ON candidato.id = ce.candidato_id "
+            if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+                subqueryWhere += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
+            } else {
+                subqueryWhere += ` AND candidato.raca_id = ${raca}`
             }
         }
 
