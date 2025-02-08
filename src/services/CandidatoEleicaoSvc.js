@@ -785,53 +785,65 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
     }
 }
 
-const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
-        let sqlQuery = `
+        let selectQuery = `
                 SELECT
                     e.ano_eleicao,
                     COUNT (c.id) as total_candidatos,
                     SUM(vcm.quantidade_votos) AS total_votos,
                     SUM(ce.despesa_campanha) AS total_despesas,
-                    SUM(bce.valor) AS total_bens
+                    SUM(bce.valor) AS total_bens                
+                `
+        let from = `
                 FROM candidato_eleicaos ce
                     JOIN candidatos c ON ce.candidato_id = c.id
                     JOIN eleicaos e ON ce.eleicao_id = e.id
                     JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
                     LEFT JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
-                    LEFT JOIN bens_candidatos bce ON ce.candidato_id  = bce.candidato_eleicao_id
-                WHERE ce.eleicao_id IN (:elecionIds)
-                `
+                    LEFT JOIN bens_candidatos bce ON ce.candidato_id  = bce.candidato_eleicao_id               
+              `
+
+        let where = "WHERE ce.eleicao_id IN (:elecionIds)"
 
         const replacements = { elecionIds }
 
         // Dynamic Filter Conditions
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            sqlQuery += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+            where += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
             replacements.unidadesEleitoraisIds = unidadesEleitoraisIds // Add to replacements
         }
 
+        if (raca){
+            from += " JOIN candidatos candidato ON candidato.id = ce.candidato_id "
+            if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+                where += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
+            } else {
+                where += ` AND candidato.raca_id = ${raca}`
+            }
+        }
+
         if (isElected && isElected > 0) {
-            sqlQuery += " AND st.foi_eleito = (:isElected)"
+            where += " AND st.foi_eleito = (:isElected)"
             replacements.isElected = (Number(isElected) === 1)
         }
 
         if (partidos && partidos.length > 0) {
-            sqlQuery += " AND ce.partido_id IN (:partidos)"
+            where += " AND ce.partido_id IN (:partidos)"
             replacements.partidos = partidos
         }
 
         if (cargosIds && cargosIds.length > 0) {
-            sqlQuery += " AND ce.cargo_id IN (:cargosIds)"
+            where += " AND ce.cargo_id IN (:cargosIds)"
             replacements.cargosIds = cargosIds
         }
 
         if (ocupacoesIds && ocupacoesIds.length > 0) {
-            sqlQuery += " AND ce.ocupacao_id IN (:ocupacoesIds)"
+            where += " AND ce.ocupacao_id IN (:ocupacoesIds)"
             replacements.ocupacoesIds = ocupacoesIds
         }
 
-        sqlQuery += " GROUP BY e.ano_eleicao ORDER BY e.ano_eleicao;"
+        let sqlQuery = selectQuery + from + where + " GROUP BY e.ano_eleicao ORDER BY e.ano_eleicao;"
 
         const results = await sequelize.query(sqlQuery, {
             replacements, // Replace placeholders in the query

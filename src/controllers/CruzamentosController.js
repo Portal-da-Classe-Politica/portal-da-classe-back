@@ -93,13 +93,13 @@ const getCandidatesByOcupations = async (req, res) => {
 const getCandidatesKPIs = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca
         } = await validateParams(req.query, "candidates")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getCandidatesProfileKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        const resp = await CandidatoEleicaoService.getCandidatesProfileKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         if (resp && resp.length) {
             const finalYearTotalCandidatos = resp[resp.length - 1].total_candidatos
