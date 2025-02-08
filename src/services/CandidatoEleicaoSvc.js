@@ -20,7 +20,7 @@ const doacoesCandidatoEleicaoModel = require("../models/DoacoesCandidatoEleicao"
 const unidadeEleitoralSvc = require("./UnidateEleitoralService")
 const { fatoresDeCorreção } = require("../utils/ipca")
 
-const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     // UF, cidade
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
         finder.where.unidade_eleitoral_id = { [Op.in]: unidadesEleitoraisIds }
@@ -35,6 +35,29 @@ const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupaco
                 foi_eleito: Number(isElected) === 1,
             },
             attributes: [],
+        }
+        finder.include.push(include)
+    }
+
+    if (raca) {
+        const include = {
+            model: CandidatoModel,
+            attributes: [],
+        }
+        if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+            include.where = {
+                raca_id: {
+                    [Op.or]: {
+                        [Op.in]: raca,
+                        [Op.is]: null,
+                    },
+                },
+            }
+        } else {
+            include.where = {
+                raca_id: raca,
+            }
+            include.required = true
         }
         finder.include.push(include)
     }
@@ -822,14 +845,7 @@ const getCandidatesProfileKPIs = async (elecionIds, dimension, unidadesEleitorai
     }
 }
 
-const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
-    // values: [
-    //     { id: 0, label: "Volume total de financiamento" }, doacoes_candidato_eleicoes
-    //     { id: 1, label: "Quantidade doações" }, doacoes_candidato_eleicoes
-    //     { id: 2, label: "Volume fundo eleitoral" }, where fonte_receita_id = 5
-    //     { id: 3, label: "Volume fundo partidário" }, where fonte_receita_id = 1
-    //     { id: 4, label: "Volume financiamento privado" }, where fonte_receita_id != 1 e fonte_receita_id != 5
-    // ],
+const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let select = `SELECT
                     ce.eleicao_id                    
@@ -847,13 +863,22 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
             select += ", SUM(doacoes_candidato_eleicoes.valor) as resultado"
         }
 
-        const from = ` FROM candidato_eleicaos ce                    
+        let from = ` FROM candidato_eleicaos ce                    
                     JOIN eleicaos e ON ce.eleicao_id = e.id
                     JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
                     LEFT JOIN doacoes_candidato_eleicoes ON ce.id = doacoes_candidato_eleicoes.candidato_eleicao_id  
                     `
 
-        const where = "WHERE ce.eleicao_id IN (:elecionIds)"
+        let where = "WHERE ce.eleicao_id IN (:elecionIds)"
+
+        if (raca) {
+            from += " JOIN candidatos candidato ON candidato.id = ce.canidato_id "
+            if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+                where += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
+            } else {
+                where += ` AND candidato.raca_id = ${raca}`
+            }
+        }
 
         let sqlQuery = select + from + where
 
@@ -924,7 +949,7 @@ const parseDimensionFinance = (finder, dimension) => {
     }
 }
 
-const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let finder = {
             where: {
@@ -949,7 +974,7 @@ const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitor
             raw: true,
         }
 
-        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         parseDimensionFinance(finder, dimension)
 
