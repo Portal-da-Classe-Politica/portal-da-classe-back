@@ -733,7 +733,7 @@ const getTopCandidatesByVotes = async (elecionIds, dimension, unidadesEleitorais
 }
 
 // TODO: mandar as 3 para o gráfico de barrra
-const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let finder = {
             where: {
@@ -768,7 +768,7 @@ const getCandidatesByOccupation = async (elecionIds, dimension, unidadesEleitora
             raw: true,
         }
 
-        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds)
+        parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
         parseByDimension(finder, dimension)
 
