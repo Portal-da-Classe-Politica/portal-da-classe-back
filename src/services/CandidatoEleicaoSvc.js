@@ -872,7 +872,7 @@ const getFinanceKPIs = async (elecionIds, dimension, unidadesEleitoraisIds, isEl
         let where = "WHERE ce.eleicao_id IN (:elecionIds)"
 
         if (raca) {
-            from += " JOIN candidatos candidato ON candidato.id = ce.canidato_id "
+            from += " JOIN candidatos candidato ON candidato.id = ce.candidato_id "
             if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
                 where += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
             } else {
@@ -1003,7 +1003,7 @@ const getFinanceCandidatesByYear = async (elecionIds, dimension, unidadesEleitor
  * @param {*} ocupacoesIds
  * @param {*} cargosIds
  */
-const getFinanceMedianCandidatesByParty = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getFinanceMedianCandidatesByParty = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     try {
         let select = `SELECT
                 subquery.partido,
@@ -1066,6 +1066,14 @@ const getFinanceMedianCandidatesByParty = async (elecionIds, dimension, unidades
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
             subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
             replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        }
+        if (raca) {
+            subqueryFrom += " JOIN candidatos candidato ON candidato.id = ce.candidato_id "
+            if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
+                subqueryWhere += ` AND (candidato.raca_id IN (${raca}) OR candidato.raca_id IS NULL)`
+            } else {
+                subqueryWhere += ` AND candidato.raca_id = ${raca}`
+            }
         }
 
         if (isElected && isElected > 0) {
