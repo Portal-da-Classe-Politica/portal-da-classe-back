@@ -84,7 +84,7 @@ const getEleicoesKpis = async (req, res) => {
 const getCompetitionByYear = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -139,13 +139,13 @@ const getCompetitionByYear = async (req, res) => {
 const getTopCandidates = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca
         } = await validateParams(req.query, "elections")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
 
-        const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit)
+        const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca)
 
         const data = parseDataToBarChart(resp, title = "Candidatos mais votados (mediana de votos por eleição)", seriesNames = "Candidatos", itemKey = "nome", totalKey = "mediana")
 
