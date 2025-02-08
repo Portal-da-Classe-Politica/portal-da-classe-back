@@ -604,7 +604,7 @@ const getCandidatesByYear = async (elecionIds, dimension, unidadesEleitoraisIds,
     }
 }
 
-const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds) => {
+const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca) => {
     // console.log('TESTE', ocupacoesIds)
     try {
         let finder = {
@@ -636,7 +636,7 @@ const getCompetitionByYear = async (elecionIds, dimension, unidadesEleitoraisIds
             raw: true,
         }
 
-        finder = parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds = ocupacoesIds, cargosIds)
+        finder = parseFinder(finder, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds = ocupacoesIds, cargosIds, raca)
 
         parseByDimension(finder, dimension)
 
