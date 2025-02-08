@@ -1028,6 +1028,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1087,6 +1093,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1146,6 +1158,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1205,6 +1223,12 @@ paths:
             type: number
           required: false
           description: medidas para dimensao, 0 volume total doacoes, 1 quantidade doacoes, 2 fundo eleitoral, 3 volume fundo partidario, 4 volume financiamento privado         
+        - in: query
+          name: raca
+          schema:
+            type: integer
+          required: false
+          description: raça do candidato (0 para todas, 1 para não divulgável, 2 para parda, 3 para branca, 4 para amarela, 5 para preta, 6 para indígena)          
       responses:
         '200':
           description: Resposta bem-sucedida .        
