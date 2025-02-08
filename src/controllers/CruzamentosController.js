@@ -6,7 +6,7 @@ const { validateParams } = require("../utils/validators")
 const getCandidatesByYear = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -35,7 +35,7 @@ const getCandidatesByYear = async (req, res) => {
 const getCandidatesByGender = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -93,7 +93,7 @@ const getCandidatesByOcupations = async (req, res) => {
 const getCandidatesKPIs = async (req, res) => {
     try {
         let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -105,33 +105,32 @@ const getCandidatesKPIs = async (req, res) => {
             const finalYearTotalCandidatos = resp[resp.length - 1].total_candidatos
             const initialYearTotalCandidatos = resp[0].total_candidatos
 
-            const totalCandidatos = resp.reduce((sum, item) => sum + Number(item.total_candidatos), 0);
-            const totalBensSum = resp.reduce((sum, item) => sum + Number(item.total_bens), 0);
-            const totalDespesasSum = resp.reduce((sum, item) => sum + Number(item.total_despesas), 0);
+            const totalCandidatos = resp.reduce((sum, item) => sum + Number(item.total_candidatos), 0)
+            const totalBensSum = resp.reduce((sum, item) => sum + Number(item.total_bens), 0)
+            const totalDespesasSum = resp.reduce((sum, item) => sum + Number(item.total_despesas), 0)
 
-            const kpi1 = (finalYearTotalCandidatos - initialYearTotalCandidatos).toLocaleString('pt-BR');
-            const kpi2 = (totalBensSum / totalCandidatos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const kpi3 = (totalDespesasSum / totalCandidatos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const kpi1 = (finalYearTotalCandidatos - initialYearTotalCandidatos).toLocaleString("pt-BR")
+            const kpi2 = (totalBensSum / totalCandidatos).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            const kpi3 = (totalDespesasSum / totalCandidatos).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
             const finalData = [
                 {
                     label: "Variação Absoluta no número de candidatos",
                     value: kpi1,
-                    description: `A quantidade de candidatos variou ${kpi1} entre ${initialYear} e ${finalYear}.`
+                    description: `A quantidade de candidatos variou ${kpi1} entre ${initialYear} e ${finalYear}.`,
                 },
                 {
                     label: "Média de bens declarados por candidato",
                     value: `R$ ${kpi2}`,
-                    description: `A média de bens declarados por candidato foi de R$ ${kpi2} no período entre ${initialYear} e ${finalYear}.`
+                    description: `A média de bens declarados por candidato foi de R$ ${kpi2} no período entre ${initialYear} e ${finalYear}.`,
                 },
                 {
                     label: "Média de despesas por candidato",
                     value: `R$ ${kpi3}`,
-                    description: `A média de despesas por candidato foi de R$ ${kpi3} no período entre ${initialYear} e ${finalYear}.`
+                    description: `A média de despesas por candidato foi de R$ ${kpi3} no período entre ${initialYear} e ${finalYear}.`,
                 },
 
             ]
-
 
             return res.json({
                 success: true,
