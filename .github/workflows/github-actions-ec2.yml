@@ -28,5 +28,5 @@ jobs:
             cd portal-da-classe-back
             git pull origin main
             npm install --production
-            pm2 restart sua-aplicacao
+            pm2 restart 1
           EOF
