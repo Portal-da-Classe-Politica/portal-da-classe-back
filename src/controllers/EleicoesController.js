@@ -13,9 +13,20 @@ const possibilitiesByDimension = {
 
 const getEleicoesKpis = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "elections")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "candidates")
+        } = params
 
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -83,9 +94,20 @@ const getEleicoesKpis = async (req, res) => {
 
 const getCompetitionByYear = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "elections")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "elections")
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -138,9 +160,20 @@ const getCompetitionByYear = async (req, res) => {
 
 const getTopCandidates = async (req, res) => {
     try {
-        let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca,
-        } = await validateParams(req.query, "elections")
+        let params
+        try {
+            params = await validateParams(req.query, "elections")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -167,9 +200,20 @@ const getTopCandidates = async (req, res) => {
 
 const getVotesByLocation = async (req, res) => {
     try {
-        let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
-        } = await validateParams(req.query, "elections")
+        let params
+        try {
+            params = await validateParams(req.query, "elections")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)

@@ -6,9 +6,20 @@ const { validateParams } = require("../utils/validators")
 
 const getCandidatesByYear = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "candidates")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "candidates")
+        } = params
 
         const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
 
@@ -45,9 +56,20 @@ const getCandidatesByYear = async (req, res) => {
 
 const getCandidatesByGender = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "candidates")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "candidates")
+        } = params
 
         const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
 
@@ -84,9 +106,20 @@ const getCandidatesByGender = async (req, res) => {
 
 const getCandidatesByOcupations = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "candidates")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "candidates")
+        } = params
 
         const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
 
@@ -123,9 +156,20 @@ const getCandidatesByOcupations = async (req, res) => {
 
 const getCandidatesKPIs = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "candidates")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "candidates")
+        } = params
 
         const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
 

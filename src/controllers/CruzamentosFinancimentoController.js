@@ -17,9 +17,20 @@ const possibilitiesByDimension = {
 
 const getFinanceKPIs = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "donations")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "donations")
+        } = params
 
         const elections = await EleicaoService.getInitialAndLastElections(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -85,9 +96,20 @@ const getFinanceKPIs = async (req, res) => {
  */
 const getFinanceByYear = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "donations")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams(req.query, "donations")
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -120,9 +142,20 @@ const getFinanceByYear = async (req, res) => {
  */
 const getFinanceMedianByParty = async (req, res) => {
     try {
-        let {
+        let params
+        try {
+            params = await validateParams(req.query, "donations")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
-        } = await validateParams2(req.query, "donations")
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
@@ -154,9 +187,20 @@ const getFinanceMedianByParty = async (req, res) => {
  */
 const getFinanceMedianByLocation = async (req, res) => {
     try {
-        let {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, UF, raca,
-        } = await validateParams2(req.query, "donations")
+        let params
+        try {
+            params = await validateParams(req.query, "donations")
+        } catch (validationError) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: validationError.message,
+            })
+        }
+
+        const {
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+        } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
         const electionsIds = elections.map((i) => i.id)
