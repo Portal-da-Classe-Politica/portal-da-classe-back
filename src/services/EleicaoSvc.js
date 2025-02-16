@@ -69,6 +69,7 @@ const getElectionsByYearIntervalAndAbragency = async (initialYear, finalYear, ro
                     [Sequelize.Op.gte]: initialYear,
                     [Sequelize.Op.lte]: finalYear,
                 },
+                abrangencium_id: abrangency,
                 turno: round,
             },
             attributes: ["id"],
