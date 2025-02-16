@@ -58,6 +58,47 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
     }
 }
 
+const getElectionsByYearIntervalAndAbragency = async (initialYear, finalYear, round = 1, abrangency) => {
+    try {
+        if (round === "all"){
+            round = { [Sequelize.Op.in]: [1, 2] }
+        }
+        const election = await EleicaoModel.findAll({
+            where: {
+                ano_eleicao: {
+                    [Sequelize.Op.gte]: initialYear,
+                    [Sequelize.Op.lte]: finalYear,
+                },
+                turno: round,
+            },
+            attributes: ["id"],
+            raw: true,
+        })
+        return election
+    } catch (error) {
+        console.error("Error fetching election:", error)
+        throw error
+    }
+}
+
+const getAllElectionsYearsByAbragencyForFilters = async (abrangency) => {
+    try {
+        const election = await EleicaoModel.findAll({
+            where: {
+                turno: 1,
+                abrangencium_id: abrangency,
+            },
+            attributes: ["ano_eleicao"],
+            order: [["ano_eleicao", "ASC"]],
+            raw: true,
+        })
+        return election
+    } catch (error) {
+        console.error("Error fetching election:", error)
+        throw error
+    }
+}
+
 const getInitialAndLastElections = async (initialYear, finalYear, round = 1) => {
     try {
         if (round === "all"){
@@ -81,6 +122,8 @@ const getInitialAndLastElections = async (initialYear, finalYear, round = 1) => 
 }
 
 module.exports = {
+    getAllElectionsYearsByAbragencyForFilters,
+    getElectionsByYearIntervalAndAbragency,
     getInitialAndLastElections,
     getLastElectionFirstTurn,
     getElectionsByYearInterval,

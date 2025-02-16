@@ -93,6 +93,19 @@ paths:
       - candidato
       summary: Obter filtros de candidatos
       description: Retorna os filtros disponíveis para candidatos.
+      parameters:
+        - in: query
+          name: dimension
+          schema:
+            type: string
+          required: true
+          description: candidates, donations, elections
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: false
+          description: Id do cargo para retornar os anos possiveis
       responses:
         '200':
           description: Sucesso

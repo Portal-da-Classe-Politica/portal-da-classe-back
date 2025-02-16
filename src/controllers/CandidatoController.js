@@ -11,10 +11,16 @@ const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoS
 const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
-    const { dimension } = req.query
+    const { dimension, cargoId } = req.query
+    let abrangenciaId
 
     try {
-        const data = await getFiltersForSearchesByOrigin(dimension || "candidates")
+        if (cargoId) {
+            const cargo = await cargoService.getAbragencyByCargoID(cargoId)
+            if (!cargo) throw new Error("Cargo não encontrado")
+            abrangenciaId = cargo.abrangencia
+        }
+        const data = await getFiltersForSearchesByOrigin(dimension || "candidates", abrangenciaId)
         return res.json({
             success: true,
             data,

@@ -86,6 +86,17 @@ const validateFinalAndInitialYearsByOrigin = async (origin, initialYear, finalYe
     }
 }
 
+const filterElectionYearByOrigin = (origin, year) => {
+    const yearsPossibilitiesForOrigin = availableYearsByOrigin[origin]
+    if (year > yearsPossibilitiesForOrigin.finalYear){
+        return false
+    }
+    if (year < yearsPossibilitiesForOrigin.initialYear){
+        return false
+    }
+    return true
+}
+
 const validateDimensionByOrigin = async (origin, dimension) => {
     if (origin === "candidates") {
         if (dimension < 0 || dimension > 3) {
@@ -189,6 +200,7 @@ const validateParams2 = async (query, origin) => {
 }
 
 module.exports = {
+    filterElectionYearByOrigin,
     validateParams,
     validateParams2,
 }

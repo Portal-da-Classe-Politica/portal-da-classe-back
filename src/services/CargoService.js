@@ -7,15 +7,12 @@ const getAllCargos = () => {
     })
 }
 
-const getAbragencyByCargoID = (ids) => {
+const getAbragencyByCargoID = (id) => {
     return cargoModel.findOne({
         where: {
-            // in
-            id: {
-                [Op.in]: ids,
-            },
+            id,
         },
-        attributes: ["abrangencia"],
+        attributes: [["abrangencium_id", "abrangencia"]],
         raw: true,
     })
 }
