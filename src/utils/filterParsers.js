@@ -363,6 +363,7 @@ const getFiltersForSearchesByOrigin = async (origin, abrangenciaId) => {
 }
 
 module.exports = {
+    possibilitiesByOrigin,
     indicatorsGroupsGlossary,
     getFiltersForSearchesByOrigin,
     verifyIfIndicatorIsInGroup,

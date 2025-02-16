@@ -8,7 +8,7 @@ const nomeUrnaSvc = require("../services/NomeUrnaSvc")
 const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
-const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
+const { getFiltersForSearchesByOrigin, possibilitiesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
     const { dimension, cargoId } = req.query
@@ -39,10 +39,14 @@ const getFiltersForSearch = async (req, res) => {
 
 const getCargoFilters = async (req, res) => {
     try {
+        const { dimension } = req.query
         const cargos = await cargoService.getAllCargos()
         return res.json({
             success: true,
-            data: cargos,
+            data: {
+                possibilities: possibilitiesByOrigin[dimension || "candidates"],
+                cargos,
+            },
             message: "Cargos encontrados com sucesso.",
         })
     } catch (error) {

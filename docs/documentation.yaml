@@ -743,6 +743,13 @@ paths:
       - candidato
       summary: Busca cargos cruzamentos
       description: Busca todos os cargos disponíveis para candidatos.
+      parameters:
+        - in: query
+          name: dimension
+          schema:
+            type: string
+          required: true
+          description: candidates, donations, elections
       responses:
         '200':
           description: Lista de cargos encontrada
