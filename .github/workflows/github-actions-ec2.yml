@@ -24,7 +24,7 @@ jobs:
 
       - name: 🚀 Fazer deploy no servidor
         run: |
-          ssh ${{ secrets.SSH_HOST }} << 'EOF'
+          ssh root@${{ secrets.SSH_HOST }} << 'EOF'
             cd portal-da-classe-back
             git pull origin main
             npm install --production
