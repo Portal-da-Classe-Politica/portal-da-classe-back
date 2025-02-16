@@ -1,5 +1,6 @@
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const EleicaoService = require("../services/EleicaoSvc")
+const cargoService = require("../services/CargoService")
 const { parseDataToDonutChart, parseDataToLineChart, parseDataToBarChart } = require("../utils/chartParsers")
 const { validateParams } = require("../utils/validators")
 
@@ -9,7 +10,17 @@ const getCandidatesByYear = async (req, res) => {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
-        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
+
+        if (!abrangencyByCargo) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Cargo não encontrado",
+            })
+        }
+
+        const elections = await EleicaoService.getElectionsByYearIntervalAndAbragency(initialYear, finalYear, round, abrangencyByCargo.abrangencia)
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getCandidatesByYear(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
@@ -38,7 +49,17 @@ const getCandidatesByGender = async (req, res) => {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
-        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
+
+        if (!abrangencyByCargo) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Cargo não encontrado",
+            })
+        }
+
+        const elections = await EleicaoService.getElectionsByYearIntervalAndAbragency(initialYear, finalYear, round, abrangencyByCargo.abrangencia)
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getCandidatesGenderByElection(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
@@ -67,7 +88,17 @@ const getCandidatesByOcupations = async (req, res) => {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
-        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
+
+        if (!abrangencyByCargo) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Cargo não encontrado",
+            })
+        }
+
+        const elections = await EleicaoService.getElectionsByYearIntervalAndAbragency(initialYear, finalYear, round, abrangencyByCargo.abrangencia)
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getCandidatesByOccupation(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
@@ -96,7 +127,17 @@ const getCandidatesKPIs = async (req, res) => {
             dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
         } = await validateParams(req.query, "candidates")
 
-        const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
+        const abrangencyByCargo = await cargoService.getAbragencyByCargoID(cargosIds)
+
+        if (!abrangencyByCargo) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Cargo não encontrado",
+            })
+        }
+
+        const elections = await EleicaoService.getElectionsByYearIntervalAndAbragency(initialYear, finalYear, round, abrangencyByCargo.abrangencia)
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getCandidatesProfileKPIs(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)

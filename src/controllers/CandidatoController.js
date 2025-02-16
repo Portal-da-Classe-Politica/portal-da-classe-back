@@ -11,10 +11,16 @@ const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoS
 const { getFiltersForSearchesByOrigin } = require("../utils/filterParsers")
 
 const getFiltersForSearch = async (req, res) => {
-    const { dimension } = req.query
+    const { dimension, cargoId } = req.query
+    let abrangenciaId
 
     try {
-        const data = await getFiltersForSearchesByOrigin(dimension ? dimension : "candidates")
+        if (cargoId) {
+            const cargo = await cargoService.getAbragencyByCargoID(cargoId)
+            if (!cargo) throw new Error("Cargo não encontrado")
+            abrangenciaId = cargo.abrangencia
+        }
+        const data = await getFiltersForSearchesByOrigin(dimension || "candidates", abrangenciaId)
         return res.json({
             success: true,
             data,
@@ -27,6 +33,24 @@ const getFiltersForSearch = async (req, res) => {
             success: false,
             data: {},
             message: "Erro ao buscar os filtros dos candidatos",
+        })
+    }
+}
+
+const getCargoFilters = async (req, res) => {
+    try {
+        const cargos = await cargoService.getAllCargos()
+        return res.json({
+            success: true,
+            data: cargos,
+            message: "Cargos encontrados com sucesso.",
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os cargos",
         })
     }
 }
@@ -241,6 +265,7 @@ const getBiggestDonors = async (req, res) => {
 }
 
 module.exports = {
+    getCargoFilters,
     getBiggestDonors,
     getLast5LastElectionsVotes,
     getLastElectionVotesByRegion,

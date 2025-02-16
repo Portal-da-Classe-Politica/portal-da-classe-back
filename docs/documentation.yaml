@@ -93,6 +93,19 @@ paths:
       - candidato
       summary: Obter filtros de candidatos
       description: Retorna os filtros disponíveis para candidatos.
+      parameters:
+        - in: query
+          name: dimension
+          schema:
+            type: string
+          required: true
+          description: candidates, donations, elections
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: false
+          description: Id do cargo para retornar os anos possiveis
       responses:
         '200':
           description: Sucesso
@@ -723,6 +736,59 @@ paths:
                   data:
                     type: object
                     example: {}
+  /noauth/candidate/cargos:
+    get:
+      operationId: "27"
+      tags:
+      - candidato
+      summary: Busca cargos cruzamentos
+      description: Busca todos os cargos disponíveis para candidatos.
+      responses:
+        '200':
+          description: Lista de cargos encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        nome_cargo:
+                          type: string
+                          example: "DEPUTADO ESTADUAL"
+                        abrangenciumId:
+                          type: integer
+                          example: 1
+                  message:
+                    type: string
+                    example: "Cargos encontrados com sucesso."
+        '400':
+          description: Requisição inválida
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  data:
+                    type: object
+                    example: {}
+                  message:
+                    type: string
+                    example: "Erro ao buscar os cargos dos candidatos"
   /noauth/cruzamentos/candidates-profile/by-year:
     get:
       operationId: "10"  # New operation ID

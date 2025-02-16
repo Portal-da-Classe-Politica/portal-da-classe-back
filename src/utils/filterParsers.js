@@ -4,6 +4,7 @@ const categoriaSvc = require("../services/CategoriaSvc")
 const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
+const { filterElectionYearByOrigin } = require("./validators")
 
 const cargosGlossary = {
     "deputado_estadual": {
@@ -286,7 +287,7 @@ const verifyIfIndicatorIsInGroup = (indicatorID, groupName) => {
     return group.indicators.some((indicator) => indicator.id === indicatorID)
 }
 
-const getFiltersForSearchesByOrigin = async (origin) => {
+const getFiltersForSearchesByOrigin = async (origin, abrangenciaId) => {
     const [cargos, generos, estados, categorias, partidos, anos] = await Promise.all(
         [
             cargoService.getAllCargos(),
@@ -294,10 +295,14 @@ const getFiltersForSearchesByOrigin = async (origin) => {
             unidadeEleitoralSvc.getFederativeUnitsByAbrangency(1),
             categoriaSvc.getAllCategorias(),
             partidoSvc.getAllPartidos(),
-            EleicaoSvc.getAllElectionsYears(),
+            !abrangenciaId ? EleicaoSvc.getAllElectionsYears(): EleicaoSvc.getAllElectionsYearsByAbragencyForFilters(abrangenciaId),
 
         ],
     )
+    const years = anos
+        .filter((i) => filterElectionYearByOrigin(origin, i.ano_eleicao))
+        .map((i) => i.ano_eleicao)
+
     const data = {
         cargo: {
             values: cargos,
@@ -330,7 +335,7 @@ const getFiltersForSearchesByOrigin = async (origin) => {
         possibilities: possibilitiesByOrigin[origin],
         "anos": {
             type: "select",
-            values: anos.map((i) => i.ano_eleicao),
+            values: years,
         },
         turnos: {
             type: "select",
