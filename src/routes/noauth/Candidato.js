@@ -14,4 +14,6 @@ router.get("/biggest-donors/:id", CandidatoController.getBiggestDonors)
 
 router.get("/get-filters", CandidatoController.getFiltersForSearch)
 
+router.get("/cargos", CandidatoController.getCargoFilters)
+
 module.exports = router
