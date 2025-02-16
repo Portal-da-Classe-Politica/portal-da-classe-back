@@ -1,28 +1,34 @@
 const { Sequelize } = require("sequelize")
 const config = require("../config/config")
 
-const sequelize = new Sequelize({
+const objectDB = {
     username: "postgres",
     password: config.secretdb,
     host: config.urldb,
-    database: "eleicao_v2",
+    database: config.environment != "development" ? "eleicao_v3" : "eleicao_v2",
     dialect: "postgres",
     port: 5432,
     logging: false,
-    dialectOptions: {
+}
+
+if (config.environment === "development") {
+    objectDB.dialectOptions = {
         statement_timeout: 120000, // 30 segundos (valor em milissegundos)
         ssl: {
             require: true,
             rejectUnauthorized: false,
         },
-    },
-    pool: {
+    }
+    objectDB.pool = {
         max: 20, // Ajuste conforme necessário
         min: 0,
         acquire: 120000,
         idle: 10000,
-    },
-})
+    }
+    //objectDB.logging = true
+}
+
+const sequelize = new Sequelize(objectDB)
 
 const connect = async () => {
     try {

@@ -1,4 +1,4 @@
-name: Push-to-EC2
+name: Push-to-UFPR-server
 
 # Trigger deployment only on push to main branch
 on:
@@ -9,39 +9,24 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2 on main branch push
     runs-on: ubuntu-latest
-    env:
-      PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-      REMOTE_HOST: ${{ secrets.HOST_DNS }}
-      REMOTE_USER: ${{ secrets.USERNAME }}
-      TARGET: ${{ secrets.TARGET_DIR }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PASS: ${{ secrets.DB_PASS }}
+
     steps:
-      - name: Checkout the files
-        uses: actions/checkout@v3      
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-      - name: Create known_hosts file
-        run: touch ~/.ssh/known_hosts
-      - name: Configure SSH known hosts
-        run: ssh-keyscan -H ${{ secrets.HOST_DNS }} >> ~/.ssh/known_hosts        
-      - name: private key        
+      - name: 🔄 Checkout do Código
+        uses: actions/checkout@v3
+
+      - name: 🔑 Configurar SSH
         run: |
-          echo "Setting up private key..."
-          echo "$PRIVATE_KEY" > ~/.ssh/ec2_private_key.pem
-          chmod 600 ~/.ssh/ec2_private_key.pem             
-      - name: reiniciando servicos
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Fazer deploy no servidor
         run: |
-          set -x
-          # Cria o arquivo .env com as variáveis de ambiente
-          ssh -i ~/.ssh/ec2_private_key.pem -vvv ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "echo 'DB_HOST=${{ secrets.DB_HOST }}' > ${{ secrets.TARGET_DIR }}/.env"
-          ssh -i ~/.ssh/ec2_private_key.pem -vvv ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "echo 'DB_PASS=${{ secrets.DB_PASS }}' >> ${{ secrets.TARGET_DIR }}/.env"
-          # Copia os arquivos da aplicação
-          scp -i ~/.ssh/ec2_private_key.pem -C -v -r ./* ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }}:${{ secrets.TARGET_DIR }}
-          echo "ssh..."
-          # Reinicia o serviço
-          ssh -i ~/.ssh/ec2_private_key.pem -vvv ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "sudo systemctl restart eleicao.service"
+          ssh ${{ secrets.SSH_HOST }} << 'EOF'
+            cd portal-da-classe-back
+            git pull origin main
+            npm install --production
+            pm2 restart sua-aplicacao
+          EOF
