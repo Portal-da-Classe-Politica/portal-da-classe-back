@@ -146,6 +146,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             // Gráfico de linhas:
             // Eixo X: Tempo (por ano ou eleição)
             // Eixo Y: Taxa de reeleição
+            
             return chartsUtil.parseDataToLineChart(
                 dataReeleicao,
                 "Taxa de Reeleição",
