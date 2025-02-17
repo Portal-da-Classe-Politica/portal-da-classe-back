@@ -1,5 +1,6 @@
 sequelize = require("./db/sequelize-connection").sequelize
 const promClient = require("prom-client")
+const promBundle = require("express-prom-bundle")
 const connect = require("./db/sequelize-connection").connect
 const express = require("express")
 config = require("./config/config")
@@ -19,13 +20,25 @@ const httpRequestsTotal = new promClient.Counter({
     labelNames: ["method", "status"],
 })
 
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+    name: "http_request_duration_microseconds",
+    help: "Histogram of HTTP request durations in microseconds.",
+    labelNames: ["method", "status_code"],
+})
+
+const makeMiddleware = (metricsApp, normalizePath = []) => promBundle({
+    includeMethod: true,
+    includeStatusCode: true,
+    includePath: true,
+    metricType: "histogram",
+    autoregister: false,
+    metricsApp,
+    promRegistry: promClient.register,
+    normalizePath,
+})
+
 const startMetrics = () => {
     promClient.collectDefaultMetrics({ register })
-    const httpRequestDurationMicroseconds = new promClient.Histogram({
-        name: "http_request_duration_microseconds",
-        help: "Histogram of HTTP request durations in microseconds.",
-        labelNames: ["method", "status_code"],
-    })
     register.registerMetric(httpRequestDurationMicroseconds)
 }
 
@@ -44,6 +57,8 @@ const start = async () => {
             })
             next()
         })
+
+        app.use(makeMiddleware(app, ["/metrics", "/health"]))
 
         app.get("/metrics", async (req, res) => {
             res.set("Content-Type", register.contentType)
