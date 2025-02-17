@@ -34,7 +34,7 @@ const makeMiddleware = (metricsApp, normalizePath = []) => promBundle({
     autoregister: false,
     metricsApp,
     promRegistry: promClient.register,
-    normalizePath,
+    normalizePath: normalizePath.map((path) => [new RegExp(path), ""]),
 })
 
 const startMetrics = () => {
