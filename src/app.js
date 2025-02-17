@@ -34,7 +34,7 @@ const makeMiddleware = (metricsApp, normalizePath = []) => promBundle({
     autoregister: false,
     metricsApp,
     promRegistry: promClient.register,
-    normalizePath: normalizePath.map((path) => [new RegExp(path), ""]),
+    normalizePath,
 })
 
 const startMetrics = () => {
@@ -58,7 +58,7 @@ const start = async () => {
             next()
         })
 
-        app.use(makeMiddleware(app, ["/metrics", "/health"]))
+        app.use(makeMiddleware(app))
 
         app.get("/metrics", async (req, res) => {
             res.set("Content-Type", register.contentType)
