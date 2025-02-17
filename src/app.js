@@ -22,7 +22,8 @@ const start = async () => {
         const noAuthRoutes = require("./routes/noauth/index")
         app.use("/noauth", noAuthRoutes)
     } catch (error) {
-        console.error("Não foi possível conectar ao banco de dados:", error)
+        console.error("Não foi possível inicializar a aplicacao", error)
+        process.exit(1)
     }
 }
 
