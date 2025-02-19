@@ -42,6 +42,12 @@ const getFinanceKPIs = async (req, res) => {
             const initialYearId = elections.find((e) => e.ano_eleicao === parseInt(initialYear)).id
             let lastYearResult = resp.find((r) => r.eleicao_id === finalYearId)
             let initialYearResult = resp.find((r) => r.eleicao_id === initialYearId)
+            if (!lastYearResult) {
+                lastYearResult = { resultado: 0 }
+            }
+            if (!initialYearResult) {
+                initialYearResult = { resultado: 0 }
+            }
             if (dimension !== 1) {
                 lastYearResult.resultado = ipcaUtil.atualizarValor(lastYearResult.resultado, finalYear)
                 initialYearResult.resultado = ipcaUtil.atualizarValor(initialYearResult.resultado, initialYear)
@@ -199,7 +205,7 @@ const getFinanceMedianByLocation = async (req, res) => {
         }
 
         const {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca, UF,
         } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
