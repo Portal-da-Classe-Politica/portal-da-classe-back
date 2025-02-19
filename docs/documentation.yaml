@@ -9,6 +9,8 @@ servers:
   - url: https://portal-da-classe-back.onrender.com
     description: "Servidor de desenvolvimento"
 tags:
+  - name: filtros
+    description: Rotas utilizar nos filtros
   - name: abrangencia
     description: Rotas para buscar abrangencias
   - name: unidade eleitoral
@@ -90,7 +92,7 @@ paths:
     get:
       operationId: "2"
       tags:
-      - candidato
+      - filtros
       summary: Obter filtros de candidatos
       description: Retorna os filtros disponíveis para candidatos.
       parameters:
@@ -741,7 +743,7 @@ paths:
     get:
       operationId: "27"
       tags:
-      - candidato
+      - filtros
       summary: Busca cargos cruzamentos
       description: Busca todos os cargos disponíveis para candidatos.
       parameters:
@@ -1302,9 +1304,41 @@ paths:
         - in: query
           name: cargosIds
           schema:
-            type: array
+            type: integer
+            enum:
+              - 1  # DEPUTADO ESTADUAL
+              - 2  # DEPUTADO FEDERAL
+              - 3  # VICE-GOVERNADOR
+              - 4  # SENADOR
+              - 5  # 2º SUPLENTE SENADOR
+              - 6  # DEPUTADO DISTRITAL
+              - 7  # 1º SUPLENTE SENADOR
+              - 8  # GOVERNADOR
+              - 9  # PRESIDENTE
+              - 10 # VICE-PRESIDENTE
+              - 11 # VEREADOR
+              - 12 # PREFEITO
+              - 13 # VICE-PREFEITO
+              - 14 # 2º SUPLENTE
+              - 15 # 1º SUPLENTE
           required: false
-          description: IDs dos cargos (1,2,3...)
+          description: |
+            ID do cargo disponível para consulta. Opções:  
+            - 1 → DEPUTADO ESTADUAL  
+            - 2 → DEPUTADO FEDERAL  
+            - 3 → VICE-GOVERNADOR  
+            - 4 → SENADOR  
+            - 5 → 2º SUPLENTE SENADOR  
+            - 6 → DEPUTADO DISTRITAL  
+            - 7 → 1º SUPLENTE SENADOR  
+            - 8 → GOVERNADOR  
+            - 9 → PRESIDENTE  
+            - 10 → VICE-PRESIDENTE  
+            - 11 → VEREADOR
+            - 12 → PREFEITO
+            - 13 → VICE-PREFEITO
+            - 14 → 2º SUPLENTE
+            - 15 → 1º SUPLENTE
         - in: query
           name: dimension
           schema:
@@ -1719,6 +1753,44 @@ paths:
             Dimensão de agregação:
             - `0`: Quantidade
             - `1`: Votos
+        - in: query
+          name: cargosIds
+          schema:
+            type: integer
+            enum:
+              - 1  # DEPUTADO ESTADUAL
+              - 2  # DEPUTADO FEDERAL
+              - 3  # VICE-GOVERNADOR
+              - 4  # SENADOR
+              - 5  # 2º SUPLENTE SENADOR
+              - 6  # DEPUTADO DISTRITAL
+              - 7  # 1º SUPLENTE SENADOR
+              - 8  # GOVERNADOR
+              - 9  # PRESIDENTE
+              - 10 # VICE-PRESIDENTE
+              - 11 # VEREADOR
+              - 12 # PREFEITO
+              - 13 # VICE-PREFEITO
+              - 14 # 2º SUPLENTE
+              - 15 # 1º SUPLENTE
+          required: false
+          description: |
+            ID do cargo disponível para consulta. Opções:  
+            - 1 → DEPUTADO ESTADUAL  
+            - 2 → DEPUTADO FEDERAL  
+            - 3 → VICE-GOVERNADOR  
+            - 4 → SENADOR  
+            - 5 → 2º SUPLENTE SENADOR  
+            - 6 → DEPUTADO DISTRITAL  
+            - 7 → 1º SUPLENTE SENADOR  
+            - 8 → GOVERNADOR  
+            - 9 → PRESIDENTE  
+            - 10 → VICE-PRESIDENTE  
+            - 11 → VEREADOR
+            - 12 → PREFEITO
+            - 13 → VICE-PREFEITO
+            - 14 → 2º SUPLENTE
+            - 15 → 1º SUPLENTE            
         - in: query
           name: raca
           schema:

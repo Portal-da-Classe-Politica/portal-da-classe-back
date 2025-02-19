@@ -46,10 +46,10 @@ const getEleicoesKpis = async (req, res) => {
             competition: 0,
         }
         if (resp && resp.length) {
-            const finalYearTotal = resp.find((e) => e.ano === parseInt(finalYear)).total
-            const initialYearTotal = resp.find((e) => e.ano === parseInt(initialYear)).total
-            const resp_eleitos_total = resp_eleitos.find((e) => e.ano === parseInt(finalYear)).total
-            const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear)).total
+            const finalYearTotal = resp.find((e) => e.ano === parseInt(finalYear))?.total || 0
+            const initialYearTotal = resp.find((e) => e.ano === parseInt(initialYear))?.total || 0
+            const resp_eleitos_total = resp_eleitos.find((e) => e.ano === parseInt(finalYear))?.total || 0
+            const resp_cands_total = resp_cands.find((e) => e.ano === parseInt(finalYear))?.total || 0
             // console.log({finalYear, finalYearTotal, resp})
 
             const abs_var = (finalYearTotal - initialYearTotal)?.toLocaleString("pt-BR")
@@ -172,7 +172,7 @@ const getTopCandidates = async (req, res) => {
         }
 
         const {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca, limit,
         } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
@@ -212,7 +212,7 @@ const getVotesByLocation = async (req, res) => {
         }
 
         const {
-            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca,
+            dimension, initialYear, finalYear, round, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca, UF,
         } = params
 
         const elections = await EleicaoService.getElectionsByYearInterval(initialYear, finalYear, round)
