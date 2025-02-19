@@ -36,6 +36,7 @@ const makeMiddleware = (metricsApp, normalizePath = []) => promBundle({
     metricsApp,
     promRegistry: promClient.register,
     normalizePath,
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 240],
 })
 
 const startMetrics = () => {
