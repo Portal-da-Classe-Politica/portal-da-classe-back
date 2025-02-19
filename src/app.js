@@ -24,6 +24,7 @@ const httpRequestDurationMicroseconds = new promClient.Histogram({
     name: "http_request_duration_microseconds",
     help: "Histogram of HTTP request durations in microseconds.",
     labelNames: ["method", "status_code"],
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 240], // Incluindo até 2 minutos
 })
 
 const makeMiddleware = (metricsApp, normalizePath = []) => promBundle({
