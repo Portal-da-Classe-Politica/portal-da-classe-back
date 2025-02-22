@@ -82,6 +82,11 @@ const getEleicoesKpis = async (req, res) => {
 
             })
         }
+        return res.status(400).json({
+            success: false,
+            data: {},
+            message: "Não foram encontrados dados para os filtros selecionados.",
+        })
     } catch (error) {
         console.log(error)
         return res.status(500).json({
