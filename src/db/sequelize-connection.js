@@ -9,23 +9,22 @@ const objectDB = {
     dialect: "postgres",
     port: 5432,
     logging: false,
-}
-
-if (config.environment === "development") {
-    objectDB.dialectOptions = {
+    dialectOptions: {
         statement_timeout: 120000, // 30 segundos (valor em milissegundos)
-        ssl: {
-            require: true,
-            rejectUnauthorized: false,
-        },
-    }
-    objectDB.pool = {
-        max: 20, // Ajuste conforme necessário
+    },
+    pool: {
+        max: 30, // Ajuste conforme necessário
         min: 0,
         acquire: 120000,
         idle: 10000,
+    },
+}
+
+if (config.environment === "development") {
+    objectDB.dialectOptions.ssl = {
+        require: true,
+        rejectUnauthorized: false,
     }
-    //objectDB.logging = true
 }
 
 const sequelize = new Sequelize(objectDB)
