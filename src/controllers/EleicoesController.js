@@ -185,13 +185,18 @@ const getTopCandidates = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getTopCandidatesByVotes(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, limit, raca)
 
-        const data = parseDataToBarChart(resp, title = "Candidatos mais votados (mediana de votos por eleição)", seriesNames = "Candidatos", itemKey = "nome", totalKey = "mediana")
-
-        return res.json({
-            success: true,
-            data,
-            message: "Dados buscados com sucesso.",
-
+        if (resp?.length > 0) {
+            const data = parseDataToBarChart(resp, title = "Candidatos mais votados (mediana de votos por eleição)", seriesNames = "Candidatos", itemKey = "nome", totalKey = "mediana")
+            return res.json({
+                success: true,
+                data,
+                message: "Dados buscados com sucesso.",
+            })
+        }
+        return res.status(400).json({
+            success: false,
+            data: {},
+            message: "Não foram encontrados dados para os filtros selecionados.",
         })
     } catch (error) {
         console.log(error)
