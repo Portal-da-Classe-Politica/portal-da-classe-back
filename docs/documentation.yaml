@@ -8,6 +8,8 @@ servers:
     description: "Servidor Local"
   - url: https://portal-da-classe-back.onrender.com
     description: "Servidor de desenvolvimento"
+  - url: http://redem.c3sl.ufpr.br/v1/api
+    description: "Servidor de produção"  
 tags:
   - name: filtros
     description: Rotas utilizar nos filtros
@@ -27,6 +29,110 @@ tags:
     description: Rotas para indicadores de carreira e representacao
   - name: indicadores financeiros
     description: Rotas para indicadores financeiros
+
+components:
+  schemas:
+    Raca:
+      type: integer
+      enum: [0, 1, 2, 3, 4, 5, 6]
+    isElected:
+      type: integer
+      enum: [0, 1, 2]
+    cargos:
+      type: integer
+      enum: [1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15]    
+    dimensao_cruzamentos_candidato:
+      type: integer
+      enum: [0, 1, 2]    
+    dimensao_cruzamentos_financiamento:
+      type: number
+      enum: [0, 1, 2, 3, 4]    
+    dimensao_cruzamentos_eleicoes:
+      type: integer
+      enum: [0, 1]        
+  parameters:
+    RacaParam:
+      in: query
+      name: raca
+      required: false
+      schema:
+        $ref: '#/components/schemas/Raca'
+      description: |
+        Raça do candidato:
+        - `0` para todas
+        - `1` para não divulgável
+        - `2` para parda
+        - `3` para branca
+        - `4` para amarela
+        - `5` para preta
+        - `6` para indígena
+    IsElectedParam:
+      in: query
+      name: isElected
+      required: false
+      schema:
+        $ref: '#/components/schemas/isElected'
+      description: |
+        Situação se foi deleito:
+        - `0` para ambos
+        - `1` para sim
+        - `2` para não eleitos
+    CargosParam:
+      in: query
+      name: cargosIds
+      required: false
+      schema:
+        $ref: '#/components/schemas/cargos'
+      description: |
+        ID do cargo disponível para consulta. Opções:  
+        - `1`: DEPUTADO ESTADUAL  
+        - `2`: DEPUTADO FEDERAL  
+        - `3`: VICE-GOVERNADOR  
+        - `4`: SENADOR          
+        - `6`: DEPUTADO DISTRITAL         
+        - `8`: GOVERNADOR  
+        - `9`: PRESIDENTE  
+        - `10`: VICE-PRESIDENTE  
+        - `11`: VEREADOR
+        - `12`: PREFEITO
+        - `13`: VICE-PREFEITO
+        - `14`: 2º SUPLENTE
+        - `15`: 1º SUPLENTE
+    DimensaoCruzamentosCandidatoParam:
+      in: query
+      name: dimension
+      required: false
+      schema:
+        $ref: '#/components/schemas/dimensao_cruzamentos_candidato'
+      description: |
+        - `0`: Quantidade
+        - `1`: Votos
+        - `2`: Bens declarados
+    DimensaoCruzamentosFinanciamentoParam:
+      in: query
+      name: dimension
+      required: false
+      schema:
+        $ref: '#/components/schemas/dimensao_cruzamentos_financiamento'
+      description: |
+        medidas para dimensao:
+        - `0` : volume total doacoes
+        - `1` : quantidade doacoes
+        - `2` : fundo eleitoral
+        - `3` : volume fundo partidario
+        - `4` : volume financiamento privado
+    DimensaoCruzamentosEleicoesParam:
+      in: query
+      name: dimension
+      required: false
+      schema:
+        $ref: '#/components/schemas/dimensao_cruzamentos_eleicoes'
+      description: |
+        Dimensão de agregação:
+        - `0`: Quantidade
+        - `1`: Votos
+
+    
 
 paths:
   /noauth/abrangency:
@@ -820,34 +926,14 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
-        - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Dimension of the data:
-            - `0`: Quantidade
-            - `1`: Votos
-            - `2`: Bens declarados
+        - $ref: '#/components/parameters/DimensaoCruzamentosCandidatoParam'        
         - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'       
         - in: query
           name: partidos
           schema:
@@ -860,44 +946,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR
-            - 12 → PREFEITO
-            - 13 → VICE-PREFEITO
-            - 14 → 2º SUPLENTE
-            - 15 → 1º SUPLENTE
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena                                    
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'                                         
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ano.
@@ -940,34 +990,14 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
-        - in: query
-          name: dimension
-          schema:
-            type: string
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Dimension of the data:
-            - `0`: Quantidade
-            - `1`: Votos
-            - `2`: Bens declarados                    
+        - $ref: '#/components/parameters/DimensaoCruzamentosCandidatoParam'                 
         - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'     
         - in: query
           name: partidos
           schema:
@@ -980,59 +1010,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'       
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por gênero.  
@@ -1056,34 +1035,14 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
-        - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Dimension of the data:
-            - `0`: Quantidade
-            - `1`: Votos
-            - `2`: Bens declarados          
+        - $ref: '#/components/parameters/DimensaoCruzamentosCandidatoParam'           
         - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'  
         - in: query
           name: partidos
           schema:
@@ -1096,59 +1055,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: array
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1178,12 +1086,7 @@ paths:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-          required: false
-          description: Situação se foi deleito (0 para ambos, 1, para sim; 2 para não eleitos)
+        - $ref: '#/components/parameters/IsElectedParam'
         - in: query
           name: partidos
           schema:
@@ -1196,59 +1099,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: array
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1278,17 +1130,8 @@ paths:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'
+        - $ref: '#/components/parameters/DimensaoCruzamentosFinanciamentoParam'        
         - in: query
           name: partidos
           schema:
@@ -1301,72 +1144,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR
-            - 12 → PREFEITO
-            - 13 → VICE-PREFEITO
-            - 14 → 2º SUPLENTE
-            - 15 → 1º SUPLENTE
-        - in: query
-          name: dimension
-          schema:
-            type: number
-            enum: [0, 1, 2, 3, 4]
-          required: false
-          description: |
-            medidas para dimensao:
-            - `0` : volume total doacoes
-            - `1` : quantidade doacoes
-            - `2` : fundo eleitoral
-            - `3` : volume fundo partidario
-            - `4` : volume financiamento privado         
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false          
-          description: |
-            raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1396,17 +1175,8 @@ paths:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/DimensaoCruzamentosFinanciamentoParam'
+        - $ref: '#/components/parameters/IsElectedParam'         
         - in: query
           name: partidos
           schema:
@@ -1419,72 +1189,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE            
-        - in: query
-          name: dimension
-          schema:
-            type: number
-            enum: [0, 1, 2, 3, 4]
-          required: false
-          description: |
-            medidas para dimensao:
-            - `0` : volume total doacoes
-            - `1` : quantidade doacoes
-            - `2` : fundo eleitoral
-            - `3` : volume fundo partidario
-            - `4` : volume financiamento privado
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'   
       responses:
         '200':
           description: Resposta bem-sucedida.
@@ -1514,17 +1220,8 @@ paths:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'
+        - $ref: '#/components/parameters/DimensaoCruzamentosFinanciamentoParam'        
         - in: query
           name: partidos
           schema:
@@ -1537,71 +1234,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: dimension
-          schema:
-            type: number
-          required: false
-          description: |
-            medidas para dimensao:
-            - `0` : volume total doacoes
-            - `1` : quantidade doacoes
-            - `2` : fundo eleitoral
-            - `3` : volume fundo partidario
-            - `4` : volume financiamento privado
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena          
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'        
       responses:
         '200':
           description: Resposta bem-sucedida com o perfil dos candidatos por ocupação.
@@ -1631,17 +1265,8 @@ paths:
             type: array
           required: false
           description: só envie caso deseje agregar por municipio, caso for enviar deve ser a string da UF. Exemplo RS.          
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/DimensaoCruzamentosFinanciamentoParam'   
+        - $ref: '#/components/parameters/IsElectedParam'        
         - in: query
           name: partidos
           schema:
@@ -1654,72 +1279,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: dimension
-          schema:
-            type: number
-            enum: [0, 1, 2, 3, 4]
-          required: false
-          description: |
-            medidas para dimensao:
-            - `0` : volume total doacoes
-            - `1` : quantidade doacoes
-            - `2` : fundo eleitoral
-            - `3` : volume fundo partidario
-            - `4` : volume financiamento privado         
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida .        
@@ -1743,69 +1304,9 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
-        - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [0, 1]
-          required: false
-          description: |
-            Dimensão de agregação:
-            - `0`: Quantidade
-            - `1`: Votos
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR
-            - 12 → PREFEITO
-            - 13 → VICE-PREFEITO
-            - 14 → 2º SUPLENTE
-            - 15 → 1º SUPLENTE            
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena                                             
+        - $ref: '#/components/parameters/DimensaoCruzamentosEleicoesParam' 
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'                                       
       responses:
         '200':
           description: Resposta bem-sucedida com os KPIs das eleições.
@@ -1845,32 +1346,13 @@ paths:
           required: true
           description: Ano final do intervalo.
         - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [0, 1]              
-          required: false
-          description: |
-            Dimensão de agregação:
-            - `0`: Quantidade de candidatos
-            - `1`: Quantidade de votos
-        - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos          
+        - $ref: '#/components/parameters/DimensaoCruzamentosEleicoesParam' 
+        - $ref: '#/components/parameters/IsElectedParam'              
         - in: query
           name: partidos
           schema:
@@ -1883,59 +1365,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida com os dados de competição por ano.
@@ -1975,32 +1406,13 @@ paths:
           required: true
           description: Ano final do intervalo.
         - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [0,1]
-          required: false
-          description: |
-            Dimensão de agregação:
-            - `0`: Quantidade de candidatos
-            - `1`: Quantidade de votos
-        - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'
+        - $ref: '#/components/parameters/DimensaoCruzamentosEleicoesParam'        
         - in: query
           name: partidos
           schema:
@@ -2013,59 +1425,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam'
       responses:
         '200':
           description: Resposta bem-sucedida com os principais candidatos.
@@ -2104,33 +1465,14 @@ paths:
             type: integer
           required: true
           description: Ano final do intervalo.
-        - in: query
-          name: dimension
-          schema:
-            type: integer
-            enum: [1, 2]
-          required: false
-          description: |
-            Dimensão de agregação:
-            - `1`: Votos
-            - `2`: Candidatos
+        - $ref: '#/components/parameters/DimensaoCruzamentosEleicoesParam'
         - in: query
           name: unidadesEleitoraisIds
           schema:
             type: array
           required: false
           description: IDs das unidades eleitorais desejadas.
-        - in: query
-          name: isElected
-          schema:
-            type: integer
-            enum: [0, 1, 2]
-          required: false
-          description: |
-            Situação se foi deleito:
-            - `0` para ambos
-            - `1` para sim
-            - `2` para não eleitos
+        - $ref: '#/components/parameters/IsElectedParam'
         - in: query
           name: partidos
           schema:
@@ -2143,59 +1485,8 @@ paths:
             type: array
           required: false
           description: Categoria 1 das ocupações (1,2 ...)
-        - in: query
-          name: cargosIds
-          schema:
-            type: integer
-            enum:
-              - 1  # DEPUTADO ESTADUAL
-              - 2  # DEPUTADO FEDERAL
-              - 3  # VICE-GOVERNADOR
-              - 4  # SENADOR
-              - 5  # 2º SUPLENTE SENADOR
-              - 6  # DEPUTADO DISTRITAL
-              - 7  # 1º SUPLENTE SENADOR
-              - 8  # GOVERNADOR
-              - 9  # PRESIDENTE
-              - 10 # VICE-PRESIDENTE
-              - 11 # VEREADOR
-              - 12 # PREFEITO
-              - 13 # VICE-PREFEITO
-              - 14 # 2º SUPLENTE
-              - 15 # 1º SUPLENTE
-          required: false
-          description: |
-            ID do cargo disponível para consulta. Opções:  
-            - 1 → DEPUTADO ESTADUAL  
-            - 2 → DEPUTADO FEDERAL  
-            - 3 → VICE-GOVERNADOR  
-            - 4 → SENADOR  
-            - 5 → 2º SUPLENTE SENADOR  
-            - 6 → DEPUTADO DISTRITAL  
-            - 7 → 1º SUPLENTE SENADOR  
-            - 8 → GOVERNADOR  
-            - 9 → PRESIDENTE  
-            - 10 → VICE-PRESIDENTE  
-            - 11 → VEREADOR  
-            - 12 → PREFEITO  
-            - 13 → VICE-PREFEITO  
-            - 14 → 2º SUPLENTE  
-            - 15 → 1º SUPLENTE  
-        - in: query
-          name: raca
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4, 5, 6]
-          required: false
-          description: |
-            Raça do candidato:
-            - `0` para todas
-            - `1` para não divulgável
-            - `2` para parda
-            - `3` para branca
-            - `4` para amarela
-            - `5` para preta
-            - `6` para indígena
+        - $ref: '#/components/parameters/CargosParam'
+        - $ref: '#/components/parameters/RacaParam' 
       responses:
         '200':
           description: Resposta bem-sucedida com os votos por localização.
