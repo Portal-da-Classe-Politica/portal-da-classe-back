@@ -86,13 +86,20 @@ const getCandidatesByGender = async (req, res) => {
 
         const resp = await CandidatoEleicaoService.getCandidatesGenderByElection(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
 
-        const parsedData = parseDataToDonutChart(resp, "genero", "total", "Proporção de candidatos por gênero")
+        if (resp && resp.length) {
+            const parsedData = parseDataToDonutChart(resp, "genero", "total", "Proporção de candidatos por gênero")
 
-        return res.json({
-            success: true,
-            data: parsedData,
-            message: "Dados buscados com sucesso.",
+            return res.json({
+                success: true,
+                data: parsedData,
+                message: "Dados buscados com sucesso.",
 
+            })
+        }
+        return res.status(400).json({
+            success: false,
+            data: {},
+            message: "Não foram encontrados resultados para a busca.",
         })
     } catch (error) {
         console.log(error)
@@ -135,13 +142,20 @@ const getCandidatesByOcupations = async (req, res) => {
         const electionsIds = elections.map((i) => i.id)
 
         const resp = await CandidatoEleicaoService.getCandidatesByOccupation(electionsIds, dimension, unidadesEleitoraisIds, isElected, partidos, ocupacoesIds, cargosIds, raca)
+        if (resp && resp.length) {
+            const parsedData = parseDataToBarChart(resp, "Distribuição do total por categoria de ocupação", "Total")
 
-        const parsedData = parseDataToBarChart(resp, "Distribuição do total por categoria de ocupação", "Total")
+            return res.json({
+                success: true,
+                data: parsedData,
+                message: "Dados buscados com sucesso.",
+            })
+        }
 
-        return res.json({
-            success: true,
-            data: parsedData,
-            message: "Dados buscados com sucesso.",
+        return res.status(400).json({
+            success: false,
+            data: {},
+            message: "Não foram encontrados resultados para a busca.",
 
         })
     } catch (error) {
@@ -226,6 +240,11 @@ const getCandidatesKPIs = async (req, res) => {
 
             })
         }
+        return res.status(400).json({
+            success: false,
+            data: {},
+            message: "Não foram encontrados resultados para a busca.",
+        })
     } catch (error) {
         console.log(error)
         return res.status(500).json({
