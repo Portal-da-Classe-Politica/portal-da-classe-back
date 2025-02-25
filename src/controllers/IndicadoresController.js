@@ -38,12 +38,12 @@ const getIndicador = async (req, res) => {
         // }
         if (unidadesEleitorais) {
             // If it's a string, split it into an array based on commas
-            if (typeof unidadesEleitorais === 'string') {
-                unidadesEleitorais = unidadesEleitorais.split(',').map(Number);
+            if (typeof unidadesEleitorais === "string") {
+                unidadesEleitorais = unidadesEleitorais.split(",").map(Number)
             }
             // If it's not already an array, wrap it in an array
             else if (!Array.isArray(unidadesEleitorais)) {
-                unidadesEleitorais = [Number(unidadesEleitorais)];
+                unidadesEleitorais = [Number(unidadesEleitorais)]
             }
         }
 
@@ -79,238 +79,221 @@ const getAllIndicadorByType = async (req, res) => {
 
 const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     switch (parseInt(indicatorId)) {
-        case 1:
-            const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataNepp,
-                seriesName = 'Número Efetivo de Partidos',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'NEPP',
-                title = 'Número Efetivo de Partidos',
-                dataType = 'float',
-                xAxisKey = 'year',
-                yAxisKey = 'sum'
-            )
-        case 2:
-            const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataPersen,
-                seriesName = 'Índice de Volatilidade Eleitoral (Pedersen)',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'Volatilidade',
-                title = 'Índice de Volatilidade Eleitoral (Pedersen)',
-                dataType = 'float',
-                xAxisKey = 'year',
-                yAxisKey = 'volatility'
-            )
-        case 3:
-            const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataQE,
-                seriesName = 'Quociente Eleitoral (QE)',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'QE',
-                title = 'Quociente Eleitoral (QE)',
-                dataType = 'integer',
-                xAxisKey = 'ano',
-                yAxisKey = 'quociente_eleitoral'
-            )
-        case 4:
-            const dataQP = await indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToMultipleSeriesLineChart(
-                dataQP,
-                seriesName = 'Quociente Partidário (QP)',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'QP',
-                title = 'Quociente Partidário (QP)',
-                dataType = 'integer',
-                xAxisKey = 'ano',
-                yAxisKey = 'quociente_partidario',
-                seriesKey = "sigla"
-            )
-        case 5:
-            // Gráfico de linhas:
-            // Eixo X: Tempo (por ano ou eleição)
-            // Eixo Y: Taxa de renovação líquida
-            const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                data,
-                "Taxa de Renovação Líquida",
-                "Ano",
-                "Taxa de Renovação Líquida (%)",
-                "Taxa de Renovação Líquida",
-                "float",
-            )
-        case 6:
-            const dataReeleicao = await IndicatorCarreiraSvc.getTaxaReeleicao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            // Gráfico de linhas:
-            // Eixo X: Tempo (por ano ou eleição)
-            // Eixo Y: Taxa de reeleição
-            
-            return chartsUtil.parseDataToLineChart(
-                dataReeleicao,
-                "Taxa de Reeleição",
-                "Ano",
-                "Taxa de Reeleição (%)",
-                "Taxa de Reeleição",
-                "float",
-            )
-        /**
-         * @AcacioTelechi
-         * Taxa de Migração Partidária teria que passar um determinado candidato e isso não esta previsto nos filtros
-         * AT: Alterado para calcular a medidana da quantidade de partidos dos candidatos
-         */
-        case 7:
-            // Taxa de Migração Partidária
-            // TMP = (NMP / TCP)
-            // NMP é o número de mudanças de partido que o candidato realizou ao longo de sua carreira
-            // TCP é o tempo de carreira política do candidato (em anos)
-            const dataMedianaMigraca = await IndicatorCarreiraSvc.getMedianaMigracao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataMedianaMigraca,
-                "Média de Migração Partidária",
-                "Ano",
-                "Média de Migração Partidária",
-                "Média de Migração Partidária",
-                "float",
-                "ano_eleicao",
-                "average_unique_parties",
-            )
+    case 1:
+        const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataNepp,
+            seriesName = chartsUtil.indicatorsDetails[1].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[1].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[1].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[1].title,
+            dataType = "float",
+            xAxisKey = "year",
+            yAxisKey = "sum",
+            indicator_detail = 1,
+        )
+    case 2:
+        const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataPersen,
+            seriesName = chartsUtil.indicatorsDetails[2].name,
+            xAxisLabel = chartsUtil.indicatorsDetails[2].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[2].yAxisLabel,
+            title = "Índice de Volatilidade Eleitoral (Pedersen)",
+            dataType = "float",
+            xAxisKey = "year",
+            yAxisKey = "volatility",
+            indicator_detail = 2,
+        )
+    case 3:
+        const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataQE,
+            seriesName = chartsUtil.indicatorsDetails[3].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[3].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[3].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[3].title,
+            dataType = "integer",
+            xAxisKey = "ano",
+            yAxisKey = "quociente_eleitoral",
+            indicator_detail = 3,
+        )
+    case 4:
+        const dataQP = await indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToMultipleSeriesLineChart(
+            dataQP,
+            seriesName = "Quociente Partidário (QP)",
+            xAxisLabel = "Ano",
+            yAxisLabel = "QP",
+            title = "Quociente Partidário (QP)",
+            dataType = "integer",
+            xAxisKey = "ano",
+            yAxisKey = "quociente_partidario",
+            seriesKey = "sigla",
+            indicator_detail = 4,
+        )
+    case 5:
+        const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            data,
+            seriesName = chartsUtil.indicatorsDetails[5].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[5].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[5].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[5].title,
+            dataType = "float",
+            indicator_detail = 5,
+        )
+    case 6:
+        const dataReeleicao = await IndicatorCarreiraSvc.getTaxaReeleicao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
 
-        case 8:
-            const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            // Gráfico de linhas:
-            // Eixo X: Tempo (por ano ou eleição)
-            // Eixo Y: Índice de Paridade Eleitoral de Gênero
-            // console.log({ dataIPEG })
-            return chartsUtil.parseDataToBarChart2(
-                dataIPEG, // data
-                "Índice de Paridade Eleitoral de Gênero", // ttile
-                "Ano", // seriesName
-                "ano", // itemKey
-                "total", // totalKey
-            )
+        return chartsUtil.parseDataToLineChart(
+            dataReeleicao,
+            seriesName = chartsUtil.indicatorsDetails[6].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[6].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[6].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[6].title,
+            dataType = "float",
+            indicator_detail = 6,
+        )
+    case 7:
+        const dataMedianaMigraca = await IndicatorCarreiraSvc.getMedianaMigracao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataMedianaMigraca,
+            seriesName = chartsUtil.indicatorsDetails[7].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[7].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[7].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[7].title,
+            "float",
+            "ano_eleicao",
+            "average_unique_parties",
+            indicator_detail = 7,
+        )
 
-        case 9:
-            const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToMultipleSeriesLineChart(
-                dataDistribGeoVotos,
-                seriesName = 'Distribuição de Votos por Região',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'Distribuição de Votos por Região',
-                title = 'Distribuição de Votos por Região',
-                dataType = 'integer',
-                xAxisKey = 'year',
-                yAxisKey = 'percentual_votos',
-                seriesKey = "regiao"
-            )
-        case 10:
-            const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataConceGeoVotos,
-                seriesName = 'Índice de Concentração Regional do Voto',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'Índice de Concentração Regional do Voto',
-                title = 'Índice de Concentração Regional do Voto',
-                dataType = 'float',
-                xAxisKey = 'year',
-                yAxisKey = 'sum'
-            )
-        case 11:
-            const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToMultipleSeriesLineChart(
-                dataDispereoVotos,
-                seriesName = 'Índice de Dispersão do Voto',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'Índice de Dispersão do Voto',
-                title = 'Índice de Dispersão do Voto',
-                dataType = 'float',
-                xAxisKey = 'year',
-                yAxisKey = 'coefficient_variation',
-                seriesKey = "nome"
-            )
-        case 12:
-            const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToMultipleSeriesLineChart(
-                dataEficienciaVotos,
-                seriesName = 'Índice de Eficiência do Voto',
-                xAxisLabel = 'Ano',
-                yAxisLabel = 'Índice de Eficiência do Voto',
-                title = 'Índice de Eficiência do Voto',
-                dataType = 'float',
-                xAxisKey = 'year',
-                yAxisKey = 'iev',
-                seriesKey = 'sigla'
-            )
-        case 13:
-            const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            // Gráfico de Linhas:
-            // Eixo X: Tempo (por ano, eleição)
-            // Eixo Y: Taxa de Custo por Voto
-            // Linhas: partido
-            return chartsUtil.generateLineChartData(
-                dataCustoVoto, // data
-                "ano", // xAxisLabel
-                "TCV", // yAxisLabel
-                "partido", // Campo categórico (Exemplo: 'partido')
-                "Taxa de Custo por Voto", // Título do gráfico
-                "Ano", /// / Rótulo do eixo X
-                "TCV (Taxa de Custo por Voto)", // Rótulo do eixo Y
-                "float", // type
-            )
+    case 8:
+        const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToBarChart2(
+            dataIPEG, // data
+            title = chartsUtil.indicatorsDetails[8].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[8].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[8].yAxisLabel,
+            totalKey = "total",
+            indicator_detail = 8,
+        )
 
-        case 14:
-            // Gráfico de Linhas:
-            // Eixo X: Tempo (por ano, eleição)
-            // Eixo Y: Índice de Igualdade de Acesso a Recursos
-            const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataIEAR,
-                "Índice de Igualdade de Acesso a Recursos",
-                "Ano",
-                "Índice de Igualdade de Acesso a Recursos",
-                "Índice de Igualdade de Acesso a Recursos",
-                "float",
-                "ano",
-                "IEAR",
-            )
+    case 9:
+        const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToMultipleSeriesLineChart(
+            dataDistribGeoVotos,
+            seriesName = chartsUtil.indicatorsDetails[9].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[9].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[9].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[9].title,
+            dataType = "integer",
+            xAxisKey = "year",
+            yAxisKey = "percentual_votos",
+            seriesKey = "regiao",
+            indicator_detail = 9,
+        )
+    case 10:
+        const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataConceGeoVotos,
+            seriesName = chartsUtil.indicatorsDetails[10].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[10].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[10].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[10].title,
+            dataType = "float",
+            xAxisKey = "year",
+            yAxisKey = "sum",
+            indicator_detail = 10,
+        )
+    case 11:
+        const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToMultipleSeriesLineChart(
+            dataDispereoVotos,
+            seriesName = chartsUtil.indicatorsDetails[11].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[11].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[11].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[11].title,
+            dataType = "float",
+            xAxisKey = "year",
+            yAxisKey = "coefficient_variation",
+            seriesKey = "nome",
+            indicator_detail = 11,
+        )
+    case 12:
+        const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToMultipleSeriesLineChart(
+            dataEficienciaVotos,
+            seriesName = chartsUtil.indicatorsDetails[12].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[12].title,
+            dataType = "float",
+            xAxisKey = "year",
+            yAxisKey = "iev",
+            seriesKey = "sigla",
+            indicator_detail = 12,
+        )
+    case 13:
+        const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.generateLineChartData(
+            dataCustoVoto, // data
+            "ano", // xAxisLabel
+            "TCV", // yAxisLabel
+            seriesKey = "partido", // Campo categórico (Exemplo: 'partido')
+            seriesName = chartsUtil.indicatorsDetails[13].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[13].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[13].yAxisLabel,
+            "float", // type
+            indicator_detail = 13,
+        )
+
+    case 14:
+        const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataIEAR,
+            seriesName = chartsUtil.indicatorsDetails[14].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[14].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[14].yAxisLabel,
+            "Índice de Igualdade de Acesso a Recursos",
+            "float",
+            "ano",
+            "IEAR",
+            indicator_detail = 14,
+        )
 
         /**
          * @AcacioTelechi
          * Índice de Diversidade Econômica entre Candidatos teria que passar um determinado candidato e isso não esta previsto nos filtros
          */
-        case 15:
-            // Índice de Diversidade Econômica entre Candidatos
-            // HHI = ∑(Si)^2
-            // Si é a participação dos recursos financeiros do candidato i no total de recursos (como uma fração ou porcentagem)
-            // n é o número total de candidatos
+    case 15:
+        const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        return chartsUtil.parseDataToLineChart(
+            dataDiversidadeEcon,
+            xAxisLabel = chartsUtil.indicatorsDetails[15].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[15].yAxisLabel,
+            seriesName = chartsUtil.indicatorsDetails[15].title,
+            title = chartsUtil.indicatorsDetails[15].title,
+            "float",
+            seriesKey = "ano_eleicao",
+            "sum",
+            indicator_detail = 15,
+        )
+    case 16:
+        const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
 
-            const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-            return chartsUtil.parseDataToLineChart(
-                dataDiversidadeEcon,
-                "Índice de Diversidade Econômica",
-                "Ano",
-                "Índice de Diversidade Econômica",
-                "Índice de Diversidade Econômica",
-                "float",
-                "ano_eleicao",
-                "sum",
-            )
-        case 16:
-            // Média e Mediana de Patrimônio da Classe Política
-            // Média e mediana dos patrimônios declarados pelos candidatos
-            const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-
-            return chartsUtil.generateLineChartDataForMultipleLines(
-                dataPatrimonio, // data
-                "ano", // xAxisLabel
-                "Média e Mediana de Patrimônio da Classe Política",
-                "Ano",
-                "Valor (R$)",
-                "float", // type
-            )
-        default:
-            return null
+        return chartsUtil.generateLineChartDataForMultipleLines(
+            dataPatrimonio, // data
+            "ano", // xAxisLabel
+            seriesName = chartsUtil.indicatorsDetails[16].title, // seriesName
+            xAxisLabel = chartsUtil.indicatorsDetails[16].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[16].yAxisLabel,
+            "float", // type
+            indicator_detail = 16,
+        )
+    default:
+        return null
     }
 }
 
