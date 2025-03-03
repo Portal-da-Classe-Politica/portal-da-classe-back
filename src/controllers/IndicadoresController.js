@@ -141,6 +141,8 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             yAxisLabel = chartsUtil.indicatorsDetails[5].yAxisLabel,
             title = chartsUtil.indicatorsDetails[5].title,
             dataType = "float",
+            "ano",
+            "total",
             indicator_detail = 5,
         )
     case 6:
@@ -153,6 +155,8 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             yAxisLabel = chartsUtil.indicatorsDetails[6].yAxisLabel,
             title = chartsUtil.indicatorsDetails[6].title,
             dataType = "float",
+            "ano",
+            "total",
             indicator_detail = 6,
         )
     case 7:
