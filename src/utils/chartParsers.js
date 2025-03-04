@@ -507,10 +507,10 @@ const generateLineChartDataForMultipleLines = (
             }),
         },
         {
-            name: "Valor Total do Patrimônio",
+            name: "Valor Total do Patrimônio em milhares de reais",
             data: xAxisValues.map((xValue) => {
                 const item = data.find((d) => d[xField] === xValue)
-                return item ? item.total_patrimonio : 0
+                return item ? (item.total_patrimonio/10000).toFixed(2) : 0
             }),
         },
     ]
