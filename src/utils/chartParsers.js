@@ -235,6 +235,13 @@ function parseDataToLineChart(
             return Number(valorAtualizado.toFixed(2))
         }),
     }
+    if (indicator_detail == 2 || indicator_detail == 7 || indicator_detail == 13 || indicator_detail == 15){
+        // teria que remover o primeiro valor de seriesData.data e de xAxisValues se seriesData.data[0] for zero
+        if (xAxisValues[0] == 1998 && seriesData.data[0] && seriesData.data[0] == 0){
+            seriesData.data.shift()
+            xAxisValues.shift()
+        }
+    }
 
     return {
         type: "line",
@@ -443,6 +450,15 @@ const generateLineChartData = (
             data: xAxisValues.map((xValue) => groupedByCategory[category][xValue] || 0), // Preencher valores faltantes com 0
         }
     })
+
+    if (indicator_detail == 13){
+        // se xAxisValues[0] for = 1998 e todos os valores de seriesData.data forem 0 ou negativos,
+        //  entao remove todos os primeiros valores de seriesData.data e de xAxisValues
+        if (xAxisValues[0] == 1998 && seriesData.every((item) => item.data[0] == 0 || item.data[0] < 0)){
+            seriesData.forEach((item) => item.data.shift())
+            xAxisValues.shift()
+        }
+    }
 
     // Estrutura do gráfico a ser retornada
     return {
