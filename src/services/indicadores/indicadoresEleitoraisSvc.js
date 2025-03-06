@@ -228,7 +228,7 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
 
         let query = `
             SELECT
-                p.sigla,
+                p.sigla_atual,
                 e.ano_eleicao,
                 SUM(vcm.quantidade_votos) total_votos
             FROM candidato_eleicaos ce
@@ -245,8 +245,8 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
         }
 
         query += `
-            GROUP BY p.sigla, e.ano_eleicao
-            ORDER BY p.sigla, e.ano_eleicao
+            GROUP BY p.sigla_atual, e.ano_eleicao
+            ORDER BY p.sigla_atual, e.ano_eleicao
         `
 
         const results = await sequelize.query(query, {
@@ -268,7 +268,7 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
             // Return the new object
             return {
                 ano: result.ano_eleicao,
-                sigla: result.sigla,
+                sigla: result.sigla_atual,
                 quociente_partidario: quociente_partidario ? quociente_partidario.toFixed(2) : null, // rounding to 2 decimals
             }
         })

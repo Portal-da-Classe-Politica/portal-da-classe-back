@@ -126,7 +126,7 @@ function parseDataToMultipleSeriesLineChart(
 
     // Step 3: Create series array
     const series = Object.keys(mapper).map((key) => {
-        const partido = partidos.find((p) => p.sigla === key)
+        const partido = partidos.find((p) => p.sigla_atual === key)
         return {
             name: `${key}`,
             data: mapper[key],
@@ -287,7 +287,7 @@ const generateLineChartData = (
 
     // Criando as séries de dados
     const seriesData = Object.keys(groupedByCategory).map((category) => {
-        const partido = partidos.find((p) => p.sigla === category)
+        const partido = partidos.find((p) => p.sigla_atual === category)
         return {
             name: category,
             data: xAxisValues.map((xValue) => groupedByCategory[category][xValue] || 0), // Preencher valores faltantes com 0
