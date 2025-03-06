@@ -1,3 +1,4 @@
+require("dotenv").config()
 sequelize = require("./db/sequelize-connection").sequelize
 const promClient = require("prom-client")
 const promBundle = require("express-prom-bundle")
@@ -5,7 +6,7 @@ const connect = require("./db/sequelize-connection").connect
 const express = require("express")
 config = require("./config/config")
 const app = express()
-require("dotenv").config()
+
 app.use(express.urlencoded({
     extended: true,
 }))
