@@ -1,5 +1,6 @@
 const ipcaUtil = require("./ipca")
 const { indicatorsDetails } = require("./indicatorsDetails")
+const { partidos } = require("./corespartidos")
 
 function parseDataToDonutChart(data, nameKey, valueKey, title) {
     if (!Array.isArray(data)) {
@@ -124,10 +125,14 @@ function parseDataToMultipleSeriesLineChart(
     })
 
     // Step 3: Create series array
-    const series = Object.keys(mapper).map((key) => ({
-        name: `${key}`,
-        data: mapper[key],
-    }))
+    const series = Object.keys(mapper).map((key) => {
+        const partido = partidos.find((p) => p.sigla === key)
+        return {
+            name: `${key}`,
+            data: mapper[key],
+            color: (indicator_detail === 4 || indicator_detail === 12) && partido ? `rgb${partido.cor}` : undefined,
+        }
+    })
 
     // Step 4: Construct the final result object
     const result = {
@@ -141,6 +146,7 @@ function parseDataToMultipleSeriesLineChart(
         },
         indicator_detail: indicator_detail ? indicatorsDetails[indicator_detail] : null,
     }
+
     return result
 }
 
@@ -281,9 +287,11 @@ const generateLineChartData = (
 
     // Criando as séries de dados
     const seriesData = Object.keys(groupedByCategory).map((category) => {
+        const partido = partidos.find((p) => p.sigla === category)
         return {
             name: category,
             data: xAxisValues.map((xValue) => groupedByCategory[category][xValue] || 0), // Preencher valores faltantes com 0
+            color: (indicator_detail === 13) && partido ? `rgb${partido.cor}` : undefined,
         }
     })
 

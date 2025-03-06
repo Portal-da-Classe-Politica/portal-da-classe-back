@@ -3,7 +3,6 @@ const {
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
 
-
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
         const election = await EleicaoModel.findAll({
@@ -26,7 +25,7 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
 
 const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
     let select = `
     SELECT 
@@ -56,18 +55,15 @@ const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) =
 
     const replacements = { electionsIds, cargoId }
 
-
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
         subqueryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
-
     let subquery = subquerySelect + subqueryFrom + subqueryWhere + subqueryGroupBy
     let sqlQuery = select + ` FROM (${subquery}) AS subquery
     JOIN partidos p on subquery.partido_id = p.id `
-
 
     // Executa a consulta
     const data = await sequelize.query(sqlQuery, {
@@ -77,28 +73,26 @@ const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) =
 
     // Step 1: Group data by year and calculate total count per year
     const totalPerYear = data.reduce((acc, entry) => {
-        acc[entry.ano_eleicao] = (acc[entry.ano_eleicao] || 0) + Number(entry.count);
-        return acc;
-    }, {});
+        acc[entry.ano_eleicao] = (acc[entry.ano_eleicao] || 0) + Number(entry.count)
+        return acc
+    }, {})
 
     // Step 2: Calculate percentages and format the result
-    const result = data.map(entry => ({
+    const result = data.map((entry) => ({
         year: entry.ano_eleicao,
         party: entry.sigla,
         count: (Number(entry.count) / totalPerYear[entry.ano_eleicao]).toFixed(2), // Decimal percentage
-    }));
+    }))
 
-
-    return computeSum(result);
-
+    return computeSum(result)
 }
 
 const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     try {
         const elections = await getElectionsByYearInterval(initialYear, finalYear)
-        const electionIds = elections.map(e => e.id)
+        const electionIds = elections.map((e) => e.id)
 
-        const replacements = { electionIds, cargoId };
+        const replacements = { electionIds, cargoId }
 
         let query = `
             SELECT
@@ -119,72 +113,72 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
         query += `
             GROUP BY ce.partido_id, e.ano_eleicao
             ORDER BY ce.partido_id, e.ano_eleicao
-        `;
+        `
 
         const results = await sequelize.query(query, {
             replacements,
             type: Sequelize.QueryTypes.SELECT,
-        });
+        })
 
         // Step 3: Calculate electoral volatility
-        const partyPercentages = new Map();
+        const partyPercentages = new Map()
 
         // Store election percentages by party and year
-        results.forEach(result => {
+        results.forEach((result) => {
             if (!partyPercentages.has(result.partido_id)) {
-                partyPercentages.set(result.partido_id, []);
+                partyPercentages.set(result.partido_id, [])
             }
             partyPercentages.get(result.partido_id).push({
                 year: result.ano_eleicao,
                 percentage: result.percentual_votos,
-            });
-        });
+            })
+        })
 
         // Initialize volatility results
-        const volatilityResults = Array.from(new Set(results.map(r => r.ano_eleicao))).map(year => ({
+        const volatilityResults = Array.from(new Set(results.map((r) => r.ano_eleicao))).map((year) => ({
             year,
             sum: 0,
-        }));
+        }))
 
         // Calculate volatility based on the formula
         for (const [partyId, percentages] of partyPercentages) {
             // Ensure percentages are sorted by year
-            percentages.sort((a, b) => a.year - b.year);
+            percentages.sort((a, b) => a.year - b.year)
 
             if (percentages.length > 1) {
                 for (let i = 1; i < percentages.length; i++) {
-                    const P_current = percentages[i].percentage;
-                    const P_previous = percentages[i - 1].percentage;
+                    const P_current = percentages[i].percentage
+                    const P_previous = percentages[i - 1].percentage
 
-                    const currentYear = percentages[i].year;
-                    const previousYear = percentages[i - 1].year;
+                    const currentYear = percentages[i].year
+                    const previousYear = percentages[i - 1].year
 
                     // Update volatility sum for the current year
-                    const currentVolatilityEntry = volatilityResults.find(v => v.year === currentYear);
+                    const currentVolatilityEntry = volatilityResults.find((v) => v.year === currentYear)
                     if (currentVolatilityEntry) {
-                        currentVolatilityEntry.sum += Math.abs(P_current - P_previous) / 2;
+                        currentVolatilityEntry.sum += Math.abs(P_current - P_previous) / 2
                     }
                 }
             }
         }
 
         // Convert the result into the desired format
-        return volatilityResults.map(v => ({
+        return volatilityResults.map((v) => ({
             year: v.year,
             volatility: v.sum,
-        }));
+        }))
     } catch (error) {
-        console.error("Error in getVolatilidadeEleitoral:", error);
-        throw error;
+        console.error("Error in getVolatilidadeEleitoral:", error)
+        throw error
     }
 }
 
 const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     try {
         const elections = await getElectionsByYearInterval(initialYear, finalYear)
-        const electionIds = elections.map(e => e.id)
+        const electionIds = elections.map((e) => e.id)
 
-        const replacements = { electionIds, cargoId };
+        const replacements = { electionIds, cargoId }
 
         let query = `
             SELECT
@@ -205,31 +199,30 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
         query += `
             GROUP BY ce.cargo_id, e.ano_eleicao
             ORDER BY ce.cargo_id, e.ano_eleicao
-        `;
+        `
 
         const results = await sequelize.query(query, {
             replacements,
             type: Sequelize.QueryTypes.SELECT,
-        });
-
+        })
 
         // Convert the result into the desired format
-        return results.map(v => ({
+        return results.map((v) => ({
             ano: v.ano_eleicao,
             quociente_eleitoral: parseInt(v.quociente_eleitoral),
-        }));
+        }))
     } catch (error) {
-        console.error("Error in getVolatilidadeEleitoral:", error);
-        throw error;
+        console.error("Error in getVolatilidadeEleitoral:", error)
+        throw error
     }
 }
 
 const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     try {
         const elections = await getElectionsByYearInterval(initialYear, finalYear)
-        const electionIds = elections.map(e => e.id)
+        const electionIds = elections.map((e) => e.id)
 
-        const replacements = { electionIds, cargoId };
+        const replacements = { electionIds, cargoId }
 
         const quociente_eleitoral = await getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
 
@@ -254,62 +247,61 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
         query += `
             GROUP BY p.sigla, e.ano_eleicao
             ORDER BY p.sigla, e.ano_eleicao
-        `;
+        `
 
         const results = await sequelize.query(query, {
             replacements,
             type: Sequelize.QueryTypes.SELECT,
-        });
+        })
 
-        const  data  = quociente_eleitoral
-  
-        const mergedData = results.map(result => {
+        const data = quociente_eleitoral
+
+        const mergedData = results.map((result) => {
             // Find the corresponding entry in 'data' with the same 'ano_eleicao'
-            const quocienteEntry = data.find(d => d.ano === result.ano_eleicao);
+            const quocienteEntry = data.find((d) => d.ano === result.ano_eleicao)
 
             // Calculate the 'quociente_partidario' if the matching year is found
             const quociente_partidario = quocienteEntry
                 ? parseFloat(result.total_votos) / quocienteEntry.quociente_eleitoral
-                : null;
+                : null
 
             // Return the new object
             return {
                 ano: result.ano_eleicao,
                 sigla: result.sigla,
                 quociente_partidario: quociente_partidario ? quociente_partidario.toFixed(2) : null, // rounding to 2 decimals
-            };
-        });
+            }
+        })
 
-        return mergedData;
-
+        return mergedData
     } catch (error) {
-        console.error("Error in getVolatilidadeEleitoral:", error);
-        throw error;
+        console.error("Error in getVolatilidadeEleitoral:", error)
+        throw error
     }
 }
 
 // Function to compute sum of 1/s_i^2 for each year
 function computeSum(data) {
-    const sumsByYear = {};
+    const sumsByYear = {}
 
     // Group data by year and compute the sum for each year
     data.forEach(({ year, count }) => {
         if (!sumsByYear[year]) {
-            sumsByYear[year] = 0;
+            sumsByYear[year] = 0
         }
-        sumsByYear[year] += Math.pow(count, 2);
-    });
+        sumsByYear[year] += Math.pow(count, 2)
+    })
 
     // Convert result to an array of objects
-    return Object.keys(sumsByYear).map(year => ({
+    return Object.keys(sumsByYear).map((year) => ({
         year: parseInt(year),
-        sum: 1 / sumsByYear[year]
-    }));
+        sum: 1 / sumsByYear[year],
+    }))
 }
 
 module.exports = {
     getNEPP,
     getVolatilidadeEleitoral,
     getQuocienteEleitoral,
-    getQuocientePartidario
+    getQuocientePartidario,
 }
