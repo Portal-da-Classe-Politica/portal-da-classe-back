@@ -3,7 +3,6 @@ const {
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
 
-
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
         const election = await EleicaoModel.findAll({
@@ -26,9 +25,9 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
 
 const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
-    const replacements = { electionsIds, cargoId };
+    const replacements = { electionsIds, cargoId }
 
     let query = `
         SELECT
@@ -58,22 +57,20 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     })
 
     // Step 2: Calculate percentages and format the result
-    const result = data.map(entry => ({
+    const result = data.map((entry) => ({
         year: entry.ano_eleicao,
         regiao: entry.nome,
         percentual_votos: (Number(entry.percentual_votos)).toFixed(2),
-    }));
+    }))
 
-
-    return result;
-
+    return result
 }
 
 const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
-    const replacements = { electionsIds, cargoId };
+    const replacements = { electionsIds, cargoId }
 
     let query = `
         SELECT
@@ -101,21 +98,20 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     })
 
     // Step 2: Calculate percentages and format the result
-    const result = data.map(entry => ({
+    const result = data.map((entry) => ({
         year: entry.ano_eleicao,
         percentual_votos: (Number(entry.percentual_votos)).toFixed(6),
         ueid: entry.unidade_eleitoral_id,
-    }));
+    }))
 
-
-    return computeSum(result);
+    return computeSum(result)
 }
 
 const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
-    const replacements = { electionsIds, cargoId };
+    const replacements = { electionsIds, cargoId }
 
     let query = `
         SELECT
@@ -131,7 +127,7 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
         WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
-    `;
+    `
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -148,12 +144,11 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
     })
 
     // Step 2: Calculate percentages and format the result
-    const result = data.map(entry => ({
+    const result = data.map((entry) => ({
         year: entry.ano_eleicao,
         coefficient_variation: (Number(entry.coefficient_variation)).toFixed(6),
         nome: entry.nome,
-    }));
-
+    }))
 
     // return computeSum(result);
     return result
@@ -161,14 +156,14 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
 
 const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
-    const replacements = { electionsIds, cargoId };
+    const replacements = { electionsIds, cargoId }
 
     let query = `
         SELECT
             e.ano_eleicao,
-            p.sigla,
+            p.sigla_atual,
             SUM(vcm.quantidade_votos) / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
              -- Proportion of elected candidates
             COUNT(DISTINCT CASE WHEN ce.situacao_turno_id IN (2, 7, 11, 13) THEN ce.candidato_id END) 
@@ -182,7 +177,7 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN partidos p ON p.id = ce.partido_id 
         WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
-    `;
+    `
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -190,7 +185,7 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
-    query += " GROUP BY  p.sigla, e.ano_eleicao"
+    query += " GROUP BY  p.sigla_atual, e.ano_eleicao"
 
     // Executa a consulta
     const data = await sequelize.query(query, {
@@ -199,39 +194,37 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     })
 
     // Step 2: Calculate percentages and format the result
-    const result = data.map(entry => ({
+    const result = data.map((entry) => ({
         year: entry.ano_eleicao,
-        sigla: entry.sigla,
+        sigla: entry.sigla_atual,
         iev: (Number(entry.percentual_assentos) / Number(entry.percentual_votos)).toFixed(4),
-    }));
+    }))
 
     return result
 }
 
-
-
 // Function to compute sum of s_i^2 for each year
 function computeSum(data) {
-    const sumsByYear = {};
+    const sumsByYear = {}
 
     // Group data by year and compute the sum for each year
     data.forEach(({ year, percentual_votos }) => {
         if (!sumsByYear[year]) {
-            sumsByYear[year] = 0;
+            sumsByYear[year] = 0
         }
-        sumsByYear[year] += Math.pow(Number(percentual_votos), 2);
-    });
+        sumsByYear[year] += Math.pow(Number(percentual_votos), 2)
+    })
 
     // Convert result to an array of objects
-    return Object.keys(sumsByYear).map(year => ({
+    return Object.keys(sumsByYear).map((year) => ({
         year: parseInt(year),
-        sum: sumsByYear[year]
-    }));
+        sum: sumsByYear[year],
+    }))
 }
 
 module.exports = {
     getDistribGeoVotos,
     getConcentracaoRegionalVotos,
     getDispersaoRegionalVotos,
-    getEficienciaVotos
+    getEficienciaVotos,
 }

@@ -27,6 +27,14 @@ const Partido = sequelize.define("partido", {
         type: DataTypes.STRING,
         comment: "classificacao segundo class_survey_esp",
     },
+    cor: {
+        type: DataTypes.STRING,
+        comment: "Cor do partido",
+    },
+    sigla_atual: {
+        type: DataTypes.STRING,
+        comment: "Sigla atual do partido",
+    },
 }, {
     sequelize,
     underscored: true,

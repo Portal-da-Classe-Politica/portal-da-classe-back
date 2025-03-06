@@ -333,7 +333,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
     const results = await CandidatoEleicaoModel.findAll({
         attributes: [
             "eleicao_id",
-            "partido.sigla",
+            "partido.sigla_atual",
             [Sequelize.fn("SUM", Sequelize.col("candidato_eleicao.despesa_campanha")), "total_cost"],
             [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
         ],
@@ -350,7 +350,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
             },
             {
                 model: PartidoModel,
-                attributes: ["sigla"],
+                attributes: ["sigla_atual"],
             },
         ],
         where: {
@@ -359,7 +359,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
             situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
             ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
         },
-        group: ["eleicao_id", "partido.sigla"],
+        group: ["eleicao_id", "partido.sigla_atual"],
         raw: true,
     })
 
@@ -368,7 +368,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
         const cost = parseFloat(result.total_cost) || 0
         const votes = parseInt(result.total_votes) || 0
         const object = {
-            partido: result["partido.sigla"],
+            partido: result["partido.sigla_atual"],
             ano: elections.find((election) => election.id === result.eleicao_id).ano_eleicao,
             TCV: votes > 0 ? parseFloat((cost / votes).toFixed(2)) : 0,
         }
