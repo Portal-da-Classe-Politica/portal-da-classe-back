@@ -4,7 +4,7 @@ const path = require("path")
 
 //const baseURL = "http://localhost:7000" // Ajuste conforme necessário
 
-const baseURL = "http://redem.c3sl.ufpr.br/api"
+const baseURL = "http://redem.c3sl.ufpr.br/v1/api"
 
 // Parâmetros possíveis
 const initialYear = 2002
