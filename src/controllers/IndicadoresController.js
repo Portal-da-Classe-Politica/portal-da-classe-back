@@ -5,6 +5,8 @@ const indicadoresEleitoraisSvc = require("../services/indicadores/indicadoresEle
 const IndicatorCarreiraSvc = require("../services/indicadores/indicadorCarreira")
 const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGeograficosSvc")
 const chartsUtil = require("../utils/chartParsers")
+const UfForVotes = require("../utils/votesLocation")
+const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
 
 const getIndicador = async (req, res) => {
     try {
@@ -301,6 +303,24 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     }
 }
 
+const getUFVotes = async (req, res) => {
+    try {
+        res.status(200).json({ success: true, data: UfForVotes, message: "Siglas agrupadoras de locais de votação" })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+const getCitiesVotesByUF = async (req, res) => {
+    try {
+        const { uf } = req.params
+        const data = await municipioVotacaoService.getMunicipiosByUF(uf)
+        res.status(200).json({ success: true, data, message: `Cidades de votação do estado ${uf}` })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 module.exports = {
-    getIndicador, getAllIndicadorByType,
+    getIndicador, getAllIndicadorByType, getUFVotes, getCitiesVotesByUF,
 }
