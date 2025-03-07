@@ -202,7 +202,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
     case 10:
         const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-        return chartsUtil.parseDataToLineChart(
+        return chartsUtil.parseDataToMultipleSeriesLineChart(
             dataConceGeoVotos,
             seriesName = chartsUtil.indicatorsDetails[10].title,
             xAxisLabel = chartsUtil.indicatorsDetails[10].xAxisLabel,
@@ -210,7 +210,8 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             title = chartsUtil.indicatorsDetails[10].title,
             dataType = "float",
             xAxisKey = "year",
-            yAxisKey = "sum",
+            yAxisKey = "percentual_votos",
+            seriesKey = "regiao",
             indicator_detail = 10,
         )
     case 11:
