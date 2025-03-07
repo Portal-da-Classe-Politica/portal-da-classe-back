@@ -126,8 +126,8 @@ const indicatorsPossibilities = {
         "grupo": "geográfico",
         "cargos":
             [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+                cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.governador, cargosGlossary.presidente,
             ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
@@ -137,8 +137,8 @@ const indicatorsPossibilities = {
         "grupo": "geográfico",
         "cargos":
             [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+                cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
+                cargosGlossary.senador, cargosGlossary.governador, cargosGlossary.presidente,
             ],
         // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
