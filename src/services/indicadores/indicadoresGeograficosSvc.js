@@ -20,7 +20,6 @@ const getUFByElectoralUnitId = async (id) => {
     }
 }
 
-
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
         const election = await EleicaoModel.findAll({
@@ -70,9 +69,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     // se envia o estado buscamos todos os municipios do estado
     // se nao o front escolhe brasil, cai no else e agrupa por estado
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        const unidadeFederacaoFilter = await getUFByElectoralUnitId(unidadesEleitoraisIds[0])
-        where += `AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)
-        AND mv.estado = '${unidadeFederacaoFilter}' 
+        where += `AND mv.id IN (:unidadesEleitoraisIds)      
         `
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
         const join = "JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id"
