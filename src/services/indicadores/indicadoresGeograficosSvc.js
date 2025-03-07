@@ -2,6 +2,24 @@ const {
     Sequelize,
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
+const unidadeEleitoralModel = require("../../models/UnidadeEleitoral")
+
+const getUFByElectoralUnitId = async (id) => {
+    try {
+        const unidadeEleitoral = await unidadeEleitoralModel.findOne({
+            where: {
+                id,
+            },
+            attributes: ["sigla_unidade_federacao"],
+            raw: true,
+        })
+        return unidadeEleitoral.sigla_unidade_federacao
+    } catch (error) {
+        console.error("Error fetching UF by electoral unit id:", error)
+        throw error
+    }
+}
+
 
 const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
     try {
@@ -29,26 +47,44 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
     const replacements = { electionsIds, cargoId }
 
-    let query = `
-        SELECT
-            e.ano_eleicao,
-            ce.unidade_eleitoral_id,
-            ue.nome,
-            SUM(vcm.quantidade_votos) * 100.0 / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos
-        FROM candidato_eleicaos ce
+    let group = ""
+
+    let select = `
+      SELECT
+        e.ano_eleicao,        
+        SUM(vcm.quantidade_votos) * 100.0 / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
+      `
+
+    let from = `
+      FROM candidato_eleicaos ce
         JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
+      `
+
+    let where = ` 
         WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
     `
 
-    // Filtros adicionais dinâmicos
+    // Filtros e agrupamentos de cidade
+    // se envia o estado buscamos todos os municipios do estado
+    // se nao o front escolhe brasil, cai no else e agrupa por estado
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
+        const unidadeFederacaoFilter = await getUFByElectoralUnitId(unidadesEleitoraisIds[0])
+        where += `AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)
+        AND mv.estado = '${unidadeFederacaoFilter}' 
+        `
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+        const join = "JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id"
+        from += join
+        select += "vcm.municipios_votacao_id, mv.nome"
+        group = " GROUP BY  vcm.municipios_votacao_id, mv.nome, e.ano_eleicao"
+    } else {
+        select += "ce.unidade_eleitoral_id,ue.nome"
+        group += " GROUP BY  ce.unidade_eleitoral_id, ue.nome, e.ano_eleicao"
     }
 
-    query += " GROUP BY  ce.unidade_eleitoral_id, ue.nome, e.ano_eleicao"
+    const query = select + from + where + group
 
     // Executa a consulta
     const data = await sequelize.query(query, {
