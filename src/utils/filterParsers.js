@@ -13,6 +13,20 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: "UF",
         abrangencia: 1,
+        required_steps: {
+            geograficos: [
+                {
+                    name: "Distribuição de Votos por Região",
+                    id: 9,
+                    required: ["UF", "city"],
+                },
+                {
+                    name: "Índice de Concentração Regional do Voto",
+                    id: 10,
+                    required: ["UF", "city", "party"],
+                },
+            ],
+        },
     },
     "deputado_federal": {
         name: "DEPUTADO FEDERAL",
@@ -20,6 +34,20 @@ const cargosGlossary = {
         agregacao_regional: ["UF", "BR"],
         filter_by: "UF",
         abrangencia: 1,
+        required_steps: {
+            geograficos: [
+                {
+                    name: "Distribuição de Votos por Região",
+                    id: 9,
+                    required: ["UF", "city"],
+                },
+                {
+                    name: "Índice de Concentração Regional do Voto",
+                    id: 10,
+                    required: ["UF", "city", "party"],
+                },
+            ],
+        },
     },
     "senador": {
         name: "SENADOR",
@@ -27,6 +55,20 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
+        required_steps: {
+            geograficos: [
+                {
+                    name: "Distribuição de Votos por Região",
+                    id: 9,
+                    required: ["UF", "city"],
+                },
+                {
+                    name: "Índice de Concentração Regional do Voto",
+                    id: 10,
+                    required: ["UF", "city", "party"],
+                },
+            ],
+        },
     },
     "governador": {
         name: "GOVERNADOR",
@@ -34,6 +76,20 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: null,
         abrangencia: 1,
+        required_steps: {
+            geograficos: [
+                {
+                    name: "Distribuição de Votos por Região",
+                    id: 9,
+                    required: ["UF", "city"],
+                },
+                {
+                    name: "Índice de Concentração Regional do Voto",
+                    id: 10,
+                    required: ["UF", "city", "party"],
+                },
+            ],
+        },
     },
     "presidente": {
         name: "PRESIDENTE",
@@ -41,6 +97,22 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
+        required_steps: {
+            geograficos: [
+                {
+                    name: "Distribuição de Votos por Região",
+                    id: 9,
+                    required: ["UF"],
+                    optional: ["city"],
+                },
+                {
+                    name: "Índice de Concentração Regional do Voto",
+                    id: 10,
+                    required: ["UF", "party"],
+                    optional: ["city"],
+                },
+            ],
+        },
     },
     "vereador": {
         name: "VEREADOR",
@@ -63,150 +135,244 @@ const indicatorsPossibilities = {
         "id": "1",
         "nome": "Número Efetivo de Partidos (Legislativo)",
         "grupo": "eleitoral",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador],
-        // vereador, deputado estadual, deputado federal, senador
+        "cargos": [{
+            ...cargosGlossary.vereador,
+            required_steps: ["UF", "city"],
+        }, {
+            ...cargosGlossary.deputado_estadual,
+            required_steps: ["UF"],
+        }, {
+            ...cargosGlossary.deputado_federal,
+            required_steps: ["UF"],
+        }, {
+            ...cargosGlossary.senador,
+            required_steps: [],
+        }],
     },
     "2": {
         "id": "2",
         "nome": "Índice de Volatilidade Eleitoral (Pedersen)",
         "grupo": "eleitoral",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [{
+            ...cargosGlossary.vereador,
+            required_steps: ["UF", "city"],
+        },
+        {
+            ...cargosGlossary.deputado_estadual,
+            required_steps: ["UF"],
+        },
+        {
+            ...cargosGlossary.deputado_federal,
+            required_steps: ["UF"],
+        },
+        {
+            ...cargosGlossary.senador,
+            required_steps: [],
+        },
+        {
+            ...cargosGlossary.prefeito,
+            required_steps: ["UF"],
+        },
+        {
+            ...cargosGlossary.governador,
+            required_steps: ["UF"],
+        },
+        {
+            ...cargosGlossary.presidente,
+            required_steps: [],
+        },
+        ],
 
     },
     "3": {
         "id": "3",
         "nome": "Quociente Eleitoral",
         "grupo": "eleitoral",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal],
-        // vereador	deputado estadual	deputado federal
+        "cargos": [{
+            ...cargosGlossary.vereador,
+            required_steps: ["UF", "city"],
+        }, {
+            ...cargosGlossary.deputado_estadual,
+            required_steps: ["UF"],
+        }, {
+            ...cargosGlossary.deputado_federal,
+            required_steps: ["UF"],
+
+        }],
     },
     "4": {
         "id": "4",
         "nome": "Quociente Partidário",
         "grupo": "eleitoral",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal],
-        // vereador	deputado estadual	deputado federal
+        "cargos": [{
+            ...cargosGlossary.vereador,
+            required_steps: ["UF", "city"],
+        }, {
+            ...cargosGlossary.deputado_estadual,
+            required_steps: ["UF"],
+        }, {
+            ...cargosGlossary.deputado_federal,
+            required_steps: ["UF"],
+        }],
     },
     "5": {
         "id": "5",
         "nome": "Taxa de Renovação Líquida",
         "grupo": "partidário",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+        ],
     },
     "6": {
         "id": "6",
         "nome": "Taxa de Reeleição",
         "grupo": "partidário",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador],
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.senador },
+        ],
     },
     "7": {
         "id": "7",
         "nome": "Taxa de Migração Partidária",
         "grupo": "partidário",
         "cargos": [
-            cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-            cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: [] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: [] },
         ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
     },
     "8": {
         "id": "8",
         "nome": "Índice de Paridade Eleitoral de Gênero",
         "grupo": "partidário",
-        "cargos": [cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal, cargosGlossary.senador],
-        // vereador	deputado estadual	deputado federal	senador
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: [] },
+        ],
     },
     "9": {
         "id": "9",
         "nome": "Distribuição de Votos por Região",
         "grupo": "geográfico",
-        "cargos":
-            [
-                cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.senador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"], optional_steps: ["city"] },
+        ],
     },
     "10": {
         "id": "10",
         "nome": "Índice de Concentração Regional do Voto",
         "grupo": "geográfico",
-        "cargos":
-            [
-                cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF", "city", "party"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF", "city", "party"] },
+            { ...cargosGlossary.senador, required_steps: ["UF", "city", "party"] },
+            { ...cargosGlossary.governador, required_steps: ["UF", "city", "party"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF", "party"], optional_steps: ["city"] },
+        ],
     },
     "11": {
         "id": "11",
         "nome": "Índice de Dispersão do Voto",
         "grupo": "geográfico",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
     "12": {
         "id": "12",
         "nome": "Índice de Eficiência do Voto",
         "grupo": "geográfico",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
     "13": {
         "id": "13",
         "nome": "Taxa de Custo por Voto",
         "grupo": "financeiro",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
     "14": {
         "id": "14",
         "nome": "Índice de Igualdade de Acesso a Recursos",
         "grupo": "financeiro",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
     "15": {
         "id": "15",
         "nome": "Índice de Diversidade Econômica entre Candidatos",
         "grupo": "financeiro",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
     "16": {
         "id": "16",
         "nome": "Média e Mediana de Patrimônio da Classe Política",
         "grupo": "financeiro",
-        "cargos":
-            [
-                cargosGlossary.vereador, cargosGlossary.deputado_estadual, cargosGlossary.deputado_federal,
-                cargosGlossary.senador, cargosGlossary.prefeito, cargosGlossary.governador, cargosGlossary.presidente,
-            ],
-        // vereador	deputado estadual	deputado federal	senador	prefeito	governador	presidente
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+            { ...cargosGlossary.senador, required_steps: ["UF"] },
+            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.governador, required_steps: ["UF"] },
+            { ...cargosGlossary.presidente, required_steps: ["UF"] },
+        ],
     },
 }
 
