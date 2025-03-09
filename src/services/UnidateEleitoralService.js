@@ -35,6 +35,17 @@ const getAllElectoralUnitiesIdsByUF = (UF) => {
     })
 }
 
+const getElectoralUnitByUFandAbrangency = (UF, abrangency) => {
+    return unidadeEleitoralModel.findOne({
+        where: {
+            sigla_unidade_federacao: UF,
+            abrangencium_id: abrangency,
+        },
+        attributes: ["id"],
+        raw: true,
+    })
+}
+
 const getAllElectoralUnitsByArrayOfUFs = (UFs) => {
     return unidadeEleitoralModel.findAll({
         where: {
@@ -74,5 +85,6 @@ module.exports = {
     getAllElectoralUnitsByArrayOfUFs,
     getFederativeUnitsByAbrangency,
     getAllElectoralUnitiesIdsByUF,
+    getElectoralUnitByUFandAbrangency,
     getAllElectoralUnitsByArrayOfUnidadesEleitorais
 }

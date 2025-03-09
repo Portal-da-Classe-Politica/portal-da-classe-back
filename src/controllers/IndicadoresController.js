@@ -7,12 +7,13 @@ const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGe
 const chartsUtil = require("../utils/chartParsers")
 const UfForVotes = require("../utils/votesLocation")
 const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
+const { getElectoralUnitByUFandAbrangency } = require("../services/UnidateEleitoralService")
 
 const getIndicador = async (req, res) => {
     try {
         const { type, indicator_id } = req.params
         let {
-            cargoId, initialYear, finalYear, unidadesEleitorais,
+            cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId,
         } = req.query
         const isIndicatorInGroup = verifyIfIndicatorIsInGroup(indicator_id, type)
         const indicator = getIndicatorByID(indicator_id)
@@ -49,7 +50,7 @@ const getIndicador = async (req, res) => {
             }
         }
 
-        const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais)
+        const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId)
         // console.log({ indicatorData })
 
         res.status(200).json({
@@ -79,7 +80,7 @@ const getAllIndicadorByType = async (req, res) => {
     }
 }
 
-const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId) => {
     switch (parseInt(indicatorId)) {
     case 1:
         const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
@@ -187,7 +188,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
 
     case 9:
-        const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF)
         return chartsUtil.parseDataToMultipleSeriesLineChart(
             dataDistribGeoVotos,
             seriesName = chartsUtil.indicatorsDetails[9].title,
@@ -201,7 +202,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 9,
         )
     case 10:
-        const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId)
         return chartsUtil.parseDataToMultipleSeriesLineChart(
             dataConceGeoVotos,
             seriesName = chartsUtil.indicatorsDetails[10].title,

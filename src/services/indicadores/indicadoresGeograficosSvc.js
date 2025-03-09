@@ -3,6 +3,7 @@ const {
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
 const unidadeEleitoralModel = require("../../models/UnidadeEleitoral")
+const { getElectoralUnitByUFandAbrangency } = require("../UnidateEleitoralService")
 
 const getUFByElectoralUnitId = async (id) => {
     try {
@@ -40,44 +41,95 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
     }
 }
 
-const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF) => {
+    let UFid
+    if (UF && unidadesEleitoraisIds && cargoId != 9) {
+        UFsearch = await getElectoralUnitByUFandAbrangency(UF, 1)
+        UFid = UFsearch.id
+    }
+    if (cargoId == 9){
+        UFid = 28
+    }
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
     const electionsIds = elections.map((e) => e.id)
 
     const replacements = { electionsIds, cargoId }
-
+    let select = ""
     let group = ""
+    let from = ""
+    let where = ""
 
-    let select = `
-      SELECT
-        e.ano_eleicao,        
-        SUM(vcm.quantidade_votos) * 100.0 / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
-      `
-
-    let from = `
-      FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
-        JOIN eleicaos e ON e.id = ce.eleicao_id
-        JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
-      `
-
-    let where = ` 
-        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
-    `
-
-    // Filtros e agrupamentos de cidade
-    // se envia o estado buscamos todos os municipios do estado
-    // se nao o front escolhe brasil, cai no else e agrupa por estado
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        where += "AND mv.id IN (:unidadesEleitoraisIds) "
+        select = `
+        SELECT
+          e.ano_eleicao,
+          ce.eleicao_id,        
+          mv.nome AS nome,
+          SUM(votacao_municipio_selecionados.quantidade_votos) * 100.0 / (
+            SELECT SUM(votacoes_totais.quantidade_votos)
+            FROM candidato_eleicaos ce2
+            JOIN votacao_candidato_municipios votacoes_totais ON ce2.id = votacoes_totais.candidato_eleicao_id                                
+            WHERE ce2.eleicao_id = ce.eleicao_id
+            AND ce2.cargo_id = ${cargoId}
+            AND ce2.unidade_eleitoral_id = ${UFid}
+          ) AS percentual_votos
+        `
+
+        from = `
+        FROM candidato_eleicaos ce
+          JOIN votacao_candidato_municipios votacao_municipio_selecionados ON ce.id = votacao_municipio_selecionados.candidato_eleicao_id
+          JOIN eleicaos e ON e.id = ce.eleicao_id
+          JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
+          JOIN municipios_votacaos mv ON mv.id = votacao_municipio_selecionados.municipios_votacao_id
+        `
+
+        where = ` 
+        WHERE ce.eleicao_id IN (:electionsIds) 
+        AND ce.cargo_id = :cargoId
+        AND mv.id IN (:unidadesEleitoraisIds) 
+        AND ce.unidade_eleitoral_id = ${UFid}
+        `
+
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-        const join = "JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id"
-        from += join
-        select += "vcm.municipios_votacao_id, mv.nome"
-        group = " GROUP BY  vcm.municipios_votacao_id, mv.nome, e.ano_eleicao"
+
+        group = " GROUP BY  votacao_municipio_selecionados.municipios_votacao_id, mv.nome, e.ano_eleicao, ce.eleicao_id"
     } else {
-        select += "ce.unidade_eleitoral_id,ue.nome"
-        group = " GROUP BY  ce.unidade_eleitoral_id, ue.nome, e.ano_eleicao"
+        if (cargoId != 9){
+            throw new Error("Unidades eleitorais devem ser informadas para o cargo")
+        }
+        // aqui so pode ser presidente quando nao detalha por cidade
+        select = `
+        SELECT
+          e.ano_eleicao,
+          ce.eleicao_id,        
+          mv.estado AS nome,
+          SUM(votacao_municipio_selecionados.quantidade_votos) * 100.0 / (
+            SELECT SUM(votacoes_totais.quantidade_votos)
+            FROM candidato_eleicaos ce2
+            JOIN votacao_candidato_municipios votacoes_totais ON ce2.id = votacoes_totais.candidato_eleicao_id                                
+            WHERE ce2.eleicao_id = ce.eleicao_id
+            AND ce2.cargo_id = ${cargoId}
+            AND ce2.unidade_eleitoral_id = ${UFid}
+          ) AS percentual_votos
+        `
+
+        from = `
+        FROM candidato_eleicaos ce
+          JOIN votacao_candidato_municipios votacao_municipio_selecionados ON ce.id = votacao_municipio_selecionados.candidato_eleicao_id
+          JOIN eleicaos e ON e.id = ce.eleicao_id
+          JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
+          JOIN municipios_votacaos mv ON mv.id = votacao_municipio_selecionados.municipios_votacao_id
+        `
+
+        where = ` 
+        WHERE ce.eleicao_id IN (:electionsIds) 
+        AND ce.cargo_id = :cargoId         
+        AND ce.unidade_eleitoral_id = ${UFid}
+        `
+
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+
+        group = " GROUP BY  mv.estado, e.ano_eleicao, ce.eleicao_id"
     }
 
     const query = select + from + where + group
@@ -98,41 +150,100 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     return result
 }
 
-const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId) => {
+    if (!partyId) {
+        throw new Error("Partido deve ser informado")
+    }
+    let UFid
+    if (UF && unidadesEleitoraisIds && cargoId != 9) {
+        UFsearch = await getElectoralUnitByUFandAbrangency(UF, 1)
+        UFid = UFsearch.id
+    }
+    if (cargoId == 9){
+        UFid = 28
+    }
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
     const electionsIds = elections.map((e) => e.id)
 
     const replacements = { electionsIds, cargoId }
+    let select = ""
+    let group = ""
+    let from = ""
+    let where = ""
 
-    let select = `
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        select = `
       SELECT
-      e.ano_eleicao,      
-      SUM(vcm.quantidade_votos) / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
+        e.ano_eleicao,
+        ce.eleicao_id,        
+        mv.nome AS nome,
+        SUM(votacao_municipio_selecionados.quantidade_votos) / (
+          SELECT SUM(votacoes_totais.quantidade_votos)
+          FROM candidato_eleicaos ce2
+          JOIN votacao_candidato_municipios votacoes_totais ON ce2.id = votacoes_totais.candidato_eleicao_id                                
+          WHERE ce2.eleicao_id = ce.eleicao_id
+          AND ce2.cargo_id = ${cargoId}
+          AND ce2.unidade_eleitoral_id = ${UFid}
+        ) AS percentual_votos
       `
 
-    let from = `
+        from = `
       FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
+        JOIN votacao_candidato_municipios votacao_municipio_selecionados ON ce.id = votacao_municipio_selecionados.candidato_eleicao_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
-        `
+        JOIN municipios_votacaos mv ON mv.id = votacao_municipio_selecionados.municipios_votacao_id
+      `
 
-    let where = `
-      WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
-    `
+        where = ` 
+      WHERE ce.eleicao_id IN (:electionsIds) 
+      AND ce.cargo_id = :cargoId
+      AND mv.id IN (:unidadesEleitoraisIds) 
+      AND ce.unidade_eleitoral_id = ${UFid}
+      AND partido_id = ${partyId}
+      `
 
-    let group = " GROUP BY  ce.unidade_eleitoral_id,ue.nome, e.ano_eleicao"
-
-    // Filtros adicionais dinâmicos
-    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        where += "AND mv.id IN (:unidadesEleitoraisIds)"
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-        const join = "JOIN municipios_votacaos mv ON mv.id = vcm.municipios_votacao_id"
-        from += join
-        select += "vcm.municipios_votacao_id, mv.nome"
-        group = " GROUP BY  vcm.municipios_votacao_id, mv.nome, e.ano_eleicao"
+
+        group = " GROUP BY  votacao_municipio_selecionados.municipios_votacao_id, mv.nome, e.ano_eleicao, ce.eleicao_id"
     } else {
-        select += "ce.unidade_eleitoral_id,ue.nome"
+        if (cargoId != 9){
+            throw new Error("Unidades eleitorais devem ser informadas para o cargo")
+        }
+        // aqui so pode ser presidente quando nao detalha por cidade
+        select = `
+      SELECT
+        e.ano_eleicao,
+        ce.eleicao_id,        
+        mv.estado AS nome,
+        SUM(votacao_municipio_selecionados.quantidade_votos) / (
+          SELECT SUM(votacoes_totais.quantidade_votos)
+          FROM candidato_eleicaos ce2
+          JOIN votacao_candidato_municipios votacoes_totais ON ce2.id = votacoes_totais.candidato_eleicao_id                                
+          WHERE ce2.eleicao_id = ce.eleicao_id
+          AND ce2.cargo_id = ${cargoId}
+          AND ce2.unidade_eleitoral_id = ${UFid}
+        ) AS percentual_votos
+      `
+
+        from = `
+      FROM candidato_eleicaos ce
+        JOIN votacao_candidato_municipios votacao_municipio_selecionados ON ce.id = votacao_municipio_selecionados.candidato_eleicao_id
+        JOIN eleicaos e ON e.id = ce.eleicao_id
+        JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
+        JOIN municipios_votacaos mv ON mv.id = votacao_municipio_selecionados.municipios_votacao_id
+      `
+
+        where = ` 
+      WHERE ce.eleicao_id IN (:electionsIds) 
+      AND ce.cargo_id = :cargoId         
+      AND ce.unidade_eleitoral_id = ${UFid}
+      AND partido_id = ${partyId}
+      `
+
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+
+        group = " GROUP BY  mv.estado, e.ano_eleicao, ce.eleicao_id"
     }
 
     const query = select + from + where + group
@@ -146,13 +257,12 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     // Step 2: Calculate percentages and format the result
     const result = data.map((entry) => ({
         year: entry.ano_eleicao,
-        percentual_votos: (Number(entry.percentual_votos)).toFixed(6),
         regiao: entry.nome,
+        percentual_votos: (Number(entry.percentual_votos)).toFixed(6),
     }))
 
-    //console.log(result)
-
-    return result
+    const sumSquare = computeSum(result)
+    return sumSquare
 }
 
 const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
@@ -257,17 +367,11 @@ function computeSum(data) {
 
     // Group data by year and compute the sum for each year
     data.forEach(({ year, percentual_votos }) => {
-        if (!sumsByYear[year]) {
-            sumsByYear[year] = 0
-        }
-        sumsByYear[year] += Math.pow(Number(percentual_votos), 2)
+        percentual_votos = Math.pow(Number(percentual_votos), 2)
     })
 
     // Convert result to an array of objects
-    return Object.keys(sumsByYear).map((year) => ({
-        year: parseInt(year),
-        sum: sumsByYear[year],
-    }))
+    return data
 }
 
 module.exports = {
