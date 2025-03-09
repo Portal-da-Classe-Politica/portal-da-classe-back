@@ -1953,7 +1953,7 @@ paths:
                   message:
                     type: string
                     example: "Erro interno do servidor"                    
-  /noauth/indicadores/geographical/9:
+  /noauth/indicadores/geograficos/9:
     get:
       operationId: "32"  # New operation ID
       tags:
@@ -1985,8 +1985,12 @@ paths:
             type: array
           required: false
           description: Ids das unidades eleitorais desejadas
-            caso deseje agrupar por estado não envie esse parametro
-            caso deseje agrupar por cidade, escolha o estado e depois os ids das cidades
+        - in: query
+          name: UF
+          schema:
+            type: string
+          required: false
+          description: UF desejada
       responses:
         '200':
           description: Resposta bem-sucedida com os indicadores possiveis.
@@ -2005,7 +2009,7 @@ paths:
                     type: array
                     items:
                       type: object
-  /noauth/indicadores/geographical/10:
+  /noauth/indicadores/geograficos/10:
     get:
       operationId: "33"  # New operation ID
       tags:
@@ -2036,9 +2040,19 @@ paths:
           schema:
             type: array
           required: false
-          description: Ids das unidades eleitorais desejadas
-            caso deseje agrupar por estado não envie esse parametro
-            caso deseje agrupar por cidade, escolha o estado e depois os ids das cidades
+          description: Ids dos locais de votacao desejadas
+        - in: query
+          name: UF
+          schema:
+            type: string
+          required: false
+          description: UF desejada
+        - in: query
+          name: partyId
+          schema:
+            type: string
+          required: false
+          description: id do partido desejado
       responses:
         '200':
           description: Resposta bem-sucedida com os indicadores possiveis.
@@ -2057,3 +2071,28 @@ paths:
                     type: array
                     items:
                       type: object
+  /noauth/party:
+    get:
+      operationId: "34"  # New operation ID
+      tags:
+        - filtros
+      summary: Partidos
+      description: Retorna todos os partidos.
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os partidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Partidos encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object                    
