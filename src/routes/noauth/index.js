@@ -16,4 +16,7 @@ router.use("/cruzamentos", Cruzamentos)
 const Indicadores = require("./Indicadores")
 router.use("/indicadores", Indicadores)
 
+const Partido = require("./Partido")
+router.use("/party", Partido)
+
 module.exports = router
