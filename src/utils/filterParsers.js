@@ -13,20 +13,6 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: "UF",
         abrangencia: 1,
-        required_steps: {
-            geograficos: [
-                {
-                    name: "Distribuição de Votos por Região",
-                    id: 9,
-                    required: ["UF", "city"],
-                },
-                {
-                    name: "Índice de Concentração Regional do Voto",
-                    id: 10,
-                    required: ["UF", "city", "party"],
-                },
-            ],
-        },
     },
     "deputado_federal": {
         name: "DEPUTADO FEDERAL",
@@ -34,20 +20,6 @@ const cargosGlossary = {
         agregacao_regional: ["UF", "BR"],
         filter_by: "UF",
         abrangencia: 1,
-        required_steps: {
-            geograficos: [
-                {
-                    name: "Distribuição de Votos por Região",
-                    id: 9,
-                    required: ["UF", "city"],
-                },
-                {
-                    name: "Índice de Concentração Regional do Voto",
-                    id: 10,
-                    required: ["UF", "city", "party"],
-                },
-            ],
-        },
     },
     "senador": {
         name: "SENADOR",
@@ -55,20 +27,6 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
-        required_steps: {
-            geograficos: [
-                {
-                    name: "Distribuição de Votos por Região",
-                    id: 9,
-                    required: ["UF", "city"],
-                },
-                {
-                    name: "Índice de Concentração Regional do Voto",
-                    id: 10,
-                    required: ["UF", "city", "party"],
-                },
-            ],
-        },
     },
     "governador": {
         name: "GOVERNADOR",
@@ -76,20 +34,6 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: null,
         abrangencia: 1,
-        required_steps: {
-            geograficos: [
-                {
-                    name: "Distribuição de Votos por Região",
-                    id: 9,
-                    required: ["UF", "city"],
-                },
-                {
-                    name: "Índice de Concentração Regional do Voto",
-                    id: 10,
-                    required: ["UF", "city", "party"],
-                },
-            ],
-        },
     },
     "presidente": {
         name: "PRESIDENTE",
@@ -97,22 +41,6 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
-        required_steps: {
-            geograficos: [
-                {
-                    name: "Distribuição de Votos por Região",
-                    id: 9,
-                    required: ["UF"],
-                    optional: ["city"],
-                },
-                {
-                    name: "Índice de Concentração Regional do Voto",
-                    id: 10,
-                    required: ["UF", "party"],
-                    optional: ["city"],
-                },
-            ],
-        },
     },
     "vereador": {
         name: "VEREADOR",
