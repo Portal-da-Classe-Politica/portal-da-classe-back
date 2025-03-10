@@ -2095,4 +2095,92 @@ paths:
                   data:
                     type: array
                     items:
-                      type: object                    
+                      type: object     
+  /noauth/indicadores/{type}:                                     
+    get:
+      operationId: "35"  # New operation ID
+      tags:
+        - filtros
+      summary: Indicadores possíveis de votos
+      description: Retorna todos indicadores possíveis para o grupo de votos
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [eleitorais, partidarios, geograficos, financeiros]
+          description: Tipo de indicador desejado
+      responses:
+        '200':
+          description: Resposta bem-sucedida com os indicadores possíveis.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Indicadores do grupo {type} encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "1"
+                        nome:
+                          type: string
+                          example: "Número Efetivo de Partidos (Legislativo)"
+                        grupo:
+                          type: string
+                          example: "eleitoral"
+                        cargos:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                example: "DEPUTADO ESTADUAL"
+                              id:
+                                type: integer
+                                example: 1
+                              agregacao_regional:
+                                type: array
+                                items:
+                                  type: string
+                                  example: "UF"
+                              filter_by:
+                                type: string
+                                example: "UF"
+                              abrangencia:
+                                type: integer
+                                example: 1
+                              optional_steps:
+                                type: array   
+                                description: Passos opcionais para obter o indicador                 
+                                items:
+                                  type: string
+                                  example: "party"                                       
+                              required_steps:
+                                type: array
+                                description: Passos necessários para obter o indicador 
+                                items:
+                                  type: string
+                                  example: "UF"                                                               
+                                
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erro interno do servidor"
