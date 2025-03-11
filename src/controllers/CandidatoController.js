@@ -284,7 +284,9 @@ const getKpis = async (req, res) => {
 
         // 3) Percentil patrimonio
         const kpiPercentilPatrimonio = await indicadorPerfilSvc.getPercentilPatrimonio(id)
-        // const kpiCargosEleitos = await indicadorPerfilSvc.getCargosEleitos(id)
+    
+        // 4) Dispersão de votos
+        const kpiDispersaoVotos = await indicadorPerfilSvc.getDispersaoVotos(id)
 
         return res.json({
             success: true,
@@ -292,7 +294,8 @@ const getKpis = async (req, res) => {
             data: [
                 kpiCustoPorVoto,
                 kpiMigracaoPartidaria,
-                kpiPercentilPatrimonio
+                kpiPercentilPatrimonio,
+                kpiDispersaoVotos
             ],
         })
     } catch (error) {

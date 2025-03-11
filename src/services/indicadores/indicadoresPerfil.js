@@ -161,8 +161,6 @@ const getCargosEleitos = async (candidateId) => {
             candidato_id: candidateId,
             situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
         },
-        // group: ["eleicao_id", "eleicao.ano_eleicao", "cargo.nome"],
-        // limit: 1,
         raw: true,
     })
 
@@ -255,12 +253,77 @@ const getPercentilPatrimonio = async (candidateId) => {
     });
 };
 
+const getDispersaoVotos = async (candidateId) => {
+    // First, get the candidate's last election
+    const lastElection = await CandidatoEleicaoModel.findOne({
+        where: {
+            candidato_id: candidateId,
+            situacao_candidatura_id: { [Op.in]: [1, 16] }, // valid candidacies
+        },
+        include: [{
+            model: EleicaoModel,
+            attributes: ['id', 'ano_eleicao'],
+        }],
+        order: [[Sequelize.col('eleicao.ano_eleicao'), 'DESC']],
+        raw: true,
+    });
+
+    if (!lastElection) {
+        return null;
+    }
+
+    const votos = await CandidatoEleicaoModel.findAll({
+        attributes: [
+            "votacao_candidato_municipios.municipios_votacao_id",
+            [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
+        ],
+        include: [{
+            model: votacaoCandidatoMunicipioModel,
+            attributes: [],
+        }],
+        where: {
+            eleicao_id: lastElection['eleicao.id'],
+            candidato_id: candidateId,
+        },
+        group: ["municipios_votacao_id"],
+        raw: true,
+    })
+
+    const votosTratados = votos.map((voto) => ({
+        ...voto,
+        total_votes: Number(voto.total_votes),
+    }))
+
+    const totalVotos = votosTratados.reduce((acc, curr) => Number(acc) + Number(curr.total_votes), 0)
+
+    // Compute the percentage of votes for each municipality
+    const votosPorcentagem = votosTratados.map((voto) => ({
+        ...voto,
+        percentual: (Number(voto.total_votes) / totalVotos) * 100,
+    }))
+
+    // Compute the sum of percenteage ^ 2 (Índice de Herfindahl-Hirschman)
+    const somaQuadrados = votosPorcentagem.reduce((acc, curr) => acc + Math.pow(curr.percentual, 2), 0)
+
+    // Normalize the index to be between 0 and 100
+    const indiceNormalizado = (somaQuadrados / 10000) * 100
+
+    return createKPI({
+        name: "Concentração de votos",
+        description: "O índice de concentração de votos mede a concentração geográfica dos votos do candidato. Quanto mais próximo de 100%, mais concentrados são os votos em poucos municípios. Quanto mais próximo de 0%, mais dispersos são os votos entre vários municípios.",
+        value: parseFloat(indiceNormalizado.toFixed(2)),
+        metadata: {
+            totalVotos,
+            // votosPorcentagem: votosPorcentagem.sort((a, b) => b.percentual - a.percentual),
+        },
+        unity: "%",
+    })
+}
 
 
 module.exports = {
     getCustoPorVoto,
     getCargosEleitos,
     getPercentilPatrimonio,
-    // getIndiceDiversidadeEconomica,
-    // getMedianaMigracao
+    getDispersaoVotos,
 }
