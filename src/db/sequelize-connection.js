@@ -7,7 +7,7 @@ const objectDB = {
     host: config.urldb,
     database: config.environment != "development" ? "eleicao_v3" : "eleicao_v2",
     dialect: "postgres",
-    port: 5432,
+    port: 5433,
     logging: false,
     dialectOptions: {
         statement_timeout: 120000, // 30 segundos (valor em milissegundos)
@@ -20,12 +20,12 @@ const objectDB = {
     },
 }
 
-if (config.environment === "development") {
-    objectDB.dialectOptions.ssl = {
-        require: true,
-        rejectUnauthorized: false,
-    }
-}
+// if (config.environment === "development") {
+//     objectDB.dialectOptions.ssl = {
+//         require: true,
+//         rejectUnauthorized: false,
+//     }
+// }
 
 const sequelize = new Sequelize(objectDB)
 

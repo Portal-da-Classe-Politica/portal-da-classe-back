@@ -9,6 +9,7 @@ const candidatoEleicaoSvc = require("../services/CandidatoEleicaoSvc")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
 const { getFiltersForSearchesByOrigin, possibilitiesByOrigin } = require("../utils/filterParsers")
+const indicadorPerfilSvc = require("../services/indicadores/indicadoresPerfil")
 
 const getFiltersForSearch = async (req, res) => {
     const { dimension, cargoId } = req.query
@@ -268,6 +269,35 @@ const getBiggestDonors = async (req, res) => {
     }
 }
 
+const getKpis = async (req, res) => {
+    try {
+        const { id } = req.params
+        if (!id) throw new Error("ID do candidato é obrigatório")
+        const candidate = await candidatoSvc.getCandidate(id)
+        if (!candidate) throw new Error("Candidato não encontrado")
+        
+        // 1) Custo por Voto
+        const kpiCustoPorVoto = await indicadorPerfilSvc.getCustoPorVoto(id)
+
+        // 2) Cargos pelos quais foi eleito
+        const kpiMigracaoPartidaria = await indicadorPerfilSvc.getCargosEleitos(id)
+        // 3) Cargos pelo qual foi eleito
+        // const kpiCargosEleitos = await indicadorPerfilSvc.getCargosEleitos(id)
+
+        return res.json({
+            success: true,
+            message: "KPIs encontrados com sucesso.",
+            data: {kpiCustoPorVoto, kpiMigracaoPartidaria},
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os KPIs",
+        })
+    }
+}
 module.exports = {
     getCargoFilters,
     getBiggestDonors,
@@ -276,4 +306,5 @@ module.exports = {
     getCandidates,
     getFiltersForSearch,
     getCandidateDetail,
+    getKpis,
 }
