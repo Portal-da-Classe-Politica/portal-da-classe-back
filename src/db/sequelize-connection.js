@@ -20,12 +20,12 @@ const objectDB = {
     },
 }
 
-if (config.environment === "development") {
-    objectDB.dialectOptions.ssl = {
-        require: true,
-        rejectUnauthorized: false,
-    }
-}
+// if (config.environment === "development") {
+//     objectDB.dialectOptions.ssl = {
+//         require: true,
+//         rejectUnauthorized: false,
+//     }
+// }
 
 const sequelize = new Sequelize(objectDB)
 

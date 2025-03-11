@@ -1,6 +1,7 @@
 const {
     Op, where, QueryTypes, Sequelize,
 } = require("sequelize")
+
 const CandidatoEleicaoModel = require("../../models/CandidatoEleicao")
 const EleicaoModel = require("../../models/Eleicao")
 const CandidatoModel = require("../../models/Candidato")
@@ -20,25 +21,44 @@ const doacoesCandidatoEleicaoModel = require("../../models/DoacoesCandidatoEleic
 const unidadeEleitoralSvc = require("../UnidateEleitoralService")
 const { fatoresDeCorreção } = require("../../utils/ipca")
 
-const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
-    try {
-        const election = await EleicaoModel.findAll({
-            where: {
-                ano_eleicao: {
-                    [Sequelize.Op.gte]: initialYear,
-                    [Sequelize.Op.lte]: finalYear,
-                },
-                turno: round,
-            },
-            attributes: ["id", "ano_eleicao"],
-            raw: true,
-        })
-        return election
-    } catch (error) {
-        console.error("Error fetching election:", error)
-        throw error
-    }
-}
+/**
+ * @typedef {Object} KPI
+ * @property {string} name - Nome do indicador
+ * @property {string} description - Descrição detalhada do indicador
+ * @property {number} value - Valor numérico do indicador
+ * @property {string} unity - Unidade de medida (ex: R$, %, text, integer, float)
+ * @property {string} [trend] - Tendência do indicador (opcional)
+ * @property {Object} [metadata] - Metadados adicionais (opcional)
+ */
+
+/**
+ * Creates a KPI object with standardized structure
+ * @param {Object} params Parameters to create KPI
+ * @param {string} params.name Nome do indicador
+ * @param {string} params.description Descrição do indicador  
+ * @param {number} params.value Valor do indicador
+ * @param {string} params.unity Unidade de medida
+ * @param {string} [params.trend] Tendência (opcional)
+ * @param {Object} [params.metadata] Metadados adicionais (opcional)
+ * @returns {KPI} KPI object
+ */
+const createKPI = ({
+    name,
+    description,
+    value,
+    unity,
+    trend = null,
+    metadata = null
+}) => ({
+    name,
+    description,
+    value,
+    unity,
+    ...(trend && { trend }),
+    ...(metadata && { metadata })
+})
+
+
 
 /**
  * @name Custo por Voto
@@ -95,7 +115,17 @@ const getCustoPorVoto = async (candidateId) => {
     })
     // Ordenar por ano
     TCV.sort((a, b) => a.ano - b.ano)
-    return TCV
+
+    const lastTCV = TCV[TCV.length - 1].TCV
+    const secondLastTCV = TCV[TCV.length - 2].TCV
+
+    return createKPI({
+        name: "Custo por Voto",
+        description: "Custo da campanha dividido pelo número de votos obtidos pelo candidato.",
+        value: lastTCV,
+        unity: "R$",
+        trend: lastTCV > secondLastTCV ? "up" : "down",
+    })
 }
 
 /**
@@ -138,7 +168,22 @@ const getCargosEleitos = async (candidateId) => {
 
     // Ordernar por ano de eleicao
     results.sort((a, b) => a.ano_eleicao - b.ano_eleicao)
-    return results;
+
+    return createKPI({
+        name: "Cargos eleitos",
+        description: "Cargos para os quais o candidato concorreu e foi eleito.",
+        value: [...new Set(results.filter(result => result.foi_eleito === true).map(result => result.nome_cargo))].join(", "),
+        metadata: {
+            total_eleitos: results.filter(result => result.foi_eleito === true).length,
+            total_candidaturas: results.length,
+            cargos_disputados: [
+                results.map((r) =>
+                    `${r.nome_cargo} (${r.ano_eleicao}) - ${r.foi_eleito ? "Eleito" : "Não eleito"}`)
+            ].join(", "),
+        },
+        unity: "text",
+    })
+
 }
 
 /**
@@ -198,16 +243,16 @@ const getPercentilPatrimonio = async (candidateId) => {
     // Calculate percentile
     const allAssets = allCandidatesAssets.map(c => parseFloat(c.total_assets) || 0).sort((a, b) => a - b);
     const candidateTotalAssets = parseFloat(candidateAssets?.total_assets) || 0;
-    
+
     const position = allAssets.findIndex(asset => asset >= candidateTotalAssets);
     const percentile = position === -1 ? 100 : (position / allAssets.length) * 100;
 
-    return {
-        ano_eleicao: lastElection['eleicao.ano_eleicao'],
-        valor_total_bens: candidateTotalAssets,
-        percentil: parseFloat(percentile.toFixed(2)),
-        total_candidatos: allAssets.length
-    };
+    return createKPI({
+        name: "Percentil de patrimônio do candidato",
+        description: "Percentil do patrimonio do candidato na última eleição disputada.",
+        value: parseFloat(percentile.toFixed(0)),
+        unity: "%",
+    });
 };
 
 
