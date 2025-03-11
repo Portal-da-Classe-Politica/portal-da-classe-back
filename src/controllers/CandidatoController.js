@@ -275,19 +275,24 @@ const getKpis = async (req, res) => {
         if (!id) throw new Error("ID do candidato é obrigatório")
         const candidate = await candidatoSvc.getCandidate(id)
         if (!candidate) throw new Error("Candidato não encontrado")
-        
+
         // 1) Custo por Voto
         const kpiCustoPorVoto = await indicadorPerfilSvc.getCustoPorVoto(id)
 
         // 2) Cargos pelos quais foi eleito
         const kpiMigracaoPartidaria = await indicadorPerfilSvc.getCargosEleitos(id)
-        // 3) Cargos pelo qual foi eleito
+        
+        // 3) Percentil patrimonio
+        const kpiPercentilPatrimonio = await indicadorPerfilSvc.getPercentilPatrimonio(id)
         // const kpiCargosEleitos = await indicadorPerfilSvc.getCargosEleitos(id)
 
         return res.json({
             success: true,
             message: "KPIs encontrados com sucesso.",
-            data: {kpiCustoPorVoto, kpiMigracaoPartidaria},
+            data: { 
+                kpiCustoPorVoto,
+                kpiMigracaoPartidaria, 
+                kpiPercentilPatrimonio },
         })
     } catch (error) {
         console.log(error)

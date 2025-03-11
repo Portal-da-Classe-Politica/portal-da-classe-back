@@ -39,6 +39,7 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
         throw error
     }
 }
+
 /**
  * @name Custo por Voto
  * @description TCV = (C / V) = é o custo da campanha - V = é o número de votos obtidos pelo candidato.
@@ -47,7 +48,6 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
  * @param {*} candidateId
  * @returns
  */
-
 const getCustoPorVoto = async (candidateId) => {
 
     // Pegar dados da ultima eleicao do candidato
@@ -98,7 +98,12 @@ const getCustoPorVoto = async (candidateId) => {
     return TCV
 }
 
-
+/**
+ * @name Cargos eleitos
+ * @description Lista dos cargos para o qual o candidato concocorreu e foi eleito.
+ * @param {*} candidateId
+ * @returns
+ */
 const getCargosEleitos = async (candidateId) => {
     const results = await CandidatoEleicaoModel.findAll({
         attributes: [
@@ -136,12 +141,81 @@ const getCargosEleitos = async (candidateId) => {
     return results;
 }
 
+/**
+ * @name Percentil de patrimônio do candidato
+ * @description Retorna o percentil do patrimonio do candidato na última eleição disputada.
+ * @param {*} candidateId
+ * @returns
+ */
+const getPercentilPatrimonio = async (candidateId) => {
+    // First, get the candidate's last election
+    const lastElection = await CandidatoEleicaoModel.findOne({
+        where: {
+            candidato_id: candidateId,
+            situacao_candidatura_id: { [Op.in]: [1, 16] }, // valid candidacies
+        },
+        include: [{
+            model: EleicaoModel,
+            attributes: ['id', 'ano_eleicao'],
+        }],
+        order: [[Sequelize.col('eleicao.ano_eleicao'), 'DESC']],
+        raw: true,
+    });
+
+    if (!lastElection) {
+        return null;
+    }
+
+    // Get candidate's total assets
+    const candidateAssets = await BensCandidatoEleicao.findOne({
+        attributes: [
+            [Sequelize.fn('SUM', Sequelize.col('valor')), 'total_assets']
+        ],
+        where: {
+            candidato_eleicao_id: lastElection['id']
+        },
+        raw: true,
+    });
+
+    // Get all candidates' assets from the same election
+    const allCandidatesAssets = await BensCandidatoEleicao.findAll({
+        attributes: [
+            'candidato_eleicao_id',
+            [Sequelize.fn('SUM', Sequelize.col('valor')), 'total_assets']
+        ],
+        include: [{
+            model: CandidatoEleicaoModel,
+            where: {
+                eleicao_id: lastElection['eleicao.id'],
+                situacao_candidatura_id: { [Op.in]: [1, 16] },
+            },
+            attributes: [],
+        }],
+        group: ['candidato_eleicao_id'],
+        raw: true,
+    });
+
+    // Calculate percentile
+    const allAssets = allCandidatesAssets.map(c => parseFloat(c.total_assets) || 0).sort((a, b) => a - b);
+    const candidateTotalAssets = parseFloat(candidateAssets?.total_assets) || 0;
+    
+    const position = allAssets.findIndex(asset => asset >= candidateTotalAssets);
+    const percentile = position === -1 ? 100 : (position / allAssets.length) * 100;
+
+    return {
+        ano_eleicao: lastElection['eleicao.ano_eleicao'],
+        valor_total_bens: candidateTotalAssets,
+        percentil: parseFloat(percentile.toFixed(2)),
+        total_candidatos: allAssets.length
+    };
+};
+
 
 
 module.exports = {
     getCustoPorVoto,
     getCargosEleitos,
-    // getMediaMedianaPatrimonio,
+    getPercentilPatrimonio,
     // getIndiceDiversidadeEconomica,
     // getMedianaMigracao
 }
