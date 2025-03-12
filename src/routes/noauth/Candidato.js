@@ -16,4 +16,6 @@ router.get("/get-filters", CandidatoController.getFiltersForSearch)
 
 router.get("/cargos", CandidatoController.getCargoFilters)
 
+router.get("/kpis/:id", CandidatoController.getKpis)
+
 module.exports = router
