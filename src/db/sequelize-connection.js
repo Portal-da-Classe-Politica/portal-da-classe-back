@@ -7,7 +7,7 @@ const objectDB = {
     host: config.urldb,
     database: config.environment != "development" ? "eleicao_v3" : "eleicao_v2",
     dialect: "postgres",
-    port: 5433,
+    port: 5432,
     logging: false,
     dialectOptions: {
         statement_timeout: 120000, // 30 segundos (valor em milissegundos)
