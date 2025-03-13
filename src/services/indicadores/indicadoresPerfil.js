@@ -116,8 +116,8 @@ const getCustoPorVoto = async (candidateId) => {
     // Ordenar por ano
     TCV.sort((a, b) => a.ano - b.ano)
 
-    const lastTCV = TCV[TCV.length - 1].TCV
-    const secondLastTCV = TCV[TCV.length - 2].TCV
+    const lastTCV = TCV[TCV.length - 1]?.TCV || 0
+    const secondLastTCV = TCV[TCV.length - 2]?.TCV || 0
 
     return createKPI({
         name: "Custo por Voto",
