@@ -68,8 +68,17 @@ const start = async () => {
             res.end(await register.metrics())
         })
 
-        app.get("/health", (req, res) => {
-            res.status(200).send("OK")
+        app.get("/health", async (req, res) => {
+            // checar conexao com o banco
+            try {
+            // Verifica a conexão com o banco
+                await sequelize.authenticate()
+                res.status(200).send("OK")
+            } catch (error) {
+                console.error("Erro no health check:", error.message)
+                res.status(500).json({ status: "DOWN", database: "Error", error: error.message })
+                process.exit(1)
+            }
         })
 
         const noAuthRoutes = require("./routes/noauth/index")
