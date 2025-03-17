@@ -5,7 +5,7 @@ const { validateParams, validateParams2 } = require("../utils/validators")
 const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
-const { logger } = require("../utils/logger")
+const logger = require("../utils/logger")
 
 const possibilitiesByDimension = {
     0: "Quantidade de candidatos",

@@ -3,7 +3,7 @@ const EleicaoService = require("../services/EleicaoSvc")
 const cargoService = require("../services/CargoService")
 const { parseDataToDonutChart, parseDataToLineChart, parseDataToBarChart } = require("../utils/chartParsers")
 const { validateParams } = require("../utils/validators")
-const { logger } = require("../utils/logger")
+const logger = require("../utils/logger")
 
 const getCandidatesByYear = async (req, res) => {
     try {
