@@ -1,5 +1,5 @@
 const abrangenciaService = require("../services/AbrangenciaSvc")
-const { logger } = require("../utils/logger")
+const logger = require("../utils/logger")
 
 const getAllAbrangencies = async (req, res) => {
     try {

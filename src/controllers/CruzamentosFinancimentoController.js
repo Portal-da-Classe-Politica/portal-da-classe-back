@@ -6,7 +6,7 @@ const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
 const ipcaUtil = require("../utils/ipca")
-const { logger } = require("../utils/logger")
+const logger = require("../utils/logger")
 
 const possibilitiesByDimension = {
     0: "Volume total de financiamento",

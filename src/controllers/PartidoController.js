@@ -1,5 +1,5 @@
 const partidoService = require("../services/PartidoSvc")
-const { logger } = require("../utils/logger")
+const logger = require("../utils/logger")
 
 const getAllParties = async (req, res) => {
     try {
