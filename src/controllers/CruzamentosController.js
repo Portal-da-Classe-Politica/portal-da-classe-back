@@ -3,6 +3,7 @@ const EleicaoService = require("../services/EleicaoSvc")
 const cargoService = require("../services/CargoService")
 const { parseDataToDonutChart, parseDataToLineChart, parseDataToBarChart } = require("../utils/chartParsers")
 const { validateParams } = require("../utils/validators")
+const { logger } = require("../utils/logger")
 
 const getCandidatesByYear = async (req, res) => {
     try {
@@ -45,7 +46,7 @@ const getCandidatesByYear = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -102,7 +103,7 @@ const getCandidatesByGender = async (req, res) => {
             message: "Não foram encontrados resultados para a busca.",
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -159,7 +160,7 @@ const getCandidatesByOcupations = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -246,7 +247,7 @@ const getCandidatesKPIs = async (req, res) => {
             message: "Não foram encontrados resultados para a busca.",
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},

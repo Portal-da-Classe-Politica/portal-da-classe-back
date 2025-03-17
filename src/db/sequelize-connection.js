@@ -1,5 +1,7 @@
 const { Sequelize } = require("sequelize")
 const config = require("../config/config")
+const logger = require("../utils/logger")
+const { sendAlert } = require("../utils/alert/alertTelegram")
 
 const objectDB = {
     username: "postgres",
@@ -33,9 +35,9 @@ const connect = async () => {
     try {
         await sequelize.authenticate()
         sequelize.sync()
-        console.log("Conexão com o banco de dados estabelecida com sucesso.")
+        logger.info("Conexão com o banco de dados estabelecida com sucesso.")
     } catch (error) {
-        console.error("Não foi possível conectar ao banco de dados:", error)
+        logger.error("Não foi possível conectar ao banco de dados:", error)
         process.exit(1)
     }
 }

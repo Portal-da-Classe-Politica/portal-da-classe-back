@@ -6,6 +6,7 @@ const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
 const ipcaUtil = require("../utils/ipca")
+const { logger } = require("../utils/logger")
 
 const possibilitiesByDimension = {
     0: "Volume total de financiamento",
@@ -85,7 +86,7 @@ const getFinanceKPIs = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -133,7 +134,7 @@ const getFinanceByYear = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -177,7 +178,7 @@ const getFinanceMedianByParty = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -235,7 +236,7 @@ const getFinanceMedianByLocation = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},

@@ -8,6 +8,7 @@ const chartsUtil = require("../utils/chartParsers")
 const UfForVotes = require("../utils/votesLocation")
 const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
 const { getElectoralUnitByUFandAbrangency } = require("../services/UnidateEleitoralService")
+const {logger} = require("../utils/logger")
 
 const getIndicador = async (req, res) => {
     try {
@@ -59,7 +60,7 @@ const getIndicador = async (req, res) => {
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         res.status(500).json({ message: error.message })
     }
 }
