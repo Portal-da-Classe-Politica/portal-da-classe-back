@@ -50,6 +50,9 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     if (cargoId == 9){
         UFid = 28
     }
+    if (!UFid){
+        throw new Error("UF deve ser informado")
+    }
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
     const electionsIds = elections.map((e) => e.id)
 
@@ -161,6 +164,9 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     }
     if (cargoId == 9){
         UFid = 28
+    }
+    if (!UFid){
+        throw new Error("UF deve ser informado")
     }
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
     const electionsIds = elections.map((e) => e.id)

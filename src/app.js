@@ -86,17 +86,17 @@ const start = async () => {
         const noAuthRoutes = require("./routes/noauth/index")
         app.use("/noauth", noAuthRoutes)
 
-        process.on("uncaughtException", (error) => {
-            logger.error("Unhandled Exception:", error)
-            sendAlert(`[❌] Erro na aplicação uncaughtException: ${error.message}`)
-            process.exit(1)
-        })
+        // process.on("uncaughtException", (error) => {
+        //     logger.error("Unhandled Exception:", error)
+        //     sendAlert(`[❌] Erro na aplicação uncaughtException: ${error.message}`)
+        //     process.exit(1)
+        // })
 
-        process.on("unhandledRejection", (reason, promise) => {
-            logger.error("Unhandled Rejection at:", promise, "reason:", reason)
-            sendAlert(`[❌] Erro na aplicação unhandledRejection: ${error.message}`)
-            process.exit(1)
-        })
+        // process.on("unhandledRejection", (reason, promise) => {
+        //     logger.error("Unhandled Rejection at:", promise, "reason:", reason)
+        //     sendAlert(`[❌] Erro na aplicação unhandledRejection: ${error.message}`)
+        //     process.exit(1)
+        // })
     } catch (error) {
         logger.error("Não foi possível inicializar a aplicacao", error)
         sendAlert(`[❌] Erro na aplicação: ${error.message}`)
