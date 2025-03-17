@@ -1,4 +1,5 @@
 const partidoService = require("../services/PartidoSvc")
+const { logger } = require("../utils/logger")
 
 const getAllParties = async (req, res) => {
     try {
@@ -8,6 +9,7 @@ const getAllParties = async (req, res) => {
             success: true,
         })
     } catch (error) {
+        logger.error("Erro ao encontrar partidos:", error.message)
         res.status(500).json({
             success: false,
             message: error.message,

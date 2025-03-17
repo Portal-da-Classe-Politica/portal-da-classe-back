@@ -5,6 +5,7 @@ const { validateParams, validateParams2 } = require("../utils/validators")
 const EleicaoService = require("../services/EleicaoSvc")
 const CandidatoEleicaoService = require("../services/CandidatoEleicaoSvc")
 const UnidadeEleitoralService = require("../services/UnidateEleitoralService")
+const { logger } = require("../utils/logger")
 
 const possibilitiesByDimension = {
     0: "Quantidade de candidatos",
@@ -88,7 +89,7 @@ const getEleicoesKpis = async (req, res) => {
             message: "Não foram encontrados dados para os filtros selecionados.",
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -154,7 +155,7 @@ const getCompetitionByYear = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -199,7 +200,7 @@ const getTopCandidates = async (req, res) => {
             message: "Não foram encontrados dados para os filtros selecionados.",
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -262,7 +263,7 @@ const getVotesByLocation = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},

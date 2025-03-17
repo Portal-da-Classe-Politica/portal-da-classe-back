@@ -7,6 +7,7 @@ const express = require("express")
 config = require("./config/config")
 const app = express()
 const { sendAlert } = require("./utils/alert/alertTelegram")
+const logger = require("./utils/logger")
 
 app.use(express.urlencoded({
     extended: true,
@@ -84,23 +85,23 @@ const start = async () => {
 
         const noAuthRoutes = require("./routes/noauth/index")
         app.use("/noauth", noAuthRoutes)
+
+        process.on("uncaughtException", (error) => {
+            logger.error("Unhandled Exception:", error)
+            sendAlert(`[❌] Erro na aplicação uncaughtException: ${error.message}`)
+            process.exit(1)
+        })
+
+        process.on("unhandledRejection", (reason, promise) => {
+            logger.error("Unhandled Rejection at:", promise, "reason:", reason)
+            sendAlert(`[❌] Erro na aplicação unhandledRejection: ${error.message}`)
+            process.exit(1)
+        })
     } catch (error) {
-        console.error("Não foi possível inicializar a aplicacao", error)
+        logger.error("Não foi possível inicializar a aplicacao", error)
         sendAlert(`[❌] Erro na aplicação: ${error.message}`)
         process.exit(1)
     }
 }
-
-process.on("uncaughtException", (error) => {
-    console.error("Unhandled Exception:", error)
-    sendAlert(`[❌] Erro na aplicação uncaughtException: ${error.message}`)
-    process.exit(1)
-})
-
-process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason)
-    sendAlert(`[❌] Erro na aplicação unhandledRejection: ${error.message}`)
-    process.exit(1)
-})
 
 start()

@@ -1,4 +1,5 @@
 const abrangenciaService = require("../services/AbrangenciaSvc")
+const { logger } = require("../utils/logger")
 
 const getAllAbrangencies = async (req, res) => {
     try {
@@ -9,6 +10,7 @@ const getAllAbrangencies = async (req, res) => {
             data: abrancies,
         })
     } catch (error) {
+        logger.error("Erro ao encontrar abrangencias:", error.message)
         res.status(500).json({
             success: false,
             message: "Erro ao encontrar abrangencias",

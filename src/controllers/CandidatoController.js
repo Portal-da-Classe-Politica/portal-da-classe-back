@@ -10,6 +10,7 @@ const EleicaoSvc = require("../services/EleicaoSvc")
 const DoacoesCandidatoEleicaoSvc = require("../services/DoacoesCandidatoEleicaoSvc")
 const { getFiltersForSearchesByOrigin, possibilitiesByOrigin } = require("../utils/filterParsers")
 const indicadorPerfilSvc = require("../services/indicadores/indicadoresPerfil")
+const logger = require("../utils/logger")
 
 const getFiltersForSearch = async (req, res) => {
     const { dimension, cargoId } = req.query
@@ -29,7 +30,7 @@ const getFiltersForSearch = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -51,7 +52,7 @@ const getCargoFilters = async (req, res) => {
             message: "Cargos encontrados com sucesso.",
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -154,7 +155,7 @@ const getCandidates = async (req, res) => {
             message: "Candidatos encontrados com sucesso.",
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -176,6 +177,7 @@ const getCandidateDetail = async (req, res) => {
         })
     } catch (error) {
         // console.log(error)
+        logger.error(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -201,7 +203,7 @@ const getLastElectionVotesByRegion = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -229,7 +231,7 @@ const getLast5LastElectionsVotes = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -260,7 +262,7 @@ const getBiggestDonors = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
@@ -294,7 +296,7 @@ const getKpis = async (req, res) => {
             ],
         })
     } catch (error) {
-        console.log(error)
+        logger.log(error)
         return res.status(500).json({
             success: false,
             data: {},
