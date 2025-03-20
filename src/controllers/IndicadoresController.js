@@ -313,7 +313,7 @@ const getUFVotes = async (req, res) => {
         } = req.query
         let filteredUfForVotes = UfForVotes
         if (cargoId && parseInt(cargoId) !== 9) {
-            filteredUfForVotes = UfForVotes.filter((uf) => uf.label !== "Brasil" && uf.label !== "Exterior")
+            filteredUfForVotes = UfForVotes.filter((uf) => uf.label !== "Brasil" && uf.label !== "Exterior" && uf.label !== "Voto de Trânsito")
         }
         res.status(200).json({ success: true, data: filteredUfForVotes, message: "Siglas agrupadoras de locais de votação" })
     } catch (error) {

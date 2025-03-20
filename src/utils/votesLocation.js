@@ -27,7 +27,7 @@ const UfForVotes = [
     { UF: "SE", label: "Sergipe" },
     { UF: "SP", label: "São Paulo" },
     { UF: "TO", label: "Tocantins" },
-    { UF: "VT", label: "Voto de Transito" },
+    { UF: "VT", label: "Voto de Trânsito" },
     { UF: "ZZ", label: "Exterior" },
 ]
 
