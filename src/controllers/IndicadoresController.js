@@ -308,7 +308,14 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
 
 const getUFVotes = async (req, res) => {
     try {
-        res.status(200).json({ success: true, data: UfForVotes, message: "Siglas agrupadoras de locais de votação" })
+        let {
+            cargoId,
+        } = req.query
+        let filteredUfForVotes = UfForVotes
+        if (cargoId && parseInt(cargoId) !== 9) {
+            filteredUfForVotes = UfForVotes.filter((uf) => uf.label !== "Brasil" && uf.label !== "Exterior")
+        }
+        res.status(200).json({ success: true, data: filteredUfForVotes, message: "Siglas agrupadoras de locais de votação" })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

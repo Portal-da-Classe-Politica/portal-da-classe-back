@@ -1868,6 +1868,13 @@ paths:
         - Retorna os estados de votação para utilizar nos filtros. 
         Caso escolha Brasil, não será necessário buscar as cidades 
         e o agrupamento será por estado e o parametro UF não deve ser enviado.
+      parameters:
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: false
+          description: cargo desejado
       responses:
         '200':
           description: Resposta bem-sucedida com os estados de votação.
