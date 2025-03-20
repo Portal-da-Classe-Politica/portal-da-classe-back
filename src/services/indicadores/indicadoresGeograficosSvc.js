@@ -43,8 +43,8 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
 
 const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF) => {
     let UFid
-    if (UF && UF == "ZZ" && cargoId != 9){
-        throw new Error("Apenas o cargo de presidente pode ter votação no exterior")
+    if (UF && (UF == "ZZ" || UF == "VT") && cargoId != 9){
+        throw new Error("Apenas o cargo de presidente pode ter votação no exterior/trânsito")
     }
     if (UF && unidadesEleitoraisIds && cargoId != 9) {
         UFsearch = await getElectoralUnitByUFandAbrangency(UF, 1)
@@ -160,8 +160,8 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     if (!partyId) {
         throw new Error("Partido deve ser informado")
     }
-    if (UF && UF == "ZZ" && cargoId != 9){
-        throw new Error("Apenas o cargo de presidente pode ter votação no exterior")
+    if (UF && (UF == "ZZ" || UF == "VT") && cargoId != 9){
+        throw new Error("Apenas o cargo de presidente pode ter votação no exterior/trânsito")
     }
     let UFid
     if (UF && unidadesEleitoraisIds && cargoId != 9) {
