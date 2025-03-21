@@ -79,11 +79,11 @@ const getCustoPorVoto = async (candidateId) => {
             [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
         ],
         include: [
-            {
-                model: doacoesCandidatoEleicaoModel,
-                attributes: [],
-                required: false,
-            },
+            // {
+            //     model: doacoesCandidatoEleicaoModel,
+            //     attributes: [],
+            //     required: false,
+            // },
             {
                 model: votacaoCandidatoMunicipioModel,
                 attributes: [],
@@ -92,7 +92,7 @@ const getCustoPorVoto = async (candidateId) => {
             {
                 model: EleicaoModel,
                 attributes: ["ano_eleicao"],
-            }
+            },
         ],
         where: {
             candidato_id: candidateId,
