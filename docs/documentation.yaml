@@ -2191,3 +2191,67 @@ paths:
                   message:
                     type: string
                     example: "Erro interno do servidor"
+  /noauth/candidate/kpis/{id}:
+    get:
+      operationId: "36"
+      tags:
+        - candidato
+      summary: Obter KPIs do candidato
+      description: |
+        Retorna os principais indicadores de desempenho (KPIs) do candidato, incluindo:
+        - Custo por Voto: valor gasto em campanha dividido pelo número de votos obtidos
+        - Cargos Eleitos: histórico de cargos disputados e resultados
+        - Percentil de Patrimônio: posição relativa do patrimônio do candidato
+        - Concentração de Votos: índice de dispersão geográfica dos votos
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID do candidato
+      responses:
+        '200':
+          description: KPIs encontrados com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "KPIs encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nome do indicador
+                        description:
+                          type: string
+                          description: Descrição detalhada do indicador
+                        value:
+                          type: number
+                          description: Valor numérico do indicador
+                        unity:
+                          type: string
+                          description: Unidade de medida (R$, %, text)
+                        trend:
+                          type: string
+                          description: Tendência do indicador (up/down)
+                          nullable: true
+                        metadata:
+                          type: object
+                          description: Metadados adicionais
+                          nullable: true
+        '400':
+          description: ID do candidato não fornecido
+        '404':
+          description: Candidato não encontrado
+        '500':
+          description: Erro interno do servidor ao buscar os KPIs                    
