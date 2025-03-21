@@ -315,6 +315,7 @@ const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
             attributes: [
                 [sequelize.col("municipios_votacao.nome"), "municipios_votacao.nome"],
                 [sequelize.col("municipios_votacao.codigo_ibge"), "municipios_votacao.codigo_ibge"],
+                [sequelize.col("municipios_votacao.estado"), "municipios_votacao.estado"],
                 ["quantidade_votos", "votos"],
             ],
             order: [
@@ -329,9 +330,11 @@ const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
             return {
                 municipio: r["municipios_votacao.nome"],
                 codigo_ibge: r["municipios_votacao.codigo_ibge"],
+                estado: r["municipios_votacao.estado"],
                 votos: parseInt(r.votos),
             }
         })
+        console.log(parsedResults)
         return parsedResults
     } catch (error) {
         console.error("Error fetching votes by region:", error)
