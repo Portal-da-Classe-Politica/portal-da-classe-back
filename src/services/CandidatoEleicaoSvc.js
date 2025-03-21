@@ -334,7 +334,7 @@ const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
                 votos: parseInt(r.votos),
             }
         })
-        console.log(parsedResults)
+        //console.log(parsedResults)
         return parsedResults
     } catch (error) {
         console.error("Error fetching votes by region:", error)
