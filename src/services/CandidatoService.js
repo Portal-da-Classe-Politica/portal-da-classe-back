@@ -11,7 +11,10 @@ const bensCandidatoEleicaoModel = require("../models/BensCandidatoEleicao")
 const cargoModel = require("../models/Cargo")
 const unidadesEleitoraisModel = require("../models/UnidadeEleitoral")
 const situacaoCandidaturaModel = require("../models/SituacaoCandidatura")
-const { Sequelize } = require("sequelize")
+
+const {
+    Op, where, QueryTypes, Sequelize,
+} = require("sequelize")
 
 const get10CandidatesSortedByName = async (skip, limit) => {
     try {
@@ -53,113 +56,85 @@ const get10CandidatesSortedByName = async (skip, limit) => {
 
 const getCandidateDetailById = async (candidatoId) => {
     try {
-        const candidate = await candidatoModel.findOne({
-            where: {
-                id: candidatoId,
-            },
-            include: [
-                {
-                    model: eleicaoModel,
-                    attributes: ["ano_eleicao"],
-                    include: [
-                        {
-                            model: candidatoEleicaoModel,
-                            where: {
-                                candidato_id: candidatoId,
-                            },
-                            include: [
-                                {
-                                    model: partidoModel,
-                                },
-                                 {
-                                    model: grauDeInstrucaoModel,
-                                    attributes: ["nome_agrupado"],
-                                },
-                                {
-                                    model: bensCandidatoEleicaoModel,
+        const query = `
+      SELECT 
+          c.id AS candidato_id,
+          c.nome,
+          c.cpf,
+          c.data_nascimento,
+          c.municipio_nascimento,
+          c.estado_nascimento,
+          g.nome_genero,
+          r.nome AS raca,
+          o.nome_ocupacao,
+          e.ano_eleicao,
+          ce.coligacao,
+          p.nome AS partido,
+          p.sigla AS sigla_partido,
+          p.nome_atual,
+          p.class_categ_1,
+          p.class_categ_4,
+          p.class_survey_esp,
+          gi.nome_agrupado AS grau_de_instrucao,          
+          SUM(b.valor) AS total_bens_valor,
+          ca.nome_cargo,
+          ue.nome AS unidade_eleitoral,
+          ue.sigla_unidade_federacao,
+          sc.nome AS situacao_candidatura
+      FROM candidatos c
+      LEFT JOIN generos g ON c.genero_id = g.id
+      LEFT JOIN racas r ON c.raca_id = r.id
+      LEFT JOIN ocupacaos o ON c.ultima_ocupacao_id = o.id
+      LEFT JOIN eleicaos e ON c.ultima_eleicao_id = e.id
+      LEFT JOIN candidato_eleicaos ce ON c.id = ce.candidato_id
+      LEFT JOIN partidos p ON ce.partido_id = p.id
+      LEFT JOIN grau_de_instrucaos gi ON ce.grau_de_instrucao_id = gi.id
+      LEFT JOIN bens_candidatos b ON ce.id = b.candidato_eleicao_id
+      LEFT JOIN cargos ca ON ce.cargo_id = ca.id
+      LEFT JOIN unidade_eleitorals ue ON ce.unidade_eleitoral_id = ue.id
+      LEFT JOIN situacao_candidaturas sc ON ce.situacao_candidatura_id = sc.id      
+      WHERE c.id = :candidatoId
+      GROUP BY c.id, c.nome, c.cpf, c.data_nascimento, 
+      c.municipio_nascimento, c.estado_nascimento, 
+      g.nome_genero, r.nome, o.nome_ocupacao, 
+      e.ano_eleicao, ce.coligacao, p.nome, p.sigla, 
+      p.nome_atual, p.class_categ_1, 
+      p.class_categ_4, p.class_survey_esp, 
+      gi.nome_agrupado, 
+      ca.nome_cargo, ue.nome, ue.sigla_unidade_federacao, sc.nome
+  `
 
-                                    attributes: [
-                                        [sequelize.fn("sum", Sequelize.col("valor")), "totalValor"],
-                                    ],
-                                },
-                                {
-                                    model: cargoModel,
-                                    attributes: ["nome_cargo"],
-                                },
-                                {
-                                    model: unidadesEleitoraisModel,
-                                    attributes: ["nome", "sigla_unidade_federacao"],
-                                },
-                                {
-                                    model: situacaoCandidaturaModel,
-                                    attributes: ["nome"],
-                                },
-
-                            ],
-
-                            attributes: [
-                                "coligacao",
-
-                            ],
-                        },
-                    ],
-                },
-                {
-                    model: generoModel,
-                    attributes: ["nome_genero"],
-                },
-                {
-                    model: racaModel,
-                    attributes: ["nome"],
-                },
-                {
-                    model: ocupacaoModel,
-                    attributes: ["nome_ocupacao"],
-                },
-            ],
-            group: ["candidato.id", "eleicao.ano_eleicao", "eleicao->candidato_eleicaos.id",
-                "eleicao->candidato_eleicaos->partido.id", "eleicao->candidato_eleicaos->grau_de_instrucao.id",
-                "eleicao->candidato_eleicaos->bens_candidatos.id", "eleicao->candidato_eleicaos->cargo.id",
-                "eleicao->candidato_eleicaos->unidade_eleitoral.id", "genero.id", "raca.id", "ocupacao.id",
-                "eleicao->candidato_eleicaos->situacao_candidatura.id",
-            ],
-            attributes: [
-                "id",
-                "nome",
-                "cpf",
-                "data_nascimento",
-                "municipio_nascimento",
-                "estado_nascimento",
-
-            ],
-            raw: true,
-            nest: true,
+        const [candidate] = await sequelize.query(query, {
+            replacements: { candidatoId },
+            type: QueryTypes.SELECT,
         })
 
         if (!candidate) return new Error("Candidato não encontrado")
+
         const parsedCandidate = {
-            candidato_id: candidate.id,
+            candidato_id: candidate.candidato_id,
+            nome: candidate.nome,
+            cpf: candidate.cpf,
+            data_nascimento: candidate.data_nascimento,
             municipio_nascimento: candidate.municipio_nascimento,
             estado_nascimento: candidate.estado_nascimento,
-            nome: candidate.nome,
-            data_nascimento: candidate.data_nascimento,
-            genero: candidate.genero.nome_genero,
-            raca: candidate.raca.nome || "Não informada",
-            ocupacao: candidate.ocupacao.nome_ocupacao,
+            genero: candidate.nome_genero,
+            raca: candidate.raca || "Não informada",
+            ocupacao: candidate.nome_ocupacao,
             ano_ultima_eleicao: candidate.ano_eleicao,
-            coligacao: candidate.eleicao.candidato_eleicaos.coligacao,
-            partido: candidate.eleicao.candidato_eleicaos.partido.nome,
-            sigla_partido: candidate.eleicao.candidato_eleicaos.partido.sigla,
-            nome_atual: candidate.eleicao.candidato_eleicaos.partido.nome_atual,
-            class_categ_1: candidate.eleicao.candidato_eleicaos.partido.class_categ_1,
-            class_categ_4: candidate.eleicao.candidato_eleicaos.partido.class_categ_4,
-            class_survey_esp: candidate.eleicao.candidato_eleicaos.partido.class_survey_esp,
-            grau_de_instrucao: candidate.eleicao.candidato_eleicaos.grau_de_instrucao.nome_agrupado,
-            bens_declarados: candidate.eleicao.candidato_eleicaos.bens_candidatos.totalValor,
+            coligacao: candidate.coligacao,
+            partido: candidate.partido,
+            sigla_partido: candidate.sigla_partido,
+            nome_atual: candidate.nome_atual,
+            class_categ_1: candidate.class_categ_1,
+            class_categ_4: candidate.class_categ_4,
+            class_survey_esp: candidate.class_survey_esp,
+            grau_de_instrucao: candidate.grau_de_instrucao,
+            bens_declarados: candidate.total_bens_valor,
             cidade_nascimento: candidate.municipio_nascimento,
-            ultimo_cargo: candidate.eleicao.candidato_eleicaos.cargo.nome_cargo,
-            ultima_unidade_eleitoral: `${candidate.eleicao.candidato_eleicaos.unidade_eleitoral.sigla_unidade_fede} - ${candidate.eleicao.candidato_eleicaos.unidade_eleitoral.nome}`,
-            ultima_situacao_candidatura: candidate.eleicao.candidato_eleicaos.situacao_candidatura.nome,
+            ultimo_cargo: candidate.nome_cargo,
+            ultima_unidade_eleitoral: `${candidate.sigla_unidade_federacao} - ${candidate.unidade_eleitoral}`,
+            ultima_situacao_candidatura: candidate.situacao_candidatura,
         }
 
         return parsedCandidate
