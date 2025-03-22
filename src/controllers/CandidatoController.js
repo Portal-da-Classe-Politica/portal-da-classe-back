@@ -296,7 +296,8 @@ const getKpis = async (req, res) => {
             ],
         })
     } catch (error) {
-        logger.log(error)
+        logger.error(error)
+        console.log(error)
         return res.status(500).json({
             success: false,
             data: {},
