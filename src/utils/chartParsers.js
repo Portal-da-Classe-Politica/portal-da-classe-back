@@ -234,7 +234,7 @@ function parseDataToBarChart2(
     indicator_detail = null,
 ) {
     // Parse totals to numbers and sort descending
-    data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
+    data.sort((a, b) => parseInt(b[itemKey]) - parseInt(a[itemKey]))
 
     // Format the output for the chart
     const output = {
