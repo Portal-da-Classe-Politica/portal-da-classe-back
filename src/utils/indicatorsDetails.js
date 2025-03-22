@@ -72,7 +72,7 @@ const indicatorsDetails = {
     8: {
         title: "Índice de Paridade Eleitoral de Gênero",
         indicator_purpose: "Mede a desigualdade de gênero na política ao comparar a proporção de candidatas e eleitas em cada eleição. Esse indicador permite avaliar o avanço da representatividade feminina e comparar diferentes cargos, regiões e esferas de governo.",
-        how_to_interpretate: "Valores mais próximos de 1 indicam maior equilíbrio entre mulheres eleitas e candidatas, enquanto valores mais baixos mostram maior desigualdade de gênero.\n\nEixo Y: Índice de Paridade Eleitoral de Gênero (IPEG).\nBarras: Cada barra representa uma eleição.",
+        how_to_interpretate: "Valores mais próximos de 1 indicam maior equilíbrio entre mulheres eleitas e candidatas, enquanto valores mais baixos mostram maior desigualdade de gênero.\n\nEixo X: Índice de Paridade Eleitoral de Gênero (IPEG).\nBarras: Cada barra representa uma eleição.",
         unit: "IPEG",
         party_indicator: false,
         "indicator_t1": false,
