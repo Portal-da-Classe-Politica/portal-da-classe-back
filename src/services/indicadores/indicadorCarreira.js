@@ -338,11 +338,11 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
             [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
         ],
         include: [
-            {
-                model: doacoesCandidatoEleicaoModel,
-                attributes: [],
-                required: false,
-            },
+            // {
+            //     model: doacoesCandidatoEleicaoModel,
+            //     attributes: [],
+            //     required: false,
+            // },
             {
                 model: votacaoCandidatoMunicipioModel,
                 attributes: [],
