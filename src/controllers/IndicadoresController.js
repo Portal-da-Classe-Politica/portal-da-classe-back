@@ -182,8 +182,8 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         return chartsUtil.parseDataToBarChart2(
             dataIPEG, // data
             title = chartsUtil.indicatorsDetails[8].title,
-            xAxisLabel = chartsUtil.indicatorsDetails[8].xAxisLabel,
-            yAxisLabel = chartsUtil.indicatorsDetails[8].yAxisLabel,
+            seriesName = chartsUtil.indicatorsDetails[8].yAxisLabel,
+            itemKey = chartsUtil.indicatorsDetails[8].xAxisLabel.toLowerCase(),
             totalKey = "total",
             indicator_detail = 8,
         )
