@@ -397,6 +397,9 @@ const getLast5LastElectionsVotes = async (candidateElectionsIds) => {
             ],
             raw: true,
             group: ["candidato_eleicao_id", "eleicao.ano_eleicao", "candidato_eleicao.id"],
+            order: [
+                [sequelize.col("eleicao.ano_eleicao"), "ASC"],
+            ],
             attributes: [[sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"]],
         })
         if (!candidateElection) {
