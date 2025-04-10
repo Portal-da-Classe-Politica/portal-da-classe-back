@@ -133,6 +133,27 @@ components:
         Dimensão de agregação:
         - `0`: Quantidade
         - `1`: Votos
+    RoleParam:
+      in: path
+      name: role
+      required: true
+      schema:
+        $ref: '#/components/schemas/cargos'
+      description: |
+        ID do cargo disponível para consulta. Opções:  
+        - `1`: DEPUTADO ESTADUAL  
+        - `2`: DEPUTADO FEDERAL  
+        - `3`: VICE-GOVERNADOR  
+        - `4`: SENADOR          
+        - `6`: DEPUTADO DISTRITAL         
+        - `8`: GOVERNADOR  
+        - `9`: PRESIDENTE  
+        - `10`: VICE-PRESIDENTE  
+        - `11`: VEREADOR
+        - `12`: PREFEITO
+        - `13`: VICE-PREFEITO
+        - `14`: 2º SUPLENTE
+        - `15`: 1º SUPLENTE
 
     
 
@@ -2254,4 +2275,49 @@ paths:
         '404':
           description: Candidato não encontrado
         '500':
-          description: Erro interno do servidor ao buscar os KPIs                    
+          description: Erro interno do servidor ao buscar os KPIs       
+  /noauth/analises/filters-by-role/{role}:
+    get:
+      operationId: "37"
+      tags:
+        - analises
+      summary: Obter filtros por cargo
+      description: Retorna os filtros disponíveis para um cargo específico.
+      parameters:
+        - $ref: '#/components/parameters/RoleParam' 
+      responses:
+        '200':
+          description: Filtros encontrados com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Filtros encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filter_name:
+                          type: string
+                          example: "Partido"
+                        filter_type:
+                          type: string
+                          example: "string"
+                        filter_values:
+                          type: array
+                          items:
+                            type: string
+                            example: "PT" 
+        '400':
+          description: Cargo não fornecido ou inválido
+        '404':
+          description: Cargo não encontrado ou sem filtros disponíveis
+        '500':
+          description: Erro interno do servidor ao buscar os filtros
