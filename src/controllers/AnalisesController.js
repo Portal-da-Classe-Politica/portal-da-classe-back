@@ -7,6 +7,8 @@ const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const analisesFilterParser = require("../utils/analisesFilterParser")
+const { validateParams, parseFiltersToAnalytics } = require("../utils/validateAnalises")
+const analisesSvc = require("../services/AnalisesSvc")
 
 const logger = require("../utils/logger")
 
@@ -73,14 +75,17 @@ const getCargoAndAnalises = async (req, res) => {
                 possibilities: [
                     {
                         label: "Quantidade de candidaturas",
+                        parameter: "dimension",
                         value: "total_candidates",
                     },
                     {
                         label: "Sucesso eleitoral",
+                        parameter: "dimension",
                         value: "elected_candidates",
                     },
                     // {
                     //     label: "Votação",
+                    //parameter: "dimension",
                     //     value: "votes",
                     // },
                 ],
@@ -98,7 +103,66 @@ const getCargoAndAnalises = async (req, res) => {
     }
 }
 
+const generateGraph = async (req, res) => {
+    const {
+        dimension,
+        cargoId,
+        uf,
+        initial_year,
+        final_year,
+        genero_id,
+        raca_id,
+        ocupacao_categorizada_id,
+        grau_instrucao,
+        sigla_atual_partido,
+    } = req.query
+
+    try {
+        const params = {
+            dimension,
+            cargoId,
+            uf,
+            initial_year,
+            final_year,
+            genero_id,
+            raca_id,
+            ocupacao_categorizada_id,
+            grau_instrucao,
+            sigla_atual_partido,
+        }
+        const validationErrors = validateParams(params)
+
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Parâmetros inválidos",
+                errors: validationErrors,
+            })
+        }
+        const parsedParams = await parseFiltersToAnalytics(params)
+
+        const graphData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
+
+        // Simulate graph generation logic (replace with actual implementation)
+
+        return res.json({
+            success: true,
+            data: graphData,
+            message: "Gráfico gerado com sucesso.",
+        })
+    } catch (error) {
+        logger.error(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao gerar o gráfico",
+        })
+    }
+}
+
 module.exports = {
     getFiltersForAnalyticsByRole,
     getCargoAndAnalises,
+    generateGraph,
 }

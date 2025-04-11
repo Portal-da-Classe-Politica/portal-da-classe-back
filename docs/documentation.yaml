@@ -2321,3 +2321,279 @@ paths:
           description: Cargo não encontrado ou sem filtros disponíveis
         '500':
           description: Erro interno do servidor ao buscar os filtros
+  /noauth/analises/initial-filters:
+    get:
+      operationId: "38"
+      tags:
+        - analises
+      summary: Obter possibilidades de análises e cargos
+      description: Retorna as possibilidades de análises disponíveis e a lista de cargos.
+      responses:
+        '200':
+          description: Possibilidades de análises e cargos encontrados com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Possibilidades encontradas com sucesso."
+                  data:
+                    type: object
+                    properties:
+                      possibilities:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            label:
+                              type: string
+                              example: "Quantidade de candidaturas"
+                            value:
+                              type: string
+                              example: "total_candidates"
+                      cargos:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            nome_cargo:
+                              type: string
+                              example: "DEPUTADO ESTADUAL"
+        '500':
+          description: Erro interno do servidor ao buscar as possibilidades de análises.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Erro ao buscar as possibilidades de análises."
+                  data:
+                    type: object
+                    example: {}          
+
+  /noauth/analises/generate-graph:
+    get:
+      operationId: "39"
+      tags:
+        - analises
+      summary: Geração de gráficos analíticos
+      description: |
+        Gera gráficos analíticos com base nos filtros fornecidos. 
+        Todos os parâmetros são enviados como query strings.
+      parameters:
+        - in: query
+          name: dimension
+          schema:
+            type: string
+            enum: [total_candidates, elected_candidates]
+          required: true
+          description: |
+            Dimensão do gráfico:
+            - `total_candidates`: Quantidade de candidaturas
+            - `elected_candidates`: Sucesso eleitoral
+        - in: query
+          name: cargoId
+          schema:
+            type: integer
+          required: true
+          description: ID do cargo para análise.
+        - in: query
+          name: uf
+          schema:
+            type: string
+            enum: [AC, AL, AM, AP, BA, CE, DF, ES, GO, MA, MG, MS, MT, PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP, TO]
+          required: false
+          description: Unidade Federativa (UF) para análise.
+        - in: query
+          name: initial_year
+          schema:
+            type: integer
+            enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
+          required: true
+          description: Ano inicial da análise.
+        - in: query
+          name: final_year
+          schema:
+            type: integer
+            enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
+          required: true
+          description: Ano final da análise.
+        - in: query
+          name: genero_id
+          schema:
+            type: array
+            items:
+              type: integer
+              enum: [1, 2, 3, 4]
+          required: false
+          description: |
+            IDs de gênero:
+            - `1`: Masculino
+            - `2`: Feminino
+            - `3`: Não informado
+            - `4`: Não divulgável
+        - in: query
+          name: raca_id
+          schema:
+            type: array
+            items:
+              type: integer
+              enum: [1, 2, 3, 4, 5, 6, 7]
+          required: false
+          description: |
+            IDs de raça:
+            - `1`: Não divulgável
+            - `2`: Parda
+            - `3`: Branca
+            - `4`: Amarela
+            - `5`: Preta
+            - `6`: Indígena
+            - `7`: Não informado
+        - in: query
+          name: ocupacao_categorizada_id
+          schema:
+            type: array
+            items:
+              type: integer
+              enum: [1, 2, 3, 4, 5, 6]
+          required: false
+          description: |
+            IDs de ocupação categorizada:
+            - `1`: Profissionais liberais
+            - `2`: Trabalhadores
+            - `3`: Outras/Não informada
+            - `4`: Burocratas/Professores
+            - `5`: Empresários
+            - `6`: Políticos profissionais
+        - in: query
+          name: grau_instrucao
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ANALFABETO, ENSINO FUNDAMENTAL COMPLETO, ENSINO FUNDAMENTAL INCOMPLETO, ENSINO MÉDIO COMPLETO, ENSINO MÉDIO INCOMPLETO, LÊ E ESCREVE, NÃO INFORMADO, SUPERIOR COMPLETO, SUPERIOR INCOMPLETO]
+          required: false
+          description: |
+            Grau de instrução:
+            - `ANALFABETO`
+            - `ENSINO FUNDAMENTAL COMPLETO`
+            - `ENSINO FUNDAMENTAL INCOMPLETO`
+            - `ENSINO MÉDIO COMPLETO`
+            - `ENSINO MÉDIO INCOMPLETO`
+            - `LÊ E ESCREVE`
+            - `NÃO INFORMADO`
+            - `SUPERIOR COMPLETO`
+            - `SUPERIOR INCOMPLETO`
+        - in: query
+          name: sigla_atual_partido
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [AGIR, AVANTE, CIDADANIA, DC, DEM, MDB, NOVO, PAN, PATRIOTA, PC do B, PCB, PCO, PDT, PFL, PGT, PHS, PL, PMB, PMDB, PMN, PODE, PP, PPB, PPL, PPS, PR, PRB, PRN, PRONA, PROS, PRP, PRTB, PSB, PSC, PSD, PSDB, PSDC, PSL, PSN, PSOL, PST, PSTU, PT, PT do B, PTB, PTC, PTN, PV, REDE, REPUBLICANOS, SDD, UNIÃO, UP]
+          required: false
+          description: Siglas dos partidos políticos.
+      responses:
+        '200':
+          description: Gráfico gerado com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Gráfico gerado com sucesso."
+                  data:
+                    type: object
+                    properties:
+                      dimension:
+                        type: string
+                        example: "total_candidates"
+                      cargoId:
+                        type: integer
+                        example: 1
+                      filters:
+                        type: object
+                        properties:
+                          uf:
+                            type: string
+                            example: "SP"
+                          initial_year:
+                            type: integer
+                            example: 2018
+                          final_year:
+                            type: integer
+                            example: 2022
+                          genero_id:
+                            type: array
+                            items:
+                              type: integer
+                              example: 2
+                          raca_id:
+                            type: array
+                            items:
+                              type: integer
+                              example: 3
+                          ocupacao_categorizada_id:
+                            type: array
+                            items:
+                              type: integer
+                              example: 5
+                          grau_instrucao:
+                            type: array
+                            items:
+                              type: string
+                              example: "SUPERIOR COMPLETO"
+                          sigla_atual_partido:
+                            type: array
+                            items:
+                              type: string
+                              example: "PT"
+        '400':
+          description: Parâmetros inválidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Parâmetros inválidos."
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                      example: "O parâmetro 'dimension' é inválido."
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Erro ao gerar o gráfico."                    
