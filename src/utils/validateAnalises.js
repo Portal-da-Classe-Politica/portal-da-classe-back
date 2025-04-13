@@ -1,4 +1,6 @@
 const EleicaoService = require("../services/EleicaoSvc")
+const OcupacaoService = require("../services/OcupacaoSvc")
+const GeneroService = require("../services/GeneroService")
 
 const validateParams = (params) => {
     const errors = []
@@ -30,6 +32,51 @@ const validateParams = (params) => {
         errors.push("O parâmetro 'final_year' deve estar entre " + minimal_year + " e " + maximum_year + ".")
     }
 
+    // Validate uf
+    //   const validUFs = [
+    //     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ",
+    //     "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
+    // ]
+    // if (params.uf && !validUFs.includes(params.uf)) {
+    //     errors.push("O parâmetro 'uf' é inválido. Valores permitidos: " + validUFs.join(", "))
+    // }
+
+    //= ==================================================================
+    // variaveis categoricas
+    const categoricalParams = [
+        "genero_id",
+        "raca_id",
+        "ocupacao_categorizada_id",
+        "grau_instrucao",
+        "sigla_atual_partido",
+    ]
+    const providedCategoricalParams = categoricalParams.filter((param) => params[param])
+    if (providedCategoricalParams.length > 3) {
+        errors.push(
+            "Apenas 3 dos seguintes parâmetros podem ser fornecidos: "
+        + categoricalParams.join(", ")
+        + ". Você forneceu: "
+        + providedCategoricalParams.join(", "),
+        )
+    }
+
+    providedCategoricalParams.forEach((param) => {
+        let values = params[param]
+
+        // Handle repeated query params (e.g., genero_id=1&genero_id=2)
+        if (Array.isArray(values)) {
+            values = values.flat() // Flatten the array if needed
+        } else if (typeof values === "string") {
+            values = values.split(",") // Split comma-separated values
+        }
+
+        if (values.length > 2) {
+            errors.push(
+                `O parâmetro '${param}' pode conter no máximo 2 valores. Você forneceu: ${values.length}.`,
+            )
+        }
+    })
+
     // Validate genero_id
     /*    if (params.genero_id) {
         const validGeneroIds = [1, 2, 3, 4]
@@ -55,15 +102,6 @@ const validateParams = (params) => {
         if (ocupacaoIds.some((id) => !validOcupacaoIds.includes(id))) {
             errors.push("O parâmetro 'ocupacao_categorizada_id' contém valores inválidos. Valores permitidos: " + validOcupacaoIds.join(", "))
         }
-    }
-
-    // Validate uf
-    const validUFs = [
-        "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ",
-        "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
-    ]
-    if (params.uf && !validUFs.includes(params.uf)) {
-        errors.push("O parâmetro 'uf' é inválido. Valores permitidos: " + validUFs.join(", "))
     }
 
     // Validate grau_instrucao
@@ -97,13 +135,34 @@ const validateParams = (params) => {
 }
 
 const parseFiltersToAnalytics = async (filters) => {
+    const parsedObject = {}
     const elections = await EleicaoService.getElectionsByYearInterval(filters.initial_year, filters.final_year, "all")
     const electionsIds = elections.map((i) => i.id)
+
+    if (!Array.isArray(filters.ocupacao_categorizada_id)) {
+        filters.ocupacao_categorizada_id = [filters.ocupacao_categorizada_id]
+    }
+    const ocupations = await OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id)
+    const ocupationsIds = ocupations.map((i) => i.id)
+
+    if (!Array.isArray(filters.genero_id)) {
+        filters.genero_id = [filters.genero_id]
+    }
+    if (filters.genero_id.includes(3)){
+        filters.genero_id.push(4)
+    }
+    const genders = await GeneroService.getGendersByIds(filters.genero_id)
+    const gendersIds = genders.map((i) => i.id)
+
+    const partidosIds = [48, 13]
 
     return {
         dimension: filters.dimension,
         electionsIds,
         cargoId: filters.cargoId,
+        partidosIds,
+        ocupationsIds,
+        gendersIds,
 
     }
 }
