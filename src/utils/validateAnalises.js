@@ -1,6 +1,7 @@
 const EleicaoService = require("../services/EleicaoSvc")
+const { getGrausDeInstrucaoByIdsAgrupados } = require("../services/GrausDeInstrucao")
+const { getPartidosByIdsAgrupados } = require("../services/PartidoSvc")
 const OcupacaoService = require("../services/OcupacaoSvc")
-const GeneroService = require("../services/GeneroService")
 
 const validateParams = (params) => {
     const errors = []
@@ -49,6 +50,7 @@ const validateParams = (params) => {
         "ocupacao_categorizada_id",
         "grau_instrucao",
         "sigla_atual_partido",
+        "id_agrupado_partido",
     ]
     const providedCategoricalParams = categoricalParams.filter((param) => params[param])
     if (providedCategoricalParams.length > 3) {
@@ -135,26 +137,62 @@ const validateParams = (params) => {
 }
 
 const parseFiltersToAnalytics = async (filters) => {
-    const parsedObject = {}
-    const elections = await EleicaoService.getElectionsByYearInterval(filters.initial_year, filters.final_year, "all")
-    const electionsIds = elections.map((i) => i.id)
-
-    if (!Array.isArray(filters.ocupacao_categorizada_id)) {
-        filters.ocupacao_categorizada_id = [filters.ocupacao_categorizada_id]
+    if (filters.ocupacao_categorizada_id){
+        if (!Array.isArray(filters.ocupacao_categorizada_id)) {
+            filters.ocupacao_categorizada_id = [filters.ocupacao_categorizada_id]
+        }
     }
-    const ocupations = await OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id)
+    if (filters.grau_instrucao){
+        if (!Array.isArray(filters.grau_instrucao)) {
+            filters.grau_instrucao = [filters.grau_instrucao]
+        }
+    }
+    // getPartidosByIdsAgrupados
+
+    if (filters.id_agrupado_partido){
+        if (!Array.isArray(filters.id_agrupado_partido)) {
+            filters.id_agrupado_partido = [filters.id_agrupado_partido]
+        }
+    }
+
+    console.log(filters.id_agrupado_partido)
+
+    const [elections, ocupations, instructionsDegrees, parties] = await Promise.all([
+        EleicaoService.getElectionsByYearInterval(filters.initial_year, filters.final_year, "all"),
+        filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
+        filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
+        filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
+    ])
+
     const ocupationsIds = ocupations.map((i) => i.id)
+    const electionsIds = elections.map((i) => i.id)
+    const instructionsDegreesIds = instructionsDegrees.map((i) => i.id)
+    const partidosIds = parties.map((i) => i.id)
+    // const partidosIds = [48, 13]
 
-    if (!Array.isArray(filters.genero_id)) {
-        filters.genero_id = [filters.genero_id]
+    if (filters.genero_id){
+        if (!Array.isArray(filters.genero_id)) {
+            filters.genero_id = [filters.genero_id]
+        }
+        if (filters.genero_id.includes("3")){
+            filters.genero_id.push("4")
+        }
     }
-    if (filters.genero_id.includes(3)){
-        filters.genero_id.push(4)
-    }
-    const genders = await GeneroService.getGendersByIds(filters.genero_id)
-    const gendersIds = genders.map((i) => i.id)
 
-    const partidosIds = [48, 13]
+    if (filters.raca_id){
+        if (!Array.isArray(filters.raca_id)) {
+            filters.raca_id = [filters.raca_id]
+        }
+        if (filters.raca_id.includes("1")){
+            filters.raca_id.push("7")
+        }
+    }
+
+    if (filters.grau_instrucao){
+        if (!Array.isArray(filters.grau_instrucao)) {
+            filters.grau_instrucao = [filters.grau_instrucao]
+        }
+    }
 
     return {
         dimension: filters.dimension,
@@ -162,7 +200,9 @@ const parseFiltersToAnalytics = async (filters) => {
         cargoId: filters.cargoId,
         partidosIds,
         ocupationsIds,
-        gendersIds,
+        gendersIds: filters.genero_id,
+        racesIds: filters.raca_id,
+        instructionsDegreesIds,
 
     }
 }

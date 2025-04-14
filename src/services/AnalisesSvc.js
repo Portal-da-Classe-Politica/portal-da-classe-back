@@ -8,6 +8,8 @@ const PartidoModel = require("../models/Partido")
 const OcupacaoModel = require("../models/Ocupacao")
 const categoriaModel = require("../models/Categoria")
 const generoModel = require("../models/Genero")
+const RacaModel = require("../models/Raca")
+const GrauDeInstrucaoModel = require("../models/GrauDeInstrucao")
 const SituacaoTurnoModel = require("../models/SituacaoTurno")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
 
@@ -42,10 +44,7 @@ const parseCrossCriteria = (finder, params) => {
         if (!finder.include[0].where){
             finder.include[0].where = {}
             finder.include[0].where.genero_id = { [Op.in]: params.gendersIds }
-        }// } else {
-        //     finder.include[0].where.genero_id = { [Op.in]: params.gendersIds }
-        // }
-
+        }
         const generoInclude = {
             model: generoModel,
             attributes: [],
@@ -57,10 +56,38 @@ const parseCrossCriteria = (finder, params) => {
         finder.attributes.push([Sequelize.col("candidato.genero.nome_genero"), "genero"])
         finder.group.push("genero")
     }
+    if (params.racesIds && params.racesIds.length > 0) {
+        if (!finder.include[0].where){
+            finder.include[0].where = {}
+            finder.include[0].where.raca_id = { [Op.in]: params.racesIds }
+        } else {
+            finder.include[0].where.raca_id = { [Op.in]: params.racesIds }
+        }
+        const racaInclude = {
+            model: RacaModel,
+            attributes: [],
+        }
+        if (!finder.include[0].include) {
+            finder.include[0].include = [racaInclude]
+        } else {
+            finder.include[0].include.push(racaInclude)
+        }
+        finder.attributes.push([Sequelize.col("candidato.raca.nome"), "raca"])
+        finder.group.push("raca")
+    }
+    if (params.instructionsDegreesIds && params.instructionsDegreesIds.length > 0) {
+        finder.where.grau_de_instrucao_id = { [Op.in]: params.instructionsDegreesIds }
+        const grauInstrucaoInclude = {
+            model: GrauDeInstrucaoModel,
+            attributes: [],
+        }
+        finder.include.push(grauInstrucaoInclude)
+        finder.attributes.push([Sequelize.col("grau_de_instrucao.nome_agrupado"), "instrucao"])
+        finder.group.push("instrucao")
+    }
 }
 
 const getAnalyticCrossCriteria = async (params) => {
-    console.log(params)
     try {
         let finder = {
             where: {

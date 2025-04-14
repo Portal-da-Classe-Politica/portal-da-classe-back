@@ -36,12 +36,11 @@ const parseFiltersToAnalytics = (filters) => {
             required: false,
             possibilities: [{
                 label: "Gênero",
-                values: filters.generos.map((genero) => {
-                    return {
-                        label: genero.nome_genero,
-                        value: genero.id,
-                    }
-                }),
+                values: [
+                    { id: 1, label: "Masculino" },
+                    { id: 2, label: "Feminino" },
+                    { id: 3, label: "Não Divulgável ou não informada" },
+                ],
                 parameter: "genero_id",
                 required: false,
                 type: "multi_select",
@@ -49,12 +48,14 @@ const parseFiltersToAnalytics = (filters) => {
             },
             {
                 label: "Raça",
-                values: filters.racas.map((raca) => {
-                    return {
-                        label: raca.nome,
-                        value: raca.id,
-                    }
-                }),
+                values: [
+                    { id: 1, label: "Não Divulgável ou não informada" },
+                    { id: 2, label: "Parda" },
+                    { id: 3, label: "Branca" },
+                    { id: 4, label: "Amarela" },
+                    { id: 5, label: "Preta" },
+                    { id: 6, label: "Indígena" },
+                ],
                 parameter: "raca_id",
                 required: false,
                 type: "multi_select",
@@ -65,7 +66,7 @@ const parseFiltersToAnalytics = (filters) => {
                 values: filters.ocupacoes_categorizadas.map((ocupacao) => {
                     return {
                         label: ocupacao.nome,
-                        value: ocupacao.id,
+                        id: ocupacao.id,
                     }
                 }),
                 parameter: "ocupacao_categorizada_id",
@@ -76,7 +77,10 @@ const parseFiltersToAnalytics = (filters) => {
             {
                 label: "Grau de instrução",
                 values: filters.intrucao.map((intrucao) => {
-                    return intrucao.nome_agrupado
+                    return {
+                        label: intrucao.nome_agrupado,
+                        id: intrucao.id_agrupado,
+                    }
                 }),
                 required: false,
                 parameter: "grau_instrucao",
@@ -86,9 +90,12 @@ const parseFiltersToAnalytics = (filters) => {
             {
                 label: "Partido",
                 values: filters.partidos.map((partido) => {
-                    return partido.sigla_atual
+                    return {
+                        label: partido.nome_atual,
+                        id: partido.id_agrupado,
+                    }
                 }),
-                parameter: "sigla_atual_partido",
+                parameter: "id_agrupado_partido",
                 required: false,
                 type: "multi_select",
                 max: 2,

@@ -35,6 +35,10 @@ const Partido = sequelize.define("partido", {
         type: DataTypes.STRING,
         comment: "Sigla atual do partido",
     },
+    id_agrupado: {
+        type: DataTypes.INTEGER,
+        comment: "id do partido agrupado de acordo com a sigla atual",
+    },
 }, {
     sequelize,
     underscored: true,

@@ -13,6 +13,10 @@ const GrauDeInstrucao = sequelize.define("grau_de_instrucao",
             allowNull: false,
             comment: "agrupamento para a classificacao atualizada",
         },
+        id_agrupado: {
+            type: DataTypes.INTEGER,
+            comment: "id do grau de instrucao de acordo com o nome agrupado",
+        },
     }, {
         sequelize,
         comment: "tabela graus de instrucao existentes.",

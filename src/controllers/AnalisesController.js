@@ -26,10 +26,8 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
         const cargo = await cargoService.getAbragencyByCargoID(cargoId)
         if (!cargo) throw new Error("Cargo não encontrado")
         abrangenciaId = cargo.abrangencia
-        const [anos, generos, racas, ocupacoes_categorizadas, intrucao, partidos, estados] = await Promise.all([
+        const [anos, ocupacoes_categorizadas, intrucao, partidos, estados] = await Promise.all([
             EleicaoSvc.getAllElectionsYearsByAbragencyForFilters(abrangenciaId),
-            generoSvc.getAllGenders(),
-            RacaSvc.getAllRacas(),
             categoriaSvc.getAllCategorias(),
             GrauDeInstrucaoSvc.getAllGrausDeInstrucao(),
             partidoSvc.getAllPartidosComSiglaAtualizada(),
@@ -38,8 +36,6 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
 
         const filterObject = {
             anos,
-            generos,
-            racas,
             ocupacoes_categorizadas,
             intrucao,
             partidos,
@@ -83,11 +79,11 @@ const getCargoAndAnalises = async (req, res) => {
                         parameter: "dimension",
                         value: "elected_candidates",
                     },
-                    // {
-                    //     label: "Votação",
-                    //parameter: "dimension",
-                    //     value: "votes",
-                    // },
+                    {
+                        label: "Votação",
+                        parameter: "dimension",
+                        value: "votes",
+                    },
                 ],
                 cargos,
             },
@@ -114,7 +110,7 @@ const generateGraph = async (req, res) => {
         raca_id,
         ocupacao_categorizada_id,
         grau_instrucao,
-        sigla_atual_partido,
+        id_agrupado_partido,
     } = req.query
 
     try {
@@ -128,7 +124,7 @@ const generateGraph = async (req, res) => {
             raca_id,
             ocupacao_categorizada_id,
             grau_instrucao,
-            sigla_atual_partido,
+            id_agrupado_partido,
         }
         const validationErrors = validateParams(params)
 
@@ -141,6 +137,7 @@ const generateGraph = async (req, res) => {
             })
         }
         const parsedParams = await parseFiltersToAnalytics(params)
+        
 
         const graphData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
 
