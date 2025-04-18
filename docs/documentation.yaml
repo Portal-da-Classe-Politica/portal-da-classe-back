@@ -133,6 +133,27 @@ components:
         Dimensão de agregação:
         - `0`: Quantidade
         - `1`: Votos
+    RoleParam:
+      in: path
+      name: role
+      required: true
+      schema:
+        $ref: '#/components/schemas/cargos'
+      description: |
+        ID do cargo disponível para consulta. Opções:  
+        - `1`: DEPUTADO ESTADUAL  
+        - `2`: DEPUTADO FEDERAL  
+        - `3`: VICE-GOVERNADOR  
+        - `4`: SENADOR          
+        - `6`: DEPUTADO DISTRITAL         
+        - `8`: GOVERNADOR  
+        - `9`: PRESIDENTE  
+        - `10`: VICE-PRESIDENTE  
+        - `11`: VEREADOR
+        - `12`: PREFEITO
+        - `13`: VICE-PREFEITO
+        - `14`: 2º SUPLENTE
+        - `15`: 1º SUPLENTE
 
     
 
@@ -2254,4 +2275,186 @@ paths:
         '404':
           description: Candidato não encontrado
         '500':
-          description: Erro interno do servidor ao buscar os KPIs                    
+          description: Erro interno do servidor ao buscar os KPIs       
+  /noauth/analises/filters-by-role/{role}:
+    get:
+      operationId: "37"
+      tags:
+        - analises
+      summary: Obter filtros por cargo
+      description: Retorna os filtros disponíveis para um cargo específico.
+      parameters:
+        - $ref: '#/components/parameters/RoleParam' 
+      responses:
+        '200':
+          description: Filtros encontrados com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Filtros encontrados com sucesso."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filter_name:
+                          type: string
+                          example: "Partido"
+                        filter_type:
+                          type: string
+                          example: "string"
+                        filter_values:
+                          type: array
+                          items:
+                            type: string
+                            example: "PT" 
+        '400':
+          description: Cargo não fornecido ou inválido
+        '404':
+          description: Cargo não encontrado ou sem filtros disponíveis
+        '500':
+          description: Erro interno do servidor ao buscar os filtros
+  /noauth/analises/initial-filters:
+    get:
+      operationId: "38"
+      tags:
+        - analises
+      summary: Obter possibilidades de análises e cargos
+      description: Retorna as possibilidades de análises disponíveis e a lista de cargos.
+      responses:
+        '200':
+          description: Possibilidades de análises e cargos encontrados com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      possibilities:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            label:
+                              type: string
+                            parameter:
+                              type: string
+                            value:
+                              type: string
+                      cargos:
+                        type: array
+                        items:
+                          type: object
+                  message:
+                    type: string
+        '500':
+          description: Erro interno do servidor ao buscar as possibilidades de análises.
+          content:
+            application/json:
+  /noauth/analises/generate-graph:
+    get:
+      operationId: "39"
+      tags:
+        - analises
+      summary: Geração de gráficos analíticos
+      description: Gera gráficos analíticos com base nos filtros fornecidos.
+      parameters:
+        - name: dimension
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [total_candidates, elected_candidates, votes]
+          description: Dimensão do gráfico.
+        - name: cargoId
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID do cargo para análise.
+        - name: uf
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [AC, AL, AM, AP, BA, CE, DF, ES, GO, MA, MG, MS, MT, PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP, TO]
+          description: Unidade Federativa (UF) para análise.
+        - name: initial_year
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
+          description: Ano inicial da análise.
+        - name: final_year
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
+          description: Ano final da análise.
+        - name: genero_id
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+          description: IDs de gênero.
+        - name: raca_id
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+          description: IDs de raça.
+        - name: ocupacao_categorizada_id
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+          description: IDs de ocupação categorizada.
+        - name: grau_instrucao
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+          description: IDs de grau de instrução.
+        - name: id_agrupado_partido
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+          description: IDs dos partidos políticos.
+      responses:
+        '200':
+          description: Gráfico gerado com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string         

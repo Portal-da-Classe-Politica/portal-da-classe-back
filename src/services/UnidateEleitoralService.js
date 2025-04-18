@@ -16,6 +16,10 @@ const getFederativeUnitsByAbrangency = (abrangency, show, UF) => {
 
     if (show === "onlyUF") {
         filter.attributes = ["sigla_unidade_federacao"]
+        if (abrangency == 2){
+            filter.order = ["sigla_unidade_federacao"]
+            filter.group = ["sigla_unidade_federacao"]
+        }
     }
 
     if (show === "ufAndId") {
@@ -75,10 +79,20 @@ const getAllElectoralUnitsByArrayOfUnidadesEleitorais = async (unidadesIds) => {
     const results = await sequelize.query(sqlQuery, {
         replacements, // Substitute placeholders
         type: Sequelize.QueryTypes.SELECT, // Define as SELECT
-    });
+    })
 
     return results
+}
 
+const getElectoralUnitsByUFandAbrangency = (UF, abrangency) => {
+    return unidadeEleitoralModel.findAll({
+        where: {
+            sigla_unidade_federacao: UF,
+            abrangencium_id: abrangency,
+        },
+        attributes: ["id"],
+        raw: true,
+    })
 }
 
 module.exports = {
@@ -86,5 +100,6 @@ module.exports = {
     getFederativeUnitsByAbrangency,
     getAllElectoralUnitiesIdsByUF,
     getElectoralUnitByUFandAbrangency,
-    getAllElectoralUnitsByArrayOfUnidadesEleitorais
+    getAllElectoralUnitsByArrayOfUnidadesEleitorais,
+    getElectoralUnitsByUFandAbrangency,
 }

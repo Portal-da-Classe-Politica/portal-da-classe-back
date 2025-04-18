@@ -15,11 +15,11 @@ const getOcubacoesByCategories = (categoriesIds) => {
         {
             where: { categoria_id: { [Sequelize.Op.in]: categoriesIds } },
             attributes: ["id"],
-            raw: true
-        })
-
+            raw: true,
+        },
+    )
 }
 module.exports = {
     getAllCategorias,
-    getOcubacoesByCategories
+    getOcubacoesByCategories,
 }
