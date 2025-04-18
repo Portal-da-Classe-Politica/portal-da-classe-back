@@ -84,10 +84,22 @@ const getAllElectoralUnitsByArrayOfUnidadesEleitorais = async (unidadesIds) => {
     return results
 }
 
+const getElectoralUnitsByUFandAbrangency = (UF, abrangency) => {
+    return unidadeEleitoralModel.findAll({
+        where: {
+            sigla_unidade_federacao: UF,
+            abrangencium_id: abrangency,
+        },
+        attributes: ["id"],
+        raw: true,
+    })
+}
+
 module.exports = {
     getAllElectoralUnitsByArrayOfUFs,
     getFederativeUnitsByAbrangency,
     getAllElectoralUnitiesIdsByUF,
     getElectoralUnitByUFandAbrangency,
     getAllElectoralUnitsByArrayOfUnidadesEleitorais,
+    getElectoralUnitsByUFandAbrangency,
 }

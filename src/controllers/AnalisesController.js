@@ -9,6 +9,7 @@ const EleicaoSvc = require("../services/EleicaoSvc")
 const analisesFilterParser = require("../utils/analisesFilterParser")
 const { validateParams, parseFiltersToAnalytics } = require("../utils/validateAnalises")
 const analisesSvc = require("../services/AnalisesSvc")
+const { generateLineChartForMultipleLines } = require("../utils/chartParsers")
 
 const logger = require("../utils/logger")
 
@@ -111,6 +112,7 @@ const generateGraph = async (req, res) => {
         ocupacao_categorizada_id,
         grau_instrucao,
         id_agrupado_partido,
+        unidade_eleitoral_id,
     } = req.query
 
     try {
@@ -118,6 +120,7 @@ const generateGraph = async (req, res) => {
             dimension,
             cargoId,
             uf,
+            unidade_eleitoral_id,
             initial_year,
             final_year,
             genero_id,
@@ -136,10 +139,23 @@ const generateGraph = async (req, res) => {
                 errors: validationErrors,
             })
         }
-        const parsedParams = await parseFiltersToAnalytics(params)
-        
+        const providedCrossParams = {
+            "genero_id": "genero",
+            "raca_id": "raca",
+            "ocupacao_categorizada_id": "ocupacao",
+            "grau_instrucao": "instrucao",
+            "id_agrupado_partido": "partido",
+        }
 
-        const graphData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
+        // Filtrar e mapear os valores de providedCrossParams com base em providedCategoricalParams
+        const providedCategoricalParams = Object.keys(providedCrossParams).filter((param) => params[param])
+        const crossParamsValues = providedCategoricalParams.map((param) => providedCrossParams[param])
+
+        const parsedParams = await parseFiltersToAnalytics(params)
+
+        const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
+
+        const graphData = generateLineChartForMultipleLines(dbData, parsedParams.dimension, crossParamsValues)
 
         // Simulate graph generation logic (replace with actual implementation)
 

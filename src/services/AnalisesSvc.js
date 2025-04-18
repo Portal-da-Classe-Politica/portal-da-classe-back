@@ -110,10 +110,18 @@ const getAnalyticCrossCriteria = async (params) => {
             group: [
                 "ano",
             ],
+            order: [
+                ["ano", "ASC"],
+            ],
             raw: true,
         }
         parseByDimension(finder, params.dimension)
         parseCrossCriteria(finder, params)
+
+        if (params.electoralUnitiesIds && params.electoralUnitiesIds.length > 0) {
+            finder.where.unidade_eleitoral_id = { [Op.in]: params.electoralUnitiesIds }
+        }
+
         const candidateElection = await CandidatoEleicaoModel.findAll(finder)
 
         if (!candidateElection) {
@@ -132,16 +140,18 @@ const parseByDimension = (finder, dimension) => {
         finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
         break
     case "elected_candidates":
-        finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
+        finder.attributes.push(
+            [Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"],
+            [Sequelize.col("situacao_turno.foi_eleito"), "status_eleicao"],
+        )
+
         const includeST = {
             model: SituacaoTurnoModel,
             required: true, // INNER JOIN
-            where: {
-                foi_eleito: true,
-            },
-            attributes: [],
+            attributes: [], // Adiciona a coluna foi_eleito
         }
         finder.include.push(includeST)
+        finder.group.push("situacao_turno.foi_eleito") // Agrupa por foi_eleito
         break
     case "votes":
         finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] })

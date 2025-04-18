@@ -396,7 +396,78 @@ const generateLineChartDataForMultipleLines = (
     }
 }
 
+const generateLineChartForMultipleLines = (data, dimension, crossCriteria = []) => {
+    if (!Array.isArray(data)) {
+        throw new Error("Input data must be an array")
+    }
+
+    // Ordenar os dados pelo eixo X (ano) em ordem crescente
+    const xAxisValues = [...new Set(data.map((item) => item.ano))].sort((a, b) => a - b)
+
+    // Agrupar os dados pelas combinações dos critérios de cruzamento
+    const groupedData = data.reduce((acc, curr) => {
+        // Criar uma chave única para cada combinação de critérios
+        const criteriaKey = crossCriteria
+            .map((criterion) => curr[criterion] || "Não especificado")
+            .join(" - ")
+        const statusKey = dimension === "elected_candidates"
+            ? ` - ${curr.status_eleicao ? "Eleito" : "Não eleito"}`
+            : ""
+        const lineKey = criteriaKey + statusKey
+
+        if (!acc[lineKey]) {
+            acc[lineKey] = {
+                name: lineKey,
+                data: Array(xAxisValues.length).fill(0),
+            }
+        }
+
+        // Preencher os valores no eixo Y (total) para o eixo X correspondente (ano)
+        const xIndex = xAxisValues.indexOf(curr.ano)
+        acc[lineKey].data[xIndex] = curr.total
+
+        return acc
+    }, {})
+
+    // Criar as séries de dados para o gráfico
+    const series = Object.values(groupedData).map((line) => ({
+        name: line.name, // Apenas os valores, sem os nomes dos campos
+        data: line.data,
+    }))
+
+    // Criar uma descrição geral dos critérios usados para as linhas
+    const criteriaTranslations = {
+        genero: "Gênero",
+        raca: "Raça",
+        ocupacao: "Ocupação",
+        instrucao: "Instrução",
+        partido: "Partido",
+    }
+
+    const translatedCriteria = crossCriteria
+        .map((criterion) => criteriaTranslations[criterion] || criterion)
+        .join(", ")
+
+    const generalLegend = `As linhas representam combinações dos seguintes critérios: ${translatedCriteria}${
+        dimension === "elected_candidates" ? ", incluindo o status eleitoral (Eleito/Não eleito)" : ""
+    }.`
+
+    // Estrutura final do gráfico
+    return {
+        type: "line",
+        title: "Gráfico de Múltiplas Linhas",
+        xAxis: xAxisValues,
+        series,
+        extraData: {
+            xAxisLabel: "Ano",
+            yAxisLabel: "Total",
+            generalLegend, // Adiciona a explicação geral dos parâmetros das linhas
+        },
+    }
+}
+
 module.exports = {
+    generateLineChartForMultipleLines,
     parseFinanceDataToBarChart,
     parseDataToDonutChart,
     parseDataToLineChart,

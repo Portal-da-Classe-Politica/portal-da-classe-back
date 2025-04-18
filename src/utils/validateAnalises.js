@@ -2,12 +2,13 @@ const EleicaoService = require("../services/EleicaoSvc")
 const { getGrausDeInstrucaoByIdsAgrupados } = require("../services/GrausDeInstrucao")
 const { getPartidosByIdsAgrupados } = require("../services/PartidoSvc")
 const OcupacaoService = require("../services/OcupacaoSvc")
+const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 
 const validateParams = (params) => {
     const errors = []
 
     // Validate dimension
-    const validDimensions = ["total_candidates", "elected_candidates"]
+    const validDimensions = ["total_candidates", "elected_candidates", "votes"]
     if (!params.dimension || !validDimensions.includes(params.dimension)) {
         errors.push("O parâmetro 'dimension' é inválido. Valores permitidos: " + validDimensions.join(", "))
     }
@@ -34,13 +35,18 @@ const validateParams = (params) => {
     }
 
     // Validate uf
-    //   const validUFs = [
-    //     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ",
-    //     "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
-    // ]
-    // if (params.uf && !validUFs.includes(params.uf)) {
-    //     errors.push("O parâmetro 'uf' é inválido. Valores permitidos: " + validUFs.join(", "))
-    // }
+    if (
+        params.cargoId
+      && params.cargoId != 11
+      && params.cargoId != 12
+      && params.cargoId != 13
+      && params.unidade_eleitoral_id
+      && params.unidade_eleitoral_id > 28
+    ) {
+        errors.push(
+            "Cargos de eleições gerais não podem ser filtrados por cidade",
+        )
+    }
 
     //= ==================================================================
     // variaveis categoricas
@@ -80,9 +86,9 @@ const validateParams = (params) => {
     })
 
     // Validate genero_id
-    /*    if (params.genero_id) {
+    if (params.genero_id) {
         const validGeneroIds = [1, 2, 3, 4]
-        const generoIds = params.genero_id.split(",").map(Number)
+        const generoIds = Array.isArray(params.genero_id) ? params.genero_id.map(Number) : [Number(params.genero_id)]
         if (generoIds.some((id) => !validGeneroIds.includes(id))) {
             errors.push("O parâmetro 'genero_id' contém valores inválidos. Valores permitidos: " + validGeneroIds.join(", "))
         }
@@ -91,7 +97,7 @@ const validateParams = (params) => {
     // Validate raca_id
     if (params.raca_id) {
         const validRacaIds = [1, 2, 3, 4, 5, 6, 7]
-        const racaIds = params.raca_id.split(",").map(Number)
+        const racaIds = Array.isArray(params.raca_id) ? params.raca_id.map(Number) : [Number(params.raca_id)]
         if (racaIds.some((id) => !validRacaIds.includes(id))) {
             errors.push("O parâmetro 'raca_id' contém valores inválidos. Valores permitidos: " + validRacaIds.join(", "))
         }
@@ -100,12 +106,12 @@ const validateParams = (params) => {
     // Validate ocupacao_categorizada_id
     if (params.ocupacao_categorizada_id) {
         const validOcupacaoIds = [1, 2, 3, 4, 5, 6]
-        const ocupacaoIds = params.ocupacao_categorizada_id.split(",").map(Number)
+        const ocupacaoIds = Array.isArray(params.ocupacao_categorizada_id) ? params.ocupacao_categorizada_id.map(Number) : [Number(params.ocupacao_categorizada_id)]
         if (ocupacaoIds.some((id) => !validOcupacaoIds.includes(id))) {
             errors.push("O parâmetro 'ocupacao_categorizada_id' contém valores inválidos. Valores permitidos: " + validOcupacaoIds.join(", "))
         }
     }
-
+    /*
     // Validate grau_instrucao
     if (params.grau_instrucao) {
         const validGraus = [
@@ -137,6 +143,8 @@ const validateParams = (params) => {
 }
 
 const parseFiltersToAnalytics = async (filters) => {
+    let shouldFindCity = false
+    let abrangencia = 1
     if (filters.ocupacao_categorizada_id){
         if (!Array.isArray(filters.ocupacao_categorizada_id)) {
             filters.ocupacao_categorizada_id = [filters.ocupacao_categorizada_id]
@@ -155,20 +163,32 @@ const parseFiltersToAnalytics = async (filters) => {
         }
     }
 
-    console.log(filters.id_agrupado_partido)
+    if (
+        filters.cargoId == 11 // vereador
+      || filters.cargoId == 12 // prefeito
+      || filters.cargoId == 13 // vice-prefeito
+    ) {
+        abrangencia = 2
+        if (!filters.unidade_eleitoral_id && filters.uf) {
+            shouldFindCity = true
+        }
+    }
 
-    const [elections, ocupations, instructionsDegrees, parties] = await Promise.all([
+    const [elections, ocupations, instructionsDegrees, parties, electoralUnities] = await Promise.all([
         EleicaoService.getElectionsByYearInterval(filters.initial_year, filters.final_year, "all"),
         filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
+        shouldFindCity ? unidadeEleitoralSvc.getAllElectoralUnitiesIdsByUF(filters.uf)
+            : filters.uf ? unidadeEleitoralSvc.getElectoralUnitsByUFandAbrangency(filters.uf, abrangencia)
+                : [],
     ])
 
     const ocupationsIds = ocupations.map((i) => i.id)
     const electionsIds = elections.map((i) => i.id)
     const instructionsDegreesIds = instructionsDegrees.map((i) => i.id)
     const partidosIds = parties.map((i) => i.id)
-    // const partidosIds = [48, 13]
+    const electoralUnitiesIds = electoralUnities.map((i) => i.id)
 
     if (filters.genero_id){
         if (!Array.isArray(filters.genero_id)) {
@@ -203,7 +223,7 @@ const parseFiltersToAnalytics = async (filters) => {
         gendersIds: filters.genero_id,
         racesIds: filters.raca_id,
         instructionsDegreesIds,
-
+        electoralUnitiesIds,
     }
 }
 

@@ -2338,10 +2338,6 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: "Possibilidades encontradas com sucesso."
                   data:
                     type: object
                     properties:
@@ -2352,156 +2348,101 @@ paths:
                           properties:
                             label:
                               type: string
-                              example: "Quantidade de candidaturas"
+                            parameter:
+                              type: string
                             value:
                               type: string
-                              example: "total_candidates"
                       cargos:
                         type: array
                         items:
                           type: object
-                          properties:
-                            id:
-                              type: integer
-                              example: 1
-                            nome_cargo:
-                              type: string
-                              example: "DEPUTADO ESTADUAL"
+                  message:
+                    type: string
         '500':
           description: Erro interno do servidor ao buscar as possibilidades de análises.
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "Erro ao buscar as possibilidades de análises."
-                  data:
-                    type: object
-                    example: {}          
-
   /noauth/analises/generate-graph:
     get:
       operationId: "39"
       tags:
         - analises
       summary: Geração de gráficos analíticos
-      description: |
-        Gera gráficos analíticos com base nos filtros fornecidos. 
-        Todos os parâmetros são enviados como query strings.
+      description: Gera gráficos analíticos com base nos filtros fornecidos.
       parameters:
-        - in: query
-          name: dimension
+        - name: dimension
+          in: query
+          required: true
           schema:
             type: string
-            enum: [total_candidates, elected_candidates]
+            enum: [total_candidates, elected_candidates, votes]
+          description: Dimensão do gráfico.
+        - name: cargoId
+          in: query
           required: true
-          description: |
-            Dimensão do gráfico:
-            - `total_candidates`: Quantidade de candidaturas
-            - `elected_candidates`: Sucesso eleitoral
-        - in: query
-          name: cargoId
           schema:
             type: integer
-          required: true
           description: ID do cargo para análise.
-        - in: query
-          name: uf
+        - name: uf
+          in: query
+          required: false
           schema:
             type: string
             enum: [AC, AL, AM, AP, BA, CE, DF, ES, GO, MA, MG, MS, MT, PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP, TO]
-          required: false
           description: Unidade Federativa (UF) para análise.
-        - in: query
-          name: initial_year
+        - name: initial_year
+          in: query
+          required: true
           schema:
             type: integer
             enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
-          required: true
           description: Ano inicial da análise.
-        - in: query
-          name: final_year
+        - name: final_year
+          in: query
+          required: true
           schema:
             type: integer
             enum: [1998, 2002, 2006, 2010, 2014, 2018, 2022]
-          required: true
           description: Ano final da análise.
-        - in: query
-          name: genero_id
+        - name: genero_id
+          in: query
+          required: false
           schema:
             type: array
             items:
               type: integer
-              enum: [1, 2, 3]
+          description: IDs de gênero.
+        - name: raca_id
+          in: query
           required: false
-          description: |
-            IDs de gênero:
-            - `1`: Masculino
-            - `2`: Feminino
-            - `3`: Não Divulgável ou não informada
-        - in: query
-          name: raca_id
           schema:
             type: array
             items:
               type: integer
-              enum: [1, 2, 3, 4, 5, 6]
+          description: IDs de raça.
+        - name: ocupacao_categorizada_id
+          in: query
           required: false
-          description: |
-            IDs de raça:
-            - `1`: Não Divulgável ou não informada
-            - `2`: Parda
-            - `3`: Branca
-            - `4`: Amarela
-            - `5`: Preta
-            - `6`: Indígena
-        - in: query
-          name: ocupacao_categorizada_id
           schema:
             type: array
             items:
               type: integer
-              enum: [1, 2, 3, 4, 5, 6]
+          description: IDs de ocupação categorizada.
+        - name: grau_instrucao
+          in: query
           required: false
-          description: |
-            IDs de ocupação categorizada:
-            - `1`: Profissionais liberais
-            - `2`: Trabalhadores
-            - `3`: Outras/Não informada
-            - `4`: Burocratas/Professores
-            - `5`: Empresários
-            - `6`: Políticos profissionais
-        - in: query
-          name: grau_instrucao
           schema:
             type: array
             items:
               type: integer
-              enum: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+          description: IDs de grau de instrução.
+        - name: id_agrupado_partido
+          in: query
           required: false
-          description: |
-            Grau de instrução:
-            - `1`: ANALFABETO
-            - `2`: ENSINO FUNDAMENTAL COMPLETO
-            - `3`: ENSINO FUNDAMENTAL INCOMPLETO
-            - `4`: ENSINO MÉDIO COMPLETO
-            - `5`: ENSINO MÉDIO INCOMPLETO
-            - `6`: LÊ E ESCREVE
-            - `7`: NÃO INFORMADO
-            - `8`: SUPERIOR COMPLETO
-            - `9`: SUPERIOR INCOMPLETO
-        - in: query
-          name: sigla_atual_partido
           schema:
             type: array
             items:
               type: integer
-          required: false
           description: IDs dos partidos políticos.
       responses:
         '200':
@@ -2515,58 +2456,5 @@ paths:
                     type: boolean
                   data:
                     type: object
-                    properties:
-                      filters:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            label:
-                              type: string
-                            values:
-                              type: array
-                              items:
-                                type: string
-                            parameter:
-                              type: string
-                            required:
-                              type: boolean
-                            type:
-                              type: string
-                      cross_criterias:
-                        type: object
-                        properties:
-                          max:
-                            type: integer
-                          required:
-                            type: boolean
-                          possibilities:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                label:
-                                  type: string
-                                values:
-                                  type: array
-                                  items:
-                                    type: object
-                                    properties:
-                                      id:
-                                        type: integer
-                                      label:
-                                        type: string
-                                parameter:
-                                  type: string
-                                required:
-                                  type: boolean
-                                type:
-                                  type: string
-                                max:
-                                  type: integer
                   message:
-                    type: string
-        '400':
-          description: Parâmetros inválidos.
-        '500':
-          description: Erro interno do servidor.
+                    type: string         
