@@ -19,7 +19,7 @@ router.use("/indicadores", Indicadores)
 const Partido = require("./Partido")
 router.use("/party", Partido)
 
-const analises = require("./Analises")
+const analises = require("./roberto")
 router.use("/analises", analises)
 
 module.exports = router
