@@ -186,7 +186,7 @@ const parseFiltersToAnalytics = async (filters) => {
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
         shouldGroupCityByUf ? unidadeEleitoralSvc.getAllElectoralUnitiesIdsByUF(filters.uf)
-            :shouldJumpFind ? [filters.unidade_eleitoral_id]
+            :shouldJumpFind ? [{ id: filters.unidade_eleitoral_id }]
                 : filters.uf ? unidadeEleitoralSvc.getElectoralUnitsByUFandAbrangency(filters.uf, abrangencia)
                     : [],
     ])
