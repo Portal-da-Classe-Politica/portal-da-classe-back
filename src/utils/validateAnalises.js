@@ -145,7 +145,8 @@ const validateParams = (params) => {
 }
 
 const parseFiltersToAnalytics = async (filters) => {
-    let shouldFindCity = false
+    let shouldGroupCityByUf = false
+    let shouldJumpFind = false
     let abrangencia = 1
     if (filters.ocupacao_categorizada_id){
         if (!Array.isArray(filters.ocupacao_categorizada_id)) {
@@ -172,7 +173,10 @@ const parseFiltersToAnalytics = async (filters) => {
     ) {
         abrangencia = 2
         if (!filters.unidade_eleitoral_id && filters.uf) {
-            shouldFindCity = true
+            shouldGroupCityByUf = true
+        }
+        else if (filters.unidade_eleitoral_id) {
+            shouldJumpFind = true
         }
     }
 
@@ -181,9 +185,10 @@ const parseFiltersToAnalytics = async (filters) => {
         filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
-        shouldFindCity ? unidadeEleitoralSvc.getAllElectoralUnitiesIdsByUF(filters.uf)
-            : filters.uf ? unidadeEleitoralSvc.getElectoralUnitsByUFandAbrangency(filters.uf, abrangencia)
-                : [],
+        shouldGroupCityByUf ? unidadeEleitoralSvc.getAllElectoralUnitiesIdsByUF(filters.uf)
+            :shouldJumpFind ? [filters.unidade_eleitoral_id]
+                : filters.uf ? unidadeEleitoralSvc.getElectoralUnitsByUFandAbrangency(filters.uf, abrangencia)
+                    : [],
     ])
 
     const ocupationsIds = ocupations.map((i) => i.id)
