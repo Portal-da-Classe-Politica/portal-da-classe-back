@@ -18,6 +18,8 @@ const validateParams = (params) => {
         errors.push("O parâmetro 'cargoId' é obrigatório e deve ser um número.")
     }
 
+    params.cargoId = parseInt(params.cargoId)
+
     // Validate initial_year and final_year
     const minimal_year = 1998
     const maximum_year = 2024
