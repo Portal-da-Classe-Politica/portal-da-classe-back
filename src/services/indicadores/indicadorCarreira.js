@@ -19,20 +19,26 @@ const categoria2Model = require("../../models/Categoria2")
 const doacoesCandidatoEleicaoModel = require("../../models/DoacoesCandidatoEleicao")
 const unidadeEleitoralSvc = require("../UnidateEleitoralService")
 const { fatoresDeCorreção } = require("../../utils/ipca")
+const cargoSvc = require("../CargoService")
 
-const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
-    try {
-        const election = await EleicaoModel.findAll({
-            where: {
-                ano_eleicao: {
-                    [Sequelize.Op.gte]: initialYear,
-                    [Sequelize.Op.lte]: finalYear,
-                },
-                turno: round,
+const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId, round = 1) => {
+    const finder = {
+        where: {
+            ano_eleicao: {
+                [Sequelize.Op.gte]: initialYear,
+                [Sequelize.Op.lte]: finalYear,
             },
-            attributes: ["id", "ano_eleicao"],
-            raw: true,
-        })
+            turno: round,
+        },
+        attributes: ["id", "ano_eleicao"],
+        raw: true,
+    }
+
+    if (abrangenciaId) {
+        finder.where.abrangencium_id = abrangenciaId
+    }
+    try {
+        const election = await EleicaoModel.findAll(finder)
         return election
     } catch (error) {
         console.error("Error fetching election:", error)
@@ -49,11 +55,14 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
  * @returns
  */
 const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
+    const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
+    const abrangenciaId = abrangency.abrangencia
     const [elections, electedSituacaoTurnos, notElectedSituacaoTurnos] = await Promise.all([
-        getElectionsByYearInterval(initialYear, finalYear),
+        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: false } }),
     ])
+
     const electionsIds = elections.map((election) => election.id)
 
     let filterUnities
@@ -105,17 +114,24 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
     const TRLByYear = elections.map((election) => {
         const electedCandidatesByElection = totalElectedCandidatesReelected.find((electedCandidate) => electedCandidate.eleicao_id === election.id)?.total || 0
         const notElectedCandidatesByElection = failedReelectedCandidates.find((notElectedCandidate) => notElectedCandidate.eleicao_id === election.id)?.total || 0
+        // console.log({ ano: election.ano_eleicao, electedCandidatesByElection, notElectedCandidatesByElection })
         // console.log({ electedCandidatesByElection, notElectedCandidatesByElection })
-        if (electedCandidatesByElection && notElectedCandidatesByElection) {
-            const TRL = (parseInt(notElectedCandidatesByElection) / (parseInt(electedCandidatesByElection) + parseInt(notElectedCandidatesByElection))) * 100
 
-            const object = {
-                election_id: election.id,
-                ano: election.ano_eleicao,
-                total: TRL,
-            }
-            return object
+        let TRL = (parseInt(notElectedCandidatesByElection) / (parseInt(electedCandidatesByElection) + parseInt(notElectedCandidatesByElection))) * 100
+
+        if (isNaN(TRL) || !isFinite(TRL)) {
+            TRL = 0
         }
+
+        const object = {
+            election_id: election.id,
+            ano: election.ano_eleicao,
+            total: TRL,
+        }
+
+        //console.log({ electedCandidatesByElection, notElectedCandidatesByElection, ano: election.ano_eleicao, TRL })
+
+        return object
     }).filter((item) => item)
 
     return TRLByYear
@@ -495,7 +511,7 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
  */
 const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
     let select = `
     SELECT 
@@ -518,7 +534,6 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
 
     const replacements = { electionsIds, cargoId }
 
-
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
         queryWhere += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
@@ -527,19 +542,18 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
 
     let sqlQuery = select + queryFrom + queryWhere + queryGroupBy
 
-
     // Executa a consulta
     const data = await sequelize.query(sqlQuery, {
         replacements, // Substitui os placeholders
         type: Sequelize.QueryTypes.SELECT, // Define como SELECT
     })
 
-    return computeSum(data);
+    return computeSum(data)
 }
 
 const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map(e => e.id)
+    const electionsIds = elections.map((e) => e.id)
 
     let select = `
             WITH candidate_parties AS (
@@ -558,7 +572,6 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
         `
 
     const replacements = { electionsIds, cargoId }
-
 
     // Filtros adicionais dinâmicos
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -586,53 +599,51 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
         FROM unique_parties
         ORDER BY candidato_id, ano_eleicao;
         `
-        
+
     // Executa a consulta
     const data = await sequelize.query(select, {
         replacements, // Substitui os placeholders
         type: Sequelize.QueryTypes.SELECT, // Define como SELECT
     })
 
-    return computeAvg(data);
+    return computeAvg(data)
 }
-
-
 
 // Function to compute sum of 1/s_i^2 for each year
 function computeSum(data) {
-    const sumsByYear = {};
+    const sumsByYear = {}
 
     // Group data by year and compute the sum for each year
     data.forEach(({ ano_eleicao, percentual }) => {
         if (!sumsByYear[ano_eleicao]) {
-            sumsByYear[ano_eleicao] = 0;
+            sumsByYear[ano_eleicao] = 0
         }
-        sumsByYear[ano_eleicao] += Math.pow(percentual, 2);
-    });
+        sumsByYear[ano_eleicao] += Math.pow(percentual, 2)
+    })
 
     // Convert result to an array of objects
-    return Object.keys(sumsByYear).map(ano_eleicao => ({
+    return Object.keys(sumsByYear).map((ano_eleicao) => ({
         ano_eleicao: parseInt(ano_eleicao),
-        sum: sumsByYear[ano_eleicao]
-    }));
+        sum: sumsByYear[ano_eleicao],
+    }))
 }
 
 function computeAvg(data) {
     // Step 1: Group by ano_eleicao
     const yearGroups = data.reduce((acc, { ano_eleicao, total_unique_parties_up_to_year }) => {
         if (!acc[ano_eleicao]) {
-            acc[ano_eleicao] = { sum: 0, count: 0 };
+            acc[ano_eleicao] = { sum: 0, count: 0 }
         }
-        acc[ano_eleicao].sum += parseInt(total_unique_parties_up_to_year, 10);
-        acc[ano_eleicao].count += 1;
-        return acc;
-    }, {});
+        acc[ano_eleicao].sum += parseInt(total_unique_parties_up_to_year, 10)
+        acc[ano_eleicao].count += 1
+        return acc
+    }, {})
 
     // Step 2: Compute the average for each year
     const averageByYear = Object.entries(yearGroups).map(([year, { sum, count }]) => ({
         ano_eleicao: parseInt(year, 10),
-        average_unique_parties: sum / count
-    }));
+        average_unique_parties: sum / count,
+    }))
 
     return averageByYear
 }
@@ -645,5 +656,5 @@ module.exports = {
     getIndiceIgualdadeAcessoRecursos,
     getMediaMedianaPatrimonio,
     getIndiceDiversidadeEconomica,
-    getMedianaMigracao
+    getMedianaMigracao,
 }
