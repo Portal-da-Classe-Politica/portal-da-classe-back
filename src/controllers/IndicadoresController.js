@@ -9,12 +9,13 @@ const UfForVotes = require("../utils/votesLocation")
 const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
 const { getElectoralUnitByUFandAbrangency } = require("../services/UnidateEleitoralService")
 const logger = require("../utils/logger")
+const { Parser } = require("json2csv") // no topo do arquivo
 
 const getIndicador = async (req, res) => {
     try {
         const { type, indicator_id } = req.params
         let {
-            cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId,
+            cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv,
         } = req.query
         const isIndicatorInGroup = verifyIfIndicatorIsInGroup(indicator_id, type)
         const indicator = getIndicatorByID(indicator_id)
@@ -51,10 +52,17 @@ const getIndicador = async (req, res) => {
             }
         }
 
-        const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId)
+        const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv)
         // console.log({ indicatorData })
 
-        res.status(200).json({
+        if (exportcsv === "true") {
+            console.log("Exportando CSV")
+            res.header("Content-Type", "text/csv")
+            res.attachment(`indicador_${indicator_id}.csv`)
+            return res.send(indicatorData)
+        }
+
+        return res.status(200).json({
             success: true,
             data: indicatorData,
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
@@ -81,10 +89,14 @@ const getAllIndicadorByType = async (req, res) => {
     }
 }
 
-const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId) => {
+const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, exportcsv) => {
     switch (parseInt(indicatorId)) {
     case 1:
         const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        if (exportcsv === "true") {
+            const parser = new Parser()
+            return parser.parse(dataNepp) // CSV direto do banco
+        }
         return chartsUtil.parseDataToLineChart(
             dataNepp,
             seriesName = chartsUtil.indicatorsDetails[1].title,
@@ -92,12 +104,16 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             yAxisLabel = chartsUtil.indicatorsDetails[1].yAxisLabel,
             title = chartsUtil.indicatorsDetails[1].title,
             dataType = "float",
-            xAxisKey = "year",
-            yAxisKey = "sum",
+            xAxisKey = "ano",
+            yAxisKey = "nepp",
             indicator_detail = 1,
         )
     case 2:
         const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        if (exportcsv === "true") {
+            const parser = new Parser()
+            return parser.parse(dataPersen) // CSV direto do banco
+        }
         return chartsUtil.parseDataToLineChart(
             dataPersen,
             seriesName = chartsUtil.indicatorsDetails[2].name,
@@ -105,12 +121,16 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             yAxisLabel = chartsUtil.indicatorsDetails[2].yAxisLabel,
             title = "Índice de Volatilidade Eleitoral (Pedersen)",
             dataType = "float",
-            xAxisKey = "year",
-            yAxisKey = "volatility",
+            xAxisKey = "ano",
+            yAxisKey = "volatilidade",
             indicator_detail = 2,
         )
     case 3:
         const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        if (exportcsv === "true") {
+            const parser = new Parser()
+            return parser.parse(dataQE) // CSV direto do banco
+        }
         return chartsUtil.parseDataToLineChart(
             dataQE,
             seriesName = chartsUtil.indicatorsDetails[3].title,
@@ -124,12 +144,16 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
     case 4:
         const dataQP = await indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        if (exportcsv === "true") {
+            const parser = new Parser()
+            return parser.parse(dataQP) // CSV direto do banco
+        }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
             dataQP,
-            seriesName = "Quociente Partidário (QP)",
-            xAxisLabel = "Ano",
-            yAxisLabel = "QP",
-            title = "Quociente Partidário (QP)",
+            seriesName = chartsUtil.indicatorsDetails[4].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[4].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[4].yAxisLabel,
+            title = chartsUtil.indicatorsDetails[4].title,
             dataType = "integer",
             xAxisKey = "ano",
             yAxisKey = "quociente_partidario",
@@ -138,6 +162,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
     case 5:
         const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+
         return chartsUtil.parseDataToLineChart(
             data,
             seriesName = chartsUtil.indicatorsDetails[5].title,
@@ -302,7 +327,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 16,
         )
     default:
-        return null
+        result = null
     }
 }
 

@@ -164,8 +164,8 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
 
         // Convert the result into the desired format
         return volatilityResults.map((v) => ({
-            year: v.year,
-            volatility: v.sum,
+            ano: v.year,
+            volatilidade: v.sum,
         }))
     } catch (error) {
         console.error("Error in getVolatilidadeEleitoral:", error)
@@ -294,8 +294,8 @@ function computeSum(data) {
 
     // Convert result to an array of objects
     return Object.keys(sumsByYear).map((year) => ({
-        year: parseInt(year),
-        sum: 1 / sumsByYear[year],
+        ano: parseInt(year),
+        nepp: 1 / sumsByYear[year],
     }))
 }
 
