@@ -148,7 +148,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
     // Step 2: Calculate percentages and format the result
     const result = data.map((entry) => ({
-        year: entry.ano_eleicao,
+        ano: entry.ano_eleicao,
         regiao: entry.nome,
         percentual_votos: (Number(entry.percentual_votos)).toFixed(2),
     }))
@@ -268,7 +268,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
     // Step 2: Calculate percentages and format the result
     const result = data.map((entry) => ({
-        year: entry.ano_eleicao,
+        ano: entry.ano_eleicao,
         regiao: entry.nome,
         percentual_votos: (Number(entry.percentual_votos)).toFixed(6),
     }))
@@ -315,8 +315,8 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
 
     // Step 2: Calculate percentages and format the result
     const result = data.map((entry) => ({
-        year: entry.ano_eleicao,
-        coefficient_variation: (Number(entry.coefficient_variation)).toFixed(6),
+        ano: entry.ano_eleicao,
+        coeficente_variacao: (Number(entry.coefficient_variation)).toFixed(6),
         nome: entry.nome,
     }))
 
@@ -365,7 +365,7 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
     // Step 2: Calculate percentages and format the result
     const result = data.map((entry) => ({
-        year: entry.ano_eleicao,
+        ano: entry.ano_eleicao,
         sigla: entry.sigla_atual,
         iev: (Number(entry.percentual_assentos) / Number(entry.percentual_votos)).toFixed(4),
     }))

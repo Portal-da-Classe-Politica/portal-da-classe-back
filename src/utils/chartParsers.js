@@ -2,6 +2,12 @@ const ipcaUtil = require("./ipca")
 const { indicatorsDetails } = require("./indicatorsDetails")
 const { partidos } = require("./corespartidos")
 
+const dimensions = {
+    "total_candidates": "Candidaturas",
+    "elected_candidates": "Sucesso eleitoral",
+    "votes": "Votação",
+}
+
 function parseDataToDonutChart(data, nameKey, valueKey, title) {
     if (!Array.isArray(data)) {
         throw new Error("Input data must be an array")
@@ -455,7 +461,7 @@ const generateLineChartForMultipleLines = (data, dimension, crossCriteria = []) 
     // Estrutura final do gráfico
     return {
         type: "line",
-        title: "Gráfico de Múltiplas Linhas",
+        title: dimensions[dimension] || "Gráfico de Linhas",
         xAxis: xAxisValues,
         series,
         extraData: {

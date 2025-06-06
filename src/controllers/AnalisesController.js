@@ -10,8 +10,11 @@ const analisesFilterParser = require("../utils/analisesFilterParser")
 const { validateParams, parseFiltersToAnalytics } = require("../utils/validateAnalises")
 const analisesSvc = require("../services/AnalisesSvc")
 const { generateLineChartForMultipleLines } = require("../utils/chartParsers")
+const { Parser } = require("json2csv") // no topo do arquivo
 
 const logger = require("../utils/logger")
+
+
 
 const getFiltersForAnalyticsByRole = async (req, res) => {
     const { cargoId } = req.params
@@ -113,6 +116,7 @@ const generateGraph = async (req, res) => {
         grau_instrucao,
         id_agrupado_partido,
         unidade_eleitoral_id,
+        exportcsv,
     } = req.query
 
     try {
@@ -154,6 +158,14 @@ const generateGraph = async (req, res) => {
         const parsedParams = await parseFiltersToAnalytics(params)
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
+        if (exportcsv === "true") {
+            const parser = new Parser()
+            const data = parser.parse(dbData) 
+            console.log("Exportando CSV")
+            res.header("Content-Type", "text/csv")
+            res.attachment(`cruzamento.csv`)
+            return res.send(data)
+        }
 
         const graphData = generateLineChartForMultipleLines(dbData, parsedParams.dimension, crossParamsValues)
 
