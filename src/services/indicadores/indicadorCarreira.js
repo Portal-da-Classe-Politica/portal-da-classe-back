@@ -126,7 +126,7 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
         const object = {
             election_id: election.id,
             ano: election.ano_eleicao,
-            total: TRL,
+            taxa_renovacao_liquida: TRL,
         }
 
         //console.log({ electedCandidatesByElection, notElectedCandidatesByElection, ano: election.ano_eleicao, TRL })
@@ -207,7 +207,7 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
             const object = {
                 election_id: election.id,
                 ano: election.ano_eleicao,
-                total: TR,
+                taxa_reeleicao: TR,
             }
             // console.log({ object })
             return object
@@ -314,7 +314,7 @@ const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear,
             const object = {
                 election_id: election.id,
                 ano: election.ano_eleicao,
-                total: IPEG,
+                indice_paridade_eleitoral_genero: IPEG,
             }
 
             return object
@@ -624,7 +624,7 @@ function computeSum(data) {
     // Convert result to an array of objects
     return Object.keys(sumsByYear).map((ano_eleicao) => ({
         ano_eleicao: parseInt(ano_eleicao),
-        sum: sumsByYear[ano_eleicao],
+        indice_diversidade_economica: sumsByYear[ano_eleicao],
     }))
 }
 
@@ -642,7 +642,7 @@ function computeAvg(data) {
     // Step 2: Compute the average for each year
     const averageByYear = Object.entries(yearGroups).map(([year, { sum, count }]) => ({
         ano_eleicao: parseInt(year, 10),
-        average_unique_parties: sum / count,
+        media_partidos: sum / count,
     }))
 
     return averageByYear
