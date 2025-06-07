@@ -8,10 +8,21 @@ config = require("./config/config")
 const app = express()
 const { sendAlert } = require("./utils/alert/alertTelegram")
 const logger = require("./utils/logger")
+const rateLimit = require("express-rate-limit")
 
 app.use(express.urlencoded({
     extended: true,
 }))
+
+app.use(express.json())
+
+const apiLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutos
+    max: 500, // limite de 100 requisições por janela
+    message: "Muitas requisições deste IP, tente novamente mais tarde.",
+    standardHeaders: true,
+    legacyHeaders: false,
+})
 
 app.set("port", config.port)
 const sync = require("./models/sync")
@@ -84,7 +95,7 @@ const start = async () => {
         })
 
         const noAuthRoutes = require("./routes/noauth/index")
-        app.use("/noauth", noAuthRoutes)
+        app.use("/noauth", apiLimiter, noAuthRoutes)
 
         // process.on("uncaughtException", (error) => {
         //     logger.error("Unhandled Exception:", error)
