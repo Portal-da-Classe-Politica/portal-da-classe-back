@@ -22,4 +22,7 @@ router.use("/party", Partido)
 const analises = require("./analises")
 router.use("/analises", analises)
 
+const { sendEmail } = require("../../controllers/emailController")
+router.post("/send-email", sendEmail)
+
 module.exports = router

@@ -31,6 +31,8 @@ tags:
     description: Rotas para indicadores financeiros
   - name: indicares espaciais de votos
     description: Rotas para indicadores espaciais de votos
+  - name: email
+    description: Rotas para enviar email
 
 components:
   schemas:
@@ -2457,4 +2459,51 @@ paths:
                   data:
                     type: object
                   message:
-                    type: string         
+                    type: string        
+  /noauth/send-email:
+    post:
+      tags:
+        - email
+      summary: Enviar e-mail de contato
+      description: Envia um e-mail de contato para o Portal da Classe.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: "João da Silva"
+                email:
+                  type: string
+                  example: "joao@email.com"
+                mensagem:
+                  type: string
+                  example: "Olá, gostaria de saber mais sobre o projeto."
+                assunto:
+                  type: string
+                  example: "Dúvida sobre o projeto"                  
+      responses:
+        '200':
+          description: Mensagem enviada com sucesso.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Mensagem enviada com sucesso!"
+        '400':
+          description: Requisição inválida (campos obrigatórios ausentes ou inválidos).
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Todos os campos são obrigatórios."
+        '500':
+          description: Erro interno ao enviar o e-mail.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Erro ao enviar mensagem."                     
