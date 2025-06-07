@@ -38,12 +38,12 @@ const sendEmail = async (req, res) => {
                     {
                         From: {
                             Email: config.emailTo, // coloque no .env
-                            Name: "Contato Portal da Classe",
+                            Name: nome,
                         },
                         To: [
                             {
                                 Email: config.emailTo, // coloque no .env
-                                Name: nome,
+                                Name: "Portal da classe política",
                             },
                         ],
                         Subject: assunto,
