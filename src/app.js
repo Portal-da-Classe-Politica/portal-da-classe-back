@@ -14,6 +14,8 @@ app.use(express.urlencoded({
     extended: true,
 }))
 
+app.use(express.json())
+
 const apiLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutos
     max: 500, // limite de 100 requisições por janela
