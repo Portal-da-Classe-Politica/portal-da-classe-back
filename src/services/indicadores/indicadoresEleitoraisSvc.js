@@ -184,9 +184,11 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
             SELECT
                 ce.cargo_id,
                 e.ano_eleicao,
-	            SUM(vcm.quantidade_votos) / COUNT(DISTINCT CASE WHEN ce.situacao_turno_id IN (2, 7, 11, 13) THEN ce.candidato_id END) AS quociente_eleitoral
+              SUM(vcm.quantidade_votos) 
+              / COUNT(DISTINCT CASE WHEN ce.situacao_turno_id IN (2, 7, 11, 13)
+              THEN ce.candidato_id END) AS quociente_eleitoral
             FROM candidato_eleicaos ce
-            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+            JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
             WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
         `
@@ -232,7 +234,7 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
                 e.ano_eleicao,
                 SUM(vcm.quantidade_votos) total_votos
             FROM candidato_eleicaos ce
-            JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+            JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
             JOIN partidos p ON p.id = ce.partido_id
             WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
