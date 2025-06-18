@@ -334,7 +334,8 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
         SELECT
             e.ano_eleicao,
             p.sigla_atual,
-            SUM(vcm.quantidade_votos) / SUM(SUM(vcm.quantidade_votos)) OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
+            SUM(vcm.quantidade_votos) / SUM(SUM(vcm.quantidade_votos)) 
+            OVER (PARTITION BY e.ano_eleicao) AS percentual_votos,
              -- Proportion of elected candidates
             COUNT(DISTINCT CASE WHEN ce.situacao_turno_id IN (2, 7, 11, 13) THEN ce.candidato_id END) 
             / NULLIF(
@@ -343,10 +344,10 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
             0)
             AS percentual_assentos
         FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+        JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN partidos p ON p.id = ce.partido_id 
-        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
+        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId        
     `
 
     // Filtros adicionais dinâmicos
