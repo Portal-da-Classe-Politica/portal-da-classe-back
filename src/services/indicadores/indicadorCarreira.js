@@ -207,7 +207,7 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
             const object = {
                 election_id: election.id,
                 ano: election.ano_eleicao,
-                taxa_reeleicao: TR,
+                taxa_reeleicao: TR * 100,
             }
             // console.log({ object })
             return object

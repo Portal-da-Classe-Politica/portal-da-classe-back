@@ -68,6 +68,7 @@ const getIndicador = async (req, res) => {
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
         })
     } catch (error) {
+      //console.error("Error in getIndicador:", error)
         logger.error(error)
         res.status(500).json({ message: error.message })
     }
@@ -77,7 +78,7 @@ const getAllIndicadorByType = async (req, res) => {
     try {
         const { type } = req.params
 
-        // console.log({ type, indicatorsGroupsGlossary })
+        // console.log({ type, data: indicatorsGroupsGlossary[type] })
 
         res.status(200).json({
             success: true,
@@ -278,7 +279,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             dataType = "float",
             xAxisKey = "ano",
             yAxisKey = "coeficente_variacao",
-            seriesKey = "nome",
+            seriesKey = "sigla_atual",
             indicator_detail = 11,
         )
     case 12:
