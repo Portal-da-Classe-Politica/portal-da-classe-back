@@ -3,7 +3,8 @@ const {
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
 const unidadeEleitoralModel = require("../../models/UnidadeEleitoral")
-const { getElectoralUnitByUFandAbrangency } = require("../UnidateEleitoralService")
+const { getElectoralUnitByUFandAbrangency, getElectoralUnitsByUFandAbrangency } = require("../UnidateEleitoralService")
+
 
 const getUFByElectoralUnitId = async (id) => {
     try {
@@ -171,9 +172,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     if (cargoId == 9){
         UFid = 28
     }
-    if (!UFid){
-        throw new Error("UF deve ser informado")
-    }
+
     const elections = await getElectionsByYearInterval(initialYear, finalYear)
     const electionsIds = elections.map((e) => e.id)
 
@@ -184,6 +183,9 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     let where = ""
 
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        if (!UFid){
+            throw new Error("UF deve ser informado ou UF não encontrado")
+        }
         select = `
       SELECT
         e.ano_eleicao,
@@ -219,8 +221,10 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
         group = " GROUP BY  votacao_municipio_selecionados.municipios_votacao_id, mv.nome, e.ano_eleicao, ce.eleicao_id"
     } else {
+        let ufIds = [UFid]
         if (cargoId != 9){
-            throw new Error("Unidades eleitorais devem ser informadas para o cargo")
+            ufIdsArrray = await getElectoralUnitsByUFandAbrangency(UF, 1)
+            ufIds = ufIdsArrray.map((uf) => parseInt(uf.id))
         }
         // aqui so pode ser presidente quando nao detalha por cidade
         select = `
@@ -234,7 +238,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
           JOIN votacao_candidato_municipios votacoes_totais ON ce2.id = votacoes_totais.candidato_eleicao_id                                
           WHERE ce2.eleicao_id = ce.eleicao_id
           AND ce2.cargo_id = ${cargoId}
-          AND ce2.unidade_eleitoral_id = ${UFid}
+          AND ce2.unidade_eleitoral_id IN (${ufIds})
         ) AS percentual_votos
       `
 
@@ -249,11 +253,9 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
         where = ` 
       WHERE ce.eleicao_id IN (:electionsIds) 
       AND ce.cargo_id = :cargoId         
-      AND ce.unidade_eleitoral_id = ${UFid}
+      AND ce.unidade_eleitoral_id IN (${ufIds})
       AND partido_id = ${partyId}
       `
-
-        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
 
         group = " GROUP BY  mv.estado, e.ano_eleicao, ce.eleicao_id"
     }
@@ -287,15 +289,16 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
         SELECT
             e.ano_eleicao,
             -- ce.unidade_eleitoral_id,
-            ue.nome,
+            p.sigla_atual as sigla_atual,
             CASE
                 WHEN AVG(vcm.quantidade_votos) > 0 THEN STDDEV(vcm.quantidade_votos) / AVG(vcm.quantidade_votos) -- CV: Coefficient of Variation
                 ELSE 0
             END AS coefficient_variation -- CV = σ / V
         FROM candidato_eleicaos ce
-        JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
+        JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
+        JOIN partidos p ON p.id = ce.partido_id
         WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
     `
 
@@ -305,7 +308,7 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
         replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
     }
 
-    query += " GROUP BY  ue.nome, e.ano_eleicao"
+    query += " GROUP BY  p.sigla_atual, e.ano_eleicao"
 
     // Executa a consulta
     const data = await sequelize.query(query, {
@@ -317,7 +320,7 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
     const result = data.map((entry) => ({
         ano: entry.ano_eleicao,
         coeficente_variacao: (Number(entry.coefficient_variation)).toFixed(6),
-        nome: entry.nome,
+        sigla_atual: entry.sigla_atual,
     }))
 
     // return computeSum(result);

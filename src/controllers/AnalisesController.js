@@ -14,8 +14,6 @@ const { Parser } = require("json2csv") // no topo do arquivo
 
 const logger = require("../utils/logger")
 
-
-
 const getFiltersForAnalyticsByRole = async (req, res) => {
     const { cargoId } = req.params
 
@@ -159,11 +157,17 @@ const generateGraph = async (req, res) => {
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
         if (exportcsv === "true") {
+            if (dimension === "elected_candidates"){
+                for (const curr of dbData) {
+                    curr.status_eleicao = curr.status_eleicao ? "Eleito" : "Não eleito"
+                }
+            }
             const parser = new Parser()
-            const data = parser.parse(dbData) 
+            const data = parser.parse(dbData)
+
             console.log("Exportando CSV")
             res.header("Content-Type", "text/csv")
-            res.attachment(`cruzamento.csv`)
+            res.attachment("cruzamento.csv")
             return res.send(data)
         }
 
