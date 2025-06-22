@@ -68,7 +68,7 @@ const getIndicador = async (req, res) => {
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
         })
     } catch (error) {
-      //console.error("Error in getIndicador:", error)
+        // console.error("Error in getIndicador:", error)
         logger.error(error)
         res.status(500).json({ message: error.message })
     }
@@ -219,14 +219,16 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             const parser = new Parser()
             return parser.parse(dataIPEG) // CSV direto do banco
         }
-        return chartsUtil.parseDataToBarChart2(
+        const objectDataIPEG = chartsUtil.parseDataToBarChart2(
             dataIPEG, // data
             title = chartsUtil.indicatorsDetails[8].title,
             seriesName = chartsUtil.indicatorsDetails[8].yAxisLabel,
-            itemKey = chartsUtil.indicatorsDetails[8].xAxisLabel.toLowerCase(),
+            itemKey = "ano",
             totalKey = "indice_paridade_eleitoral_genero",
             indicator_detail = 8,
         )
+
+        return objectDataIPEG
 
     case 9:
         const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF)
