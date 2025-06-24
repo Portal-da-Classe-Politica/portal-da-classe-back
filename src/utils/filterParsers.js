@@ -5,7 +5,7 @@ const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const { filterElectionYearByOrigin } = require("./validators")
-
+// Glossary of cargos with their properties
 const cargosGlossary = {
     "deputado_estadual": {
         name: "DEPUTADO ESTADUAL",
