@@ -276,7 +276,7 @@ const indicatorsPossibilities = {
     },
     "15": {
         "id": "15",
-        "nome": "Índice de Diversidade Econômica entre Candidatos",
+        "nome": "Índice de Concentração de Patrimônio",
         "grupo": "financeiro",
         "cargos": [
             { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
