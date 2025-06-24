@@ -371,20 +371,20 @@ const generateLineChartDataForMultipleLines = (
                 return item ? item.mediana : 0
             }),
         },
-        {
-            name: "Linha de Tendência",
-            data: xAxisValues.map((xValue) => {
-                const item = data.find((d) => d[xField] === xValue)
-                return item ? item.tendencia : 0
-            }),
-        },
-        {
-            name: "Valor Total do Patrimônio em milhares de reais",
-            data: xAxisValues.map((xValue) => {
-                const item = data.find((d) => d[xField] === xValue)
-                return item ? (item.total_patrimonio/10000).toFixed(2) : 0
-            }),
-        },
+        // {
+        //     name: "Linha de Tendência",
+        //     data: xAxisValues.map((xValue) => {
+        //         const item = data.find((d) => d[xField] === xValue)
+        //         return item ? item.tendencia : 0
+        //     }),
+        // },
+        // {
+        //     name: "Valor Total do Patrimônio em milhares de reais",
+        //     data: xAxisValues.map((xValue) => {
+        //         const item = data.find((d) => d[xField] === xValue)
+        //         return item ? (item.total_patrimonio/1000).toFixed(2) : 0
+        //     }),
+        // },
     ]
 
     // Estrutura do gráfico a ser retornada
