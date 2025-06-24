@@ -343,7 +343,7 @@ const indicatorsGroupsGlossary = {
     "financeiros": {
         "nome": "Financeiro",
         indicators: [
-            indicatorsPossibilities["13"], indicatorsPossibilities["14"], indicatorsPossibilities["15"], indicatorsPossibilities["16"],
+            /* indicatorsPossibilities["13"], */ indicatorsPossibilities["14"], indicatorsPossibilities["15"], indicatorsPossibilities["16"],
         ],
     },
 }
