@@ -346,10 +346,10 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         }
         return chartsUtil.parseDataToLineChart(
             dataDiversidadeEcon,
-            xAxisLabel = chartsUtil.indicatorsDetails[15].xAxisLabel,
-            yAxisLabel = chartsUtil.indicatorsDetails[15].yAxisLabel,
-            seriesName = chartsUtil.indicatorsDetails[15].title,
-            title = chartsUtil.indicatorsDetails[15].title,
+            chartsUtil.indicatorsDetails[15].title,
+            chartsUtil.indicatorsDetails[15].xAxisLabel,
+            chartsUtil.indicatorsDetails[15].yAxisLabel,
+            chartsUtil.indicatorsDetails[15].title,
             "float",
             seriesKey = "ano_eleicao",
             "indice_diversidade_economica",
