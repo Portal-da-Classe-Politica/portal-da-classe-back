@@ -5,7 +5,7 @@ const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const { filterElectionYearByOrigin } = require("./validators")
-
+// Glossary of cargos with their properties
 const cargosGlossary = {
     "deputado_estadual": {
         name: "DEPUTADO ESTADUAL",
@@ -276,7 +276,7 @@ const indicatorsPossibilities = {
     },
     "15": {
         "id": "15",
-        "nome": "Índice de Diversidade Econômica entre Candidatos",
+        "nome": "Índice de Concentração de Patrimônio",
         "grupo": "financeiro",
         "cargos": [
             { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
