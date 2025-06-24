@@ -524,7 +524,7 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
     let queryFrom = `FROM candidato_eleicaos ce
         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
-        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
+        INNER JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
@@ -547,6 +547,7 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
         replacements, // Substitui os placeholders
         type: Sequelize.QueryTypes.SELECT, // Define como SELECT
     })
+    //console.log("data", data)
 
     return computeSum(data)
 }
