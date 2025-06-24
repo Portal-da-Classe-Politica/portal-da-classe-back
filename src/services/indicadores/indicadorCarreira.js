@@ -517,14 +517,14 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
     SELECT 
         e.ano_eleicao,
         ce.id,
-        SUM(dce.valor) AS resultado,
-        (SUM(dce.valor) / SUM(SUM(dce.valor)) OVER (PARTITION BY e.ano_eleicao)) * 100 AS percentual
+        SUM(bens.valor) AS resultado,
+        (SUM(bens.valor) / SUM(SUM(bens.valor)) OVER (PARTITION BY e.ano_eleicao)) * 100 AS percentual
 `
 
     let queryFrom = `FROM candidato_eleicaos ce
         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
-        LEFT JOIN doacoes_candidato_eleicoes dce ON ce.id = dce.candidato_eleicao_id  
+        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
