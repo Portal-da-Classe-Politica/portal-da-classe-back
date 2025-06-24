@@ -129,7 +129,7 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
             taxa_renovacao_liquida: TRL,
         }
 
-        //console.log({ electedCandidatesByElection, notElectedCandidatesByElection, ano: election.ano_eleicao, TRL })
+        // console.log({ electedCandidatesByElection, notElectedCandidatesByElection, ano: election.ano_eleicao, TRL })
 
         return object
     }).filter((item) => item)
@@ -417,7 +417,7 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
     SELECT 
         e.ano_eleicao,
         AVG(b.valor) AS media,
-        VARIANCE(b.valor) AS variancia
+        STDDEV(b.valor) AS desvio_padrao
     FROM 
         bens_candidatos b
     JOIN 
@@ -437,7 +437,7 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
 
     const IEARPorAno = results.map((result) => ({
         ano: result.ano_eleicao,
-        IEAR: result.media > 0 ? Number((parseFloat(result.variancia) / parseFloat(result.media)).toFixed(2)) : 0,
+        IDAR: result.media > 0 ? Number((parseFloat(result.desvio_padrao) / parseFloat(result.media)).toFixed(2)) : 0,
     }))
 
     return IEARPorAno
@@ -547,7 +547,7 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
         replacements, // Substitui os placeholders
         type: Sequelize.QueryTypes.SELECT, // Define como SELECT
     })
-    //console.log("data", data)
+    // console.log("data", data)
 
     return computeSum(data)
 }

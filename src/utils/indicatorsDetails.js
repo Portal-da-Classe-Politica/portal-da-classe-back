@@ -155,16 +155,16 @@ const indicatorsDetails = {
         yAxisLabel: "Valor em reais do custo por voto",
     },
     14: {
-        title: "Índice de Igualdade de Acesso a Recursos",
+        title: "Índice de Desigualdade de Acesso a Recursos",
         indicator_purpose:
       "Mede o grau de desigualdade na distribuição de recursos financeiros entre candidatos ao mesmo cargo, avaliando se a competição eleitoral é equilibrada em termos de financiamento de campanha.",
         how_to_interpretate:
-      "Valores próximos de 0 indicam distribuição equilibrada de recursos entre candidatos (maior igualdade), enquanto valores mais altos revelam concentração financeira em poucos candidatos (maior desigualdade no acesso).\nEixo X: Tempo (anos ou eleições).\nEixo Y: Índice de Igualdade de Acesso a Recursos (IEAR).",
-        unit: "IEAR",
+      "Valores próximos de 0 indicam distribuição equilibrada de recursos entre candidatos (maior igualdade), enquanto valores mais altos revelam concentração financeira em poucos candidatos (maior desigualdade no acesso).\nEixo X: Tempo (anos ou eleições).\nEixo Y: Índice de Desigualdade de Acesso a Recursos (IDAR).",
+        unit: "IDAR",
         party_indicator: false,
         indicator_t1: false,
         xAxisLabel: "Tempo (anos ou eleições)",
-        yAxisLabel: "Índice de Igualdade de Acesso a Recursos (IEAR)",
+        yAxisLabel: "Índice de Desigualdade de Acesso a Recursos (IDAR)",
     },
     15: {
         title: "Índice de Concentração de Patrimônio",

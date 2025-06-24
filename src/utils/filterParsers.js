@@ -262,7 +262,7 @@ const indicatorsPossibilities = {
     },
     "14": {
         "id": "14",
-        "nome": "Índice de Igualdade de Acesso a Recursos",
+        "nome": "Índice de Desigualdade de Acesso a Recursos",
         "grupo": "financeiro",
         "cargos": [
             { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
