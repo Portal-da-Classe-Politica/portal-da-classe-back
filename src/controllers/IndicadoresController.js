@@ -331,10 +331,10 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             seriesName = chartsUtil.indicatorsDetails[14].title,
             xAxisLabel = chartsUtil.indicatorsDetails[14].xAxisLabel,
             yAxisLabel = chartsUtil.indicatorsDetails[14].yAxisLabel,
-            "Índice de Igualdade de Acesso a Recursos",
+            chartsUtil.indicatorsDetails[14].title,
             "float",
             "ano",
-            "IEAR",
+            "IDAR",
             indicator_detail = 14,
         )
 
