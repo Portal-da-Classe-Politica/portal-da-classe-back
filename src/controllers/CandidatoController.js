@@ -328,26 +328,19 @@ const searchCandidatesByName = async (req, res) => {
 
         const skip = (parseInt(page) - 1) * parseInt(limit)
 
-        // Buscar candidatos por nome (sem filtro de unidade eleitoral)
-        const candidates = await nomeUrnaSvc.getCandidatesIdsByNomeUrnaOrName(name, skip, parseInt(limit), undefined)
-        if (!candidates) throw new Error("Erro ao buscar candidatos")
+        // Buscar candidatos por nome usando apenas uma função otimizada
+        const result = await nomeUrnaSvc.searchCandidatesByNomeUrnaOrNamePaginated(name, skip, parseInt(limit))
 
-        // Usar o mesmo serviço que a busca original para manter o formato
-        const latestElections = await candidatoEleicaoSvc.getCandidatesIdsByCandidateElectionsIds(
-            candidates.ids,
-            skip,
-            parseInt(limit),
-            page,
-            candidates.count,
-        )
+        if (!result) throw new Error("Erro ao buscar candidatos")
 
         return res.json({
             success: true,
-            data: latestElections,
+            data: result,
             message: "Candidatos encontrados com sucesso.",
         })
     } catch (error) {
         logger.error(error)
+        console.error("Erro ao buscar candidatos por nome:", error)
         return res.status(500).json({
             success: false,
             data: {},

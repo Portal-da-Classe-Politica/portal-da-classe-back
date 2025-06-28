@@ -88,83 +88,77 @@ const getCandidatesIdsByNomeUrnaOrName = async (nomeUrnaOrName, skip, limit, ele
 
 const searchCandidatesByNomeUrnaOrNamePaginated = async (nomeUrnaOrName, skip = 0, limit = 10) => {
     try {
-        const whereCondition = {
-            [Op.or]: [
-                { nome_urna: { [Op.iLike]: `%${nomeUrnaOrName}%` } },
-                { nome_candidato: { [Op.iLike]: `%${nomeUrnaOrName}%` } },
-            ],
-        }
+        // Query otimizada com melhor performance
+        const query = `
+            SELECT 
+                c.id AS candidato_id,
+                c.ultima_eleicao_id AS eleicao_id,
+                MIN(nu.nome_candidato) AS nome_candidato,
+                MIN(nu.nome_urna) AS nome_urna,
+                e.ano_eleicao,
+                ce.id AS candidato_eleicao_id,
+                p.sigla AS partido_sigla,
+                sc.nome AS situacao_candidatura,
+                car.nome_cargo AS cargo
+            FROM candidatos c
+            INNER JOIN nome_urnas nu ON nu.candidato_id = c.id
+            LEFT JOIN eleicaos e ON e.id = c.ultima_eleicao_id
+            LEFT JOIN candidato_eleicaos ce ON ce.candidato_id = c.id 
+                AND ce.eleicao_id = c.ultima_eleicao_id
+            LEFT JOIN partidos p ON p.id = ce.partido_id
+            LEFT JOIN situacao_candidaturas sc ON sc.id = ce.situacao_candidatura_id
+            LEFT JOIN cargos car ON car.id = ce.cargo_id
+            WHERE 
+                (nu.nome_urna ILIKE $1 OR nu.nome_candidato ILIKE $1)
+            GROUP BY 
+                c.id, c.ultima_eleicao_id, e.ano_eleicao, ce.id, 
+                p.sigla, sc.nome, car.nome_cargo
+            ORDER BY 
+                MIN(nu.nome_candidato) ASC
+            LIMIT $2 OFFSET $3;
+        `
 
-        const { count, rows } = await nomeUrnaModel.findAndCountAll({
-            where: whereCondition,
-            include: [
-                {
-                    model: candidatoModel,
-                    attributes: ["id", "ultima_eleicao_id", "nome"],
-                    required: true,
-                    include: [
-                        {
-                            model: require("../models/Eleicao"),
-                            attributes: ["ano_eleicao"],
-                        },
-                    ],
-                },
-            ],
-            attributes: ["nome_candidato", "nome_urna", "id"],
-            order: [["nome_candidato", "ASC"]],
-            limit,
-            offset: skip,
-            distinct: true,
-            col: "candidato.id",
-        })
+        // Query de count otimizada (sem joins desnecessários)
+        const countQuery = `
+            SELECT COUNT(DISTINCT nu.candidato_id) AS count
+            FROM nome_urnas nu                
+            WHERE 
+                (nu.nome_urna ILIKE $1 OR nu.nome_candidato ILIKE $1)
+        `
 
-        // Buscar informações da última eleição para cada candidato
-        const candidateElectionsPromises = rows.map(async (row) => {
-            const candidatoEleicao = await candidatoEleicaoModel.findOne({
-                where: {
-                    candidato_id: row.candidato.id,
-                    eleicao_id: row.candidato.ultima_eleicao_id,
-                },
-                include: [
-                    {
-                        model: require("../models/Partido"),
-                        attributes: ["sigla", "nome"],
-                    },
-                    {
-                        model: require("../models/SituacaoCandidatura"),
-                        attributes: ["nome"],
-                    },
-                    {
-                        model: require("../models/Cargo"),
-                        attributes: ["nome_cargo"],
-                    },
-                ],
-                attributes: ["id"],
-                raw: false,
-            })
+        const searchParam = `%${nomeUrnaOrName}%`
 
-            return {
-                candidato_id: row.candidato.id,
-                candidato_eleicao_id: candidatoEleicao?.id || null,
-                eleicao_id: row.candidato.ultima_eleicao_id,
-                nome_candidato: row.nome_candidato,
-                nome_urna: row.nome_urna,
-                ano_eleicao: row.candidato?.eleicao?.ano_eleicao || null,
-                partido_sigla: candidatoEleicao?.partido?.sigla || null,
-                partido_nome: candidatoEleicao?.partido?.nome || null,
-                situacao_candidatura: candidatoEleicao?.situacao_candidatura?.nome || null,
-                cargo: candidatoEleicao?.cargo?.nome_cargo || null,
-            }
-        })
+        const [rows, countResult] = await Promise.all([
+            sequelize.query(query, {
+                bind: [searchParam, limit, skip],
+                type: sequelize.QueryTypes.SELECT,
+            }),
+            sequelize.query(countQuery, {
+                bind: [searchParam],
+                type: sequelize.QueryTypes.SELECT,
+            }),
+        ])
 
-        const results = await Promise.all(candidateElectionsPromises)
+        const totalCount = Number(countResult[0].count)
+        const currentPage = Math.floor(skip / limit) + 1
+        const totalPages = Math.ceil(totalCount / limit)
+
+        const results = rows.map((row) => ({
+            lastCandidatoEleicaoId: row.candidato_eleicao_id,
+            partido: row.partido_sigla,
+            nomeCandidato: row.nome_candidato,
+            candidatoId: row.candidato_id,
+            ultimaEleicao: row.ano_eleicao,
+            situacao: row.situacao_candidatura,
+            cargo: row.cargo,
+            nomeUrna: row.nome_urna,
+        }))
 
         return {
-            data: results,
-            count,
-            skip,
-            limit,
-            hasMore: count > skip + limit,
+            totalResults: totalCount,
+            currentPage,
+            totalPages,
+            results,
         }
     } catch (error) {
         throw new Error(`Erro ao buscar candidatos: ${error.message}`)
