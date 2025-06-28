@@ -122,7 +122,7 @@ const getCandidateDetailById = async (candidatoId) => {
             raca: candidate.raca || "Não informada",
             ocupacao: candidate.nome_ocupacao,
             ano_ultima_eleicao: candidate.ano_eleicao,
-            coligacao: candidate.coligacao,
+            coligacao: candidate.coligacao?.replace(/[()]/g, ""),
             partido: candidate.partido,
             sigla_partido: candidate.sigla_partido,
             nome_atual: candidate.nome_atual,
