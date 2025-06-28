@@ -2,7 +2,7 @@ const { Router } = require("express")
 const router = Router()
 const CandidatoController = require("../../controllers/CandidatoController")
 
-router.get("/", CandidatoController.getCandidates)
+router.get("/", CandidatoController.searchCandidatesByName)
 
 router.get("/detail/:id", CandidatoController.getCandidateDetail)
 

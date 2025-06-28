@@ -18,6 +18,7 @@ const ocupacaoModel = require("../../models/Ocupacao")
 const categoriaModel = require("../../models/Categoria")
 const categoria2Model = require("../../models/Categoria2")
 const doacoesCandidatoEleicaoModel = require("../../models/DoacoesCandidatoEleicao")
+const AbrangenciaModel = require("../../models/Abrangencia")
 const unidadeEleitoralSvc = require("../UnidateEleitoralService")
 const { fatoresDeCorreção } = require("../../utils/ipca")
 
@@ -35,7 +36,7 @@ const { fatoresDeCorreção } = require("../../utils/ipca")
  * Creates a KPI object with standardized structure
  * @param {Object} params Parameters to create KPI
  * @param {string} params.name Nome do indicador
- * @param {string} params.description Descrição do indicador  
+ * @param {string} params.description Descrição do indicador
  * @param {number} params.value Valor do indicador
  * @param {string} params.unity Unidade de medida
  * @param {string} [params.trend] Tendência (opcional)
@@ -48,17 +49,15 @@ const createKPI = ({
     value,
     unity,
     trend = null,
-    metadata = null
+    metadata = null,
 }) => ({
     name,
     description,
     value,
     unity,
     ...(trend && { trend }),
-    ...(metadata && { metadata })
+    ...(metadata && { metadata }),
 })
-
-
 
 /**
  * @name Custo por Voto
@@ -69,7 +68,6 @@ const createKPI = ({
  * @returns
  */
 const getCustoPorVoto = async (candidateId) => {
-
     // Pegar dados da ultima eleicao do candidato
     const results = await CandidatoEleicaoModel.findAll({
         attributes: [
@@ -155,7 +153,7 @@ const getCargosEleitos = async (candidateId) => {
             {
                 model: SituacaoTurnoModel,
                 attributes: [],
-            }
+            },
         ],
         where: {
             candidato_id: candidateId,
@@ -170,18 +168,17 @@ const getCargosEleitos = async (candidateId) => {
     return createKPI({
         name: "Cargos eleitos",
         description: "Cargos para os quais o candidato concorreu e foi eleito.",
-        value: [...new Set(results.filter(result => result.foi_eleito === true).map(result => result.nome_cargo))].join(", "),
+        value: [...new Set(results.filter((result) => result.foi_eleito === true).map((result) => result.nome_cargo))].join(", "),
         metadata: {
-            total_eleitos: results.filter(result => result.foi_eleito === true).length,
+            total_eleitos: results.filter((result) => result.foi_eleito === true).length,
             total_candidaturas: results.length,
             cargos_disputados: [
                 results.map((r) =>
-                    `${r.nome_cargo} (${r.ano_eleicao}) - ${r.foi_eleito ? "Eleito" : "Não eleito"}`)
+                    `${r.nome_cargo} (${r.ano_eleicao}) - ${r.foi_eleito ? "Eleito" : "Não eleito"}`),
             ].join(", "),
         },
         unity: "text",
     })
-
 }
 
 /**
@@ -199,62 +196,62 @@ const getPercentilPatrimonio = async (candidateId) => {
         },
         include: [{
             model: EleicaoModel,
-            attributes: ['id', 'ano_eleicao'],
+            attributes: ["id", "ano_eleicao"],
         }],
-        order: [[Sequelize.col('eleicao.ano_eleicao'), 'DESC']],
+        order: [[Sequelize.col("eleicao.ano_eleicao"), "DESC"]],
         raw: true,
-    });
+    })
 
     if (!lastElection) {
-        return null;
+        return null
     }
 
     // Get candidate's total assets
     const candidateAssets = await BensCandidatoEleicao.findOne({
         attributes: [
-            [Sequelize.fn('SUM', Sequelize.col('valor')), 'total_assets']
+            [Sequelize.fn("SUM", Sequelize.col("valor")), "total_assets"],
         ],
         where: {
-            candidato_eleicao_id: lastElection['id']
+            candidato_eleicao_id: lastElection.id,
         },
         raw: true,
-    });
+    })
 
     // Get all candidates' assets from the same election
     const allCandidatesAssets = await BensCandidatoEleicao.findAll({
         attributes: [
-            'candidato_eleicao_id',
-            [Sequelize.fn('SUM', Sequelize.col('valor')), 'total_assets']
+            "candidato_eleicao_id",
+            [Sequelize.fn("SUM", Sequelize.col("valor")), "total_assets"],
         ],
         include: [{
             model: CandidatoEleicaoModel,
             where: {
-                eleicao_id: lastElection['eleicao.id'],
+                eleicao_id: lastElection["eleicao.id"],
                 situacao_candidatura_id: { [Op.in]: [1, 16] },
             },
             attributes: [],
         }],
-        group: ['candidato_eleicao_id'],
+        group: ["candidato_eleicao_id"],
         raw: true,
-    });
+    })
 
     // Calculate percentile
-    const allAssets = allCandidatesAssets.map(c => parseFloat(c.total_assets) || 0).sort((a, b) => a - b);
-    const candidateTotalAssets = parseFloat(candidateAssets?.total_assets) || 0;
+    const allAssets = allCandidatesAssets.map((c) => parseFloat(c.total_assets) || 0).sort((a, b) => a - b)
+    const candidateTotalAssets = parseFloat(candidateAssets?.total_assets) || 0
 
-    const position = allAssets.findIndex(asset => asset >= candidateTotalAssets);
-    const percentile = position === -1 ? 100 : (position / allAssets.length) * 100;
+    const position = allAssets.findIndex((asset) => asset >= candidateTotalAssets)
+    const percentile = position === -1 ? 100 : (position / allAssets.length) * 100
 
     return createKPI({
         name: "Percentil de patrimônio do candidato",
-        description: "Percentil do patrimonio do candidato na última eleição disputada.",
+        description: "Posição relativa do patrimônio do candidato comparado a todos os candidatos da mesma eleição. Valores próximos a 0% indicam que o candidato está entre os menos abastados, enquanto valores próximos a 100% indicam que está entre os mais ricos da eleição.",
         value: parseFloat(percentile.toFixed(0)),
         unity: "%",
-    });
-};
+    })
+}
 
 const getDispersaoVotos = async (candidateId) => {
-    // First, get the candidate's last election
+    // First, get the candidate's last election with abrangencia = 1 (eleições gerais)
     const lastElection = await CandidatoEleicaoModel.findOne({
         where: {
             candidato_id: candidateId,
@@ -262,14 +259,26 @@ const getDispersaoVotos = async (candidateId) => {
         },
         include: [{
             model: EleicaoModel,
-            attributes: ['id', 'ano_eleicao'],
+            attributes: ["id", "ano_eleicao"],
+            where: {
+                abrangencium_id: 1, // apenas eleições gerais
+            },
         }],
-        order: [[Sequelize.col('eleicao.ano_eleicao'), 'DESC']],
+        order: [[Sequelize.col("eleicao.ano_eleicao"), "DESC"]],
         raw: true,
-    });
+    })
 
     if (!lastElection) {
-        return null;
+        return createKPI({
+            name: "Não participou de eleições gerais",
+            description: "Como o candidato não participou de eleições gerais, não é possível calcular a concentração de votos.",
+            value: 0,
+            metadata: {
+                totalVotos: 0,
+            // votosPorcentagem: votosPorcentagem.sort((a, b) => b.percentual - a.percentual),
+            },
+            unity: "%",
+        })
     }
 
     const votos = await CandidatoEleicaoModel.findAll({
@@ -282,7 +291,7 @@ const getDispersaoVotos = async (candidateId) => {
             attributes: [],
         }],
         where: {
-            eleicao_id: lastElection['eleicao.id'],
+            eleicao_id: lastElection["eleicao.id"],
             candidato_id: candidateId,
         },
         group: ["municipios_votacao_id"],
@@ -311,7 +320,7 @@ const getDispersaoVotos = async (candidateId) => {
     return createKPI({
         name: "Concentração de votos",
         description: "O índice de concentração de votos mede a concentração geográfica dos votos do candidato. Quanto mais próximo de 100%, mais concentrados são os votos em poucos municípios. Quanto mais próximo de 0%, mais dispersos são os votos entre vários municípios.",
-        value: parseFloat(indiceNormalizado.toFixed(2)),
+        value: indiceNormalizado ? parseFloat(indiceNormalizado.toFixed(2)) : 0,
         metadata: {
             totalVotos,
             // votosPorcentagem: votosPorcentagem.sort((a, b) => b.percentual - a.percentual),
@@ -319,7 +328,6 @@ const getDispersaoVotos = async (candidateId) => {
         unity: "%",
     })
 }
-
 
 module.exports = {
     getCustoPorVoto,
