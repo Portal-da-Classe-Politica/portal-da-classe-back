@@ -353,6 +353,9 @@ const getLast5LastElections = async (candidatoId, limit = 5) => {
                 {
                     model: EleicaoModel,
                     attributes: ["ano_eleicao", "id"],
+                    where: {
+                        turno: { [Op.in]: [1, 2] },
+                    },
                 },
             ],
             order: [
