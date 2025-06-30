@@ -334,7 +334,7 @@ const getLastElectionVotesByRegion = async (candidatoId, eleicaoId) => {
                 votos: parseInt(r.votos),
             }
         })
-        //console.log(parsedResults)
+        // console.log(parsedResults)
         return parsedResults
     } catch (error) {
         console.error("Error fetching votes by region:", error)
@@ -347,13 +347,11 @@ const getLast5LastElections = async (candidatoId, limit = 5) => {
         const candidateElection = await CandidatoEleicaoModel.findAll({
             where: {
                 candidato_id: candidatoId,
+                situacao_candidatura_id: { [Op.in]: [1, 16] },
             },
             include: [
                 {
                     model: EleicaoModel,
-                    where: {
-                        turno: 1,
-                    },
                     attributes: ["ano_eleicao", "id"],
                 },
             ],
@@ -362,7 +360,9 @@ const getLast5LastElections = async (candidatoId, limit = 5) => {
             ],
             limit,
             raw: true,
-            attributes: ["id", [sequelize.col("eleicao.id"), "eleicao_id"], [sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"]],
+            attributes: ["id", [sequelize.col("eleicao.id"), "eleicao_id"],
+                [sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"],
+            ],
         })
 
         if (!candidateElection) {
@@ -392,28 +392,31 @@ const getLast5LastElectionsVotes = async (candidateElectionsIds) => {
                 },
                 {
                     model: EleicaoModel,
-                    attributes: ["ano_eleicao"],
+                    attributes: ["ano_eleicao", "turno"],
                 },
             ],
             raw: true,
-            group: ["candidato_eleicao_id", "eleicao.ano_eleicao", "candidato_eleicao.id"],
+            group: ["candidato_eleicao_id", "eleicao.ano_eleicao", "candidato_eleicao.id", "eleicao.turno"],
             order: [
                 [sequelize.col("eleicao.ano_eleicao"), "ASC"],
+                [sequelize.col("eleicao.turno"), "ASC"],
             ],
-            attributes: [[sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"]],
+            attributes: [[sequelize.col("eleicao.ano_eleicao"), "ano_eleicao"],
+                [sequelize.col("eleicao.turno"), "turno"],
+            ],
         })
         if (!candidateElection) {
             throw new Error("Candidato não encontrado")
         }
         const parsedResults = candidateElection.map((r) => {
             return {
-                ano_eleicao: r["eleicao.ano_eleicao"],
+                ano_eleicao: `${r["eleicao.ano_eleicao"]}${r["eleicao.turno"] ? " - " + r["eleicao.turno"] + "º turno" : ""}`,
                 total_votos: parseInt(r["votacao_candidato_municipios.total_votos"]),
             }
         })
         return parsedResults
     } catch (error) {
-        console.error("Error fetching votes by region:", error)
+        console.error("Erro buscando ultimas eleicoes do candidato", error)
         throw error
     }
 }
