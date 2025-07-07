@@ -349,6 +349,49 @@ const searchCandidatesByName = async (req, res) => {
     }
 }
 
+const fuzzySearchCandidatesByName = async (req, res) => {
+    try {
+        const { name, page = 1, limit = 10 } = req.query
+
+        if (!name) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Nome é obrigatório para a busca.",
+            })
+        }
+
+        if (name.length < 3) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "Nome deve ter pelo menos 3 caracteres.",
+            })
+        }
+
+        const skip = (parseInt(page) - 1) * parseInt(limit)
+
+        // Buscar candidatos por nome usando busca difusa
+        const result = await nomeUrnaSvc.fuzzySearchCandidatesByName(name, skip, parseInt(limit))
+
+        if (!result) throw new Error("Erro ao buscar candidatos")
+
+        return res.json({
+            success: true,
+            data: result,
+            message: "Candidatos encontrados com sucesso.",
+        })
+    } catch (error) {
+        logger.error(error)
+        console.error("Erro ao buscar candidatos com busca difusa:", error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar candidatos com busca difusa.",
+        })
+    }
+}
+
 module.exports = {
     getCargoFilters,
     getBiggestDonors,
@@ -359,4 +402,5 @@ module.exports = {
     getCandidateDetail,
     getKpis,
     searchCandidatesByName,
+    fuzzySearchCandidatesByName,
 }
