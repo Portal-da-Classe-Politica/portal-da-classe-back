@@ -2,7 +2,7 @@ const { Router } = require("express")
 const router = Router()
 const CandidatoController = require("../../controllers/CandidatoController")
 
-router.get("/", CandidatoController.searchCandidatesByName)
+router.get("/", CandidatoController.fuzzySearchCandidatesByName)
 
 router.get("/detail/:id", CandidatoController.getCandidateDetail)
 
@@ -17,5 +17,7 @@ router.get("/get-filters", CandidatoController.getFiltersForSearch)
 router.get("/cargos", CandidatoController.getCargoFilters)
 
 router.get("/kpis/:id", CandidatoController.getKpis)
+
+router.get("/fuzzy-search", CandidatoController.fuzzySearchCandidatesByName)
 
 module.exports = router
