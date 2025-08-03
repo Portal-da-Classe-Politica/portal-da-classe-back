@@ -190,7 +190,40 @@ const generateGraph = async (req, res) => {
     }
 }
 
+const getRolesByDimension = async (req, res) => {
+    try {
+        const { dimension } = req.params
+        if (!dimension) {
+            return res.status(400).json({
+                success: false,
+                data: {},
+                message: "É necessário informar a dimensão",
+            })
+        }
+
+        const roles = await cargoService.getAllCargos()
+
+        const filteredRoles = dimension === "votes"
+            ? roles.filter((cargo) => cargo.id !== 14 && cargo.id !== 15)
+            : roles
+
+        return res.json({
+            success: true,
+            data: filteredRoles,
+            message: "Cargos encontrados com sucesso.",
+        })
+    } catch (error) {
+        logger.error(error)
+        return res.status(500).json({
+            success: false,
+            data: {},
+            message: "Erro ao buscar os cargos",
+        })
+    }
+}
+
 module.exports = {
+    getRolesByDimension,
     getFiltersForAnalyticsByRole,
     getCargoAndAnalises,
     generateGraph,

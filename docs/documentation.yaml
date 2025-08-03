@@ -2278,6 +2278,74 @@ paths:
           description: Candidato não encontrado
         '500':
           description: Erro interno do servidor ao buscar os KPIs       
+  /noauth/analises/roles-by-dimension/{dimension}:
+    get:
+      tags:
+        - filtros
+      summary: Retorna os cargos disponíveis para uma determinada dimensão
+      parameters:
+        - in: path
+          name: dimension    
+          required: true     
+          schema:
+            type: string
+            enum: [total_candidates, elected_candidates, votes]
+          description: Dimensão para filtrar os cargos. Se for "votes", os cargos com ID 14 e 15 são excluídos.
+      responses:
+        '200':
+          description: Lista de cargos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/cargos'
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+                  - message
+        '400':
+          description: Dimensão não informada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+                  - message
+        '500':
+          description: Erro ao buscar os cargos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+                  - message
+
   /noauth/analises/filters-by-role/{role}:
     get:
       operationId: "37"

@@ -419,7 +419,10 @@ const generateLineChartForMultipleLines = (data, dimension, crossCriteria = []) 
         const statusKey = dimension === "elected_candidates"
             ? ` - ${curr.status_eleicao ? "Eleito" : "Não eleito"}`
             : ""
-        const lineKey = criteriaKey + statusKey
+        let lineKey = criteriaKey + statusKey
+        if (!lineKey) {
+            lineKey = dimensions[dimension]
+        }
 
         if (!acc[lineKey]) {
             acc[lineKey] = {
