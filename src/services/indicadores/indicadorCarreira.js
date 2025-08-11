@@ -112,12 +112,20 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
     // D = é o número de membros que tentaram a reeleição e foram derrotados
     // R = é o número de membros que tentaram a reeleição e foram reeleitos
     const TRLByYear = elections.map((election) => {
-        const electedCandidatesByElection = totalElectedCandidatesReelected.find((electedCandidate) => electedCandidate.eleicao_id === election.id)?.total || 0
-        const notElectedCandidatesByElection = failedReelectedCandidates.find((notElectedCandidate) => notElectedCandidate.eleicao_id === election.id)?.total || 0
-        // console.log({ ano: election.ano_eleicao, electedCandidatesByElection, notElectedCandidatesByElection })
-        // console.log({ electedCandidatesByElection, notElectedCandidatesByElection })
+        const reelectedCandidatesByElection = totalElectedCandidatesReelected.find((electedCandidate) => electedCandidate.eleicao_id === election.id)?.total || 0
+        const notReelectedCandidatesByElection = failedReelectedCandidates.find((notElectedCandidate) => notElectedCandidate.eleicao_id === election.id)?.total || 0
 
-        let TRL = (parseInt(notElectedCandidatesByElection) / (parseInt(electedCandidatesByElection) + parseInt(notElectedCandidatesByElection))) * 100
+        let TRL = (parseInt(notReelectedCandidatesByElection) / (parseInt(reelectedCandidatesByElection) + parseInt(notReelectedCandidatesByElection))) * 100
+        console.log({
+            ano: election.ano_eleicao,
+            TRL: TRL || 0,
+            reelectedCandidatesByElection: parseInt(reelectedCandidatesByElection),
+            notReelectedCandidatesByElection: parseInt(notReelectedCandidatesByElection),
+        })
+
+        if (!notReelectedCandidatesByElection && !reelectedCandidatesByElection){
+            TRL = 100
+        }
 
         if (isNaN(TRL) || !isFinite(TRL)) {
             TRL = 0
