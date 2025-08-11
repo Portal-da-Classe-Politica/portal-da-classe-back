@@ -10,6 +10,10 @@ const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
 const { getElectoralUnitByUFandAbrangency } = require("../services/UnidateEleitoralService")
 const logger = require("../utils/logger")
 const { Parser } = require("json2csv") // no topo do arquivo
+const parser = new Parser({
+    delimiter: ";",
+})
+const footer = "\nFonte: Portal da Classe Política - INCT ReDem (2025)"
 
 const getIndicador = async (req, res) => {
     try {
@@ -52,10 +56,11 @@ const getIndicador = async (req, res) => {
             }
         }
 
-        const indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv)
+        let indicatorData = await computeIndicator(indicator_id, cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv)
         // console.log({ indicatorData })
 
         if (exportcsv === "true") {
+            indicatorData += footer
             console.log("Exportando CSV")
             res.header("Content-Type", "text/csv")
             res.attachment(`indicador_${indicator_id}.csv`)
@@ -95,7 +100,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 1:
         const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataNepp) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -112,7 +116,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 2:
         const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataPersen) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -129,7 +132,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 3:
         const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataQE) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -146,7 +148,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 4:
         const dataQP = await indicadoresEleitoraisSvc.getQuocientePartidario(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataQP) // CSV direto do banco
         }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
@@ -164,7 +165,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 5:
         const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(data) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -181,7 +181,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 6:
         const dataReeleicao = await IndicatorCarreiraSvc.getTaxaReeleicao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataReeleicao) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -198,7 +197,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 7:
         const dataMedianaMigraca = await IndicatorCarreiraSvc.getMedianaMigracao(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataMedianaMigraca) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -216,7 +214,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 8:
         const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataIPEG) // CSV direto do banco
         }
         const objectDataIPEG = chartsUtil.parseDataToBarChart2(
@@ -233,7 +230,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 9:
         const dataDistribGeoVotos = await indicadoresGeograficosSvc.getDistribGeoVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataDistribGeoVotos) // CSV direto do banco
         }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
@@ -251,7 +247,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 10:
         const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataConceGeoVotos) // CSV direto do banco
         }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
@@ -269,7 +264,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 11:
         const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataDispereoVotos) // CSV direto do banco
         }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
@@ -287,7 +281,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 12:
         const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataEficienciaVotos) // CSV direto do banco
         }
         return chartsUtil.parseDataToMultipleSeriesLineChart(
@@ -305,7 +298,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 13:
         const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataCustoVoto) // CSV direto do banco
         }
         return chartsUtil.generateLineChartData(
@@ -323,7 +315,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 14:
         const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataIEAR) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -341,7 +332,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 15:
         const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataDiversidadeEcon) // CSV direto do banco
         }
         return chartsUtil.parseDataToLineChart(
@@ -358,7 +348,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 16:
         const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
-            const parser = new Parser()
             return parser.parse(dataPatrimonio) // CSV direto do banco
         }
         return chartsUtil.generateLineChartDataForMultipleLines(
