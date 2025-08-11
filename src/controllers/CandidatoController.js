@@ -278,10 +278,10 @@ const getKpis = async (req, res) => {
         const candidate = await candidatoSvc.getCandidate(id)
         if (!candidate) throw new Error("Candidato não encontrado")
 
-        const [kpiMigracaoPartidaria, kpiPercentilPatrimonio, kpiDispersaoVotos] = await Promise.all([
+        const [kpiMigracaoPartidaria, kpiDispersaoVotos] = await Promise.all([
             /*  indicadorPerfilSvc.getCustoPorVoto(id), */
             indicadorPerfilSvc.getCargosEleitos(id),
-            indicadorPerfilSvc.getPercentilPatrimonio(id),
+            // indicadorPerfilSvc.getPercentilPatrimonio(id),
             indicadorPerfilSvc.getDispersaoVotos(id),
         ])
 
@@ -291,7 +291,7 @@ const getKpis = async (req, res) => {
             data: [
                 /*  kpiCustoPorVoto, */
                 kpiMigracaoPartidaria,
-                kpiPercentilPatrimonio,
+                /* kpiPercentilPatrimonio, */
                 kpiDispersaoVotos,
             ],
         })

@@ -259,7 +259,7 @@ const getDispersaoVotos = async (candidateId) => {
         },
         include: [{
             model: EleicaoModel,
-            attributes: ["id", "ano_eleicao"],
+            attributes: ["id", "ano_eleicao", "turno"],
             where: {
                 abrangencium_id: 1, // apenas eleições gerais
             },
@@ -318,7 +318,7 @@ const getDispersaoVotos = async (candidateId) => {
     const indiceNormalizado = (somaQuadrados / 10000) * 100
 
     return createKPI({
-        name: "Concentração de votos",
+        name: `Concentração de votos - ${lastElection["eleicao.turno"]}º turno - ${lastElection["eleicao.ano_eleicao"]}`,
         description: "O índice de concentração de votos mede a concentração geográfica dos votos do candidato. Quanto mais próximo de 100%, mais concentrados são os votos em poucos municípios. Quanto mais próximo de 0%, mais dispersos são os votos entre vários municípios.",
         value: indiceNormalizado ? parseFloat(indiceNormalizado.toFixed(2)) : 0,
         metadata: {
