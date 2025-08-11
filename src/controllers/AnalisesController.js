@@ -156,10 +156,10 @@ const generateGraph = async (req, res) => {
         const parsedParams = await parseFiltersToAnalytics(params)
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
-        
+
         // Preencher dados faltantes com zero para categorias sem resultados
         const completeData = await fillMissingCategoriesWithZero(dbData, providedCategoricalParams, parsedParams, params)
-        
+
         if (exportcsv === "true") {
             if (dimension === "elected_candidates"){
                 for (const curr of completeData) {
@@ -238,10 +238,10 @@ const fillMissingCategoriesWithZero = async (dbData, providedCategoricalParams, 
     try {
         // Obter as combinações específicas selecionadas pelo usuário
         const selectedCombinations = await getSelectedCombinations(providedCategoricalParams, params)
-        
+
         // Obter todos os anos - dos dados existentes OU dos parâmetros enviados
         const allYears = getAvailableYears(dbData, params)
-        
+
         return fillDataForSelectedCombinations(dbData, allYears, selectedCombinations, parsedParams)
     } catch (error) {
         logger.error("Erro ao preencher dados faltantes:", error)
@@ -254,20 +254,20 @@ const fillMissingCategoriesWithZero = async (dbData, providedCategoricalParams, 
 const getAvailableYears = (dbData, params) => {
     const yearsFromData = [...new Set(dbData.map((item) => item.ano))]
     const yearsFromParams = getYearsFromParams(params)
-    
+
     // Combinar anos dos dados com anos dos parâmetros, removendo duplicatas
     const allYears = [...new Set([...yearsFromData, ...yearsFromParams])]
-    
+
     return allYears.sort((a, b) => a - b)
 }
 
 // Função auxiliar para extrair anos dos parâmetros
 const getYearsFromParams = (params) => {
     const years = []
-    
+
     const initialYear = parseInt(params.initial_year)
     const finalYear = parseInt(params.final_year)
-    
+
     if (initialYear && finalYear && initialYear <= finalYear) {
         years.push(...generateElectionYears(initialYear, finalYear))
     } else if (initialYear) {
@@ -275,7 +275,7 @@ const getYearsFromParams = (params) => {
     } else if (finalYear) {
         years.push(finalYear)
     }
-    
+
     return years
 }
 
@@ -283,7 +283,7 @@ const getYearsFromParams = (params) => {
 const generateElectionYears = (initialYear, finalYear) => {
     const years = []
     const yearSpan = finalYear - initialYear
-    
+
     // Para intervalos pequenos, incluir todos os anos pares
     if (yearSpan <= 8) {
         for (let year = initialYear; year <= finalYear; year++) {
@@ -299,7 +299,7 @@ const generateElectionYears = (initialYear, finalYear) => {
             }
         }
     }
-    
+
     return years
 }
 
@@ -311,25 +311,25 @@ const getSelectedCombinations = async (providedCategoricalParams, params) => {
 
     // Buscar os dados das categorias selecionadas para mapear IDs para nomes
     const categoryMappings = await getCategoryMappings(providedCategoricalParams)
-    
+
     // Obter os valores específicos selecionados pelo usuário
     const selectedValues = {}
-    
+
     for (const param of providedCategoricalParams) {
         const userValues = params[param]
-        
+
         if (!userValues) {
             // eslint-disable-next-line no-continue
             continue
         }
-        
+
         // Normalizar para array
         const valueArray = Array.isArray(userValues) ? userValues : [userValues]
-        
+
         // Mapear IDs para nomes usando os mapeamentos
         const categoryKey = getCategoryKey(param)
         const mapping = categoryMappings[categoryKey]
-        
+
         if (mapping) {
             selectedValues[categoryKey] = valueArray.map((id) => {
                 const found = mapping.find((item) => item.id.toString() === id.toString())
@@ -337,7 +337,7 @@ const getSelectedCombinations = async (providedCategoricalParams, params) => {
             })
         }
     }
-    
+
     // Gerar combinações apenas dos valores selecionados
     return generateSelectedCombinations(selectedValues)
 }
@@ -345,7 +345,7 @@ const getSelectedCombinations = async (providedCategoricalParams, params) => {
 // Função auxiliar para obter mapeamentos de ID para nome
 const getCategoryMappings = async (providedCategoricalParams) => {
     const mappings = {}
-    
+
     const categoryPromises = providedCategoricalParams.map(async (param) => {
         switch (param) {
         case "genero_id": {
@@ -372,15 +372,15 @@ const getCategoryMappings = async (providedCategoricalParams) => {
             return null
         }
     })
-    
+
     const results = await Promise.all(categoryPromises)
-    
+
     results.forEach((result) => {
         if (result) {
             mappings[result.key] = result.mapping
         }
     })
-    
+
     return mappings
 }
 
@@ -400,24 +400,24 @@ const getCategoryKey = (param) => {
 const generateSelectedCombinations = (selectedValues) => {
     const keys = Object.keys(selectedValues)
     if (keys.length === 0) return []
-    
+
     const combinations = []
-    
+
     function generateCombinations(currentCombination, remainingKeys) {
         if (remainingKeys.length === 0) {
             combinations.push({ ...currentCombination })
             return
         }
-        
+
         const currentKey = remainingKeys[0]
         const values = selectedValues[currentKey] || []
-        
+
         for (const value of values) {
             currentCombination[currentKey] = value
             generateCombinations(currentCombination, remainingKeys.slice(1))
         }
     }
-    
+
     generateCombinations({}, keys)
     return combinations
 }
@@ -425,22 +425,22 @@ const generateSelectedCombinations = (selectedValues) => {
 // Função auxiliar para preencher dados para as combinações selecionadas
 const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations, parsedParams) => {
     const filledData = []
-    
+
     // Se não há anos disponíveis, não há nada para preencher
     if (allYears.length === 0) {
         return dbData
     }
-    
+
     // Se não há combinações selecionadas, retorna os dados originais
     if (selectedCombinations.length === 0) {
         return dbData
     }
-    
+
     for (const year of allYears) {
         for (const combination of selectedCombinations) {
             // Verificar se há um registro existente para esta combinação e ano
             const existingData = findExistingData(dbData, year, combination)
-            
+
             if (existingData) {
                 filledData.push(existingData)
             } else {
@@ -450,7 +450,7 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
             }
         }
     }
-    
+
     return filledData
 }
 
@@ -458,11 +458,11 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
 const findExistingData = (dbData, year, combination) => {
     return dbData.find((item) => {
         if (item.ano !== year) return false
-        
+
         for (const [key, value] of Object.entries(combination)) {
             if (item[key] !== value) return false
         }
-        
+
         return true
     })
 }
@@ -474,7 +474,7 @@ const createZeroRecords = (year, combination, parsedParams) => {
         total: 0,
         ...combination,
     }
-    
+
     // Para sucesso eleitoral, adicionar ambos os status
     if (parsedParams.dimension === "elected_candidates") {
         return [
@@ -482,7 +482,7 @@ const createZeroRecords = (year, combination, parsedParams) => {
             { ...baseRecord, status_eleicao: false },
         ]
     }
-    
+
     return [baseRecord]
 }
 
