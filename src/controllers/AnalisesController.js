@@ -162,8 +162,11 @@ const generateGraph = async (req, res) => {
                     curr.status_eleicao = curr.status_eleicao ? "Eleito" : "Não eleito"
                 }
             }
-            const parser = new Parser()
-            const data = parser.parse(dbData)
+            const parser = new Parser({
+                delimiter: ";",
+            })
+            let data = parser.parse(dbData)
+            data += "\nFonte: Portal da Classe Política - INCT ReDem (2025)"
 
             console.log("Exportando CSV")
             res.header("Content-Type", "text/csv")
