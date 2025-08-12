@@ -147,8 +147,10 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
  * @returns
  */
 const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
+    const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
+    const abrangenciaId = abrangency.abrangencia
     const [elections, electedSituacaoTurnos] = await Promise.all([
-        getElectionsByYearInterval(initialYear, finalYear),
+        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
     ])
     const electionsIds = elections.map((election) => election.id)
@@ -197,22 +199,22 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
     // TR DEVE SER CALCULADO POR ANO
     // TR = REELEITOS / TOTAL DE CANDIDATOS QUE TENTARAM REELEIÇÃO
     const TRByYear = elections.map((election) => {
-        const electedCandidatesByElection = totalElectedCandidatesReelected.find((electedCandidate) => electedCandidate.eleicao_id === election.id)?.total || 0
+        const reelectedCandidatesByElection = totalElectedCandidatesReelected.find((electedCandidate) => electedCandidate.eleicao_id === election.id)?.total || 0
         const totalCandidatesTryingReelectionByElection = totalCandidatesTryingReelection.find((candidate) => candidate.eleicao_id === election.id)?.total || 0
 
-        if (electedCandidatesByElection && totalCandidatesTryingReelectionByElection) {
-            // console.log({ electedCandidatesByElection, totalCandidatesTryingReelectionByElection, ano: election.ano_eleicao })
-            const TR = (parseInt(electedCandidatesByElection) / parseInt(totalCandidatesTryingReelectionByElection))
-
-            const object = {
-                election_id: election.id,
-                ano: election.ano_eleicao,
-                taxa_reeleicao: TR * 100,
-            }
-            // console.log({ object })
-            return object
+        let TR = 0
+        if (totalCandidatesTryingReelectionByElection > 0) {
+            TR = (parseInt(reelectedCandidatesByElection) / parseInt(totalCandidatesTryingReelectionByElection)) * 100
         }
-    }).filter((item) => item)
+
+        const object = {
+            election_id: election.id,
+            ano: election.ano_eleicao,
+            taxa_reeleicao: TR,
+        }
+
+        return object
+    })
 
     return TRByYear
 }
