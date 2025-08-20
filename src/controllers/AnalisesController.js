@@ -209,9 +209,16 @@ const getRolesByDimension = async (req, res) => {
         }
 
         const roles = await cargoService.getAllCargos()
+        const nonVotesRoles = [{ id: 14, cargo: "2 suplente" },
+            { id: 15, cargo: "1 suplente" },
+            { id: 3, cargo: "vice governador" },
+            { id: 13, cargo: "vice prefeito" },
+            { id: 10, cargo: "vice presidente" },
+        ]
 
+        const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
         const filteredRoles = dimension === "votes"
-            ? roles.filter((cargo) => cargo.id !== 14 && cargo.id !== 15)
+            ? roles.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
             : roles
 
         return res.json({
