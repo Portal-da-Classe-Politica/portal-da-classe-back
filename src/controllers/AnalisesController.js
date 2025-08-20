@@ -239,8 +239,8 @@ const fillMissingCategoriesWithZero = async (dbData, providedCategoricalParams, 
         // Obter as combinações específicas selecionadas pelo usuário
         const selectedCombinations = await getSelectedCombinations(providedCategoricalParams, params)
 
-        // Obter todos os anos - dos dados existentes OU dos parâmetros enviados
-        const allYears = getAvailableYears(dbData, params)
+        // Obter todos os anos - das eleições reais que já vêm do parseFiltersToAnalytics
+        const allYears = getElectionYearsFromParsedParams(parsedParams, dbData)
 
         return fillDataForSelectedCombinations(dbData, allYears, selectedCombinations, parsedParams)
     } catch (error) {
@@ -301,6 +301,29 @@ const generateElectionYears = (initialYear, finalYear) => {
     }
 
     return years
+}
+
+// Função auxiliar para obter anos das eleições dos parâmetros já processados
+const getElectionYearsFromParsedParams = (parsedParams, dbData = []) => {
+    try {
+        // Usar os anos das eleições que já vêm do parseFiltersToAnalytics
+        const electionYears = parsedParams.electionYears || []
+
+        if (electionYears.length === 0) {
+            console.warn("Nenhum ano de eleição encontrado nos parâmetros processados, usando anos dos dados existentes")
+            return [...new Set(dbData.map((item) => item.ano))].sort((a, b) => a - b)
+        }
+
+        // Combinar com anos dos dados existentes (caso existam dados)
+        const dataYears = dbData.map((item) => item.ano)
+        const allYears = [...new Set([...electionYears, ...dataYears])]
+
+        return allYears.sort((a, b) => a - b)
+    } catch (error) {
+        console.error("Erro ao obter anos de eleições dos parâmetros processados:", error)
+        // Em caso de erro, retornar anos dos dados existentes
+        return [...new Set(dbData.map((item) => item.ano))].sort((a, b) => a - b)
+    }
 }
 
 // Função auxiliar para obter as combinações específicas selecionadas pelo usuário

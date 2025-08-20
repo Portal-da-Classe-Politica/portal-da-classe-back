@@ -181,7 +181,7 @@ const parseFiltersToAnalytics = async (filters) => {
     }
 
     const [elections, ocupations, instructionsDegrees, parties, electoralUnities] = await Promise.all([
-        EleicaoService.getElectionsByYearInterval(filters.initial_year, filters.final_year, "all"),
+        EleicaoService.getElectionsByYearIntervalAndAbragency(filters.initial_year, filters.final_year, "all", abrangencia),
         filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
@@ -193,6 +193,7 @@ const parseFiltersToAnalytics = async (filters) => {
 
     const ocupationsIds = ocupations.map((i) => i.id)
     const electionsIds = elections.map((i) => i.id)
+    const electionYears = elections.map((i) => i.ano_eleicao || i.ano)
     const instructionsDegreesIds = instructionsDegrees.map((i) => i.id)
     const partidosIds = parties.map((i) => i.id)
     const electoralUnitiesIds = electoralUnities.map((i) => i.id)
@@ -224,6 +225,7 @@ const parseFiltersToAnalytics = async (filters) => {
     return {
         dimension: filters.dimension,
         electionsIds,
+        electionYears,
         cargoId: filters.cargoId,
         partidosIds,
         ocupationsIds,
