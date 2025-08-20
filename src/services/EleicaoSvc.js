@@ -72,7 +72,7 @@ const getElectionsByYearIntervalAndAbragency = async (initialYear, finalYear, ro
                 abrangencium_id: abrangency,
                 turno: round,
             },
-            attributes: ["id"],
+            attributes: ["id", "ano_eleicao"],
             raw: true,
         })
         return election
