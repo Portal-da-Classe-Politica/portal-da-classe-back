@@ -74,9 +74,8 @@ const getCargoAndAnalises = async (req, res) => {
             { id: 10, cargo: "vice presidente" },
         ]
         const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
-        const filteredRoles = dimension === "votes"
-            ? roles.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
-            : roles
+        const filteredRoles = cargos.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
+
         return res.json({
             success: true,
             data: {
