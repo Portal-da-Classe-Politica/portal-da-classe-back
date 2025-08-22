@@ -67,6 +67,16 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
 const getCargoAndAnalises = async (req, res) => {
     try {
         const cargos = await cargoService.getAllCargos()
+        const nonVotesRoles = [{ id: 14, cargo: "2 suplente" },
+            { id: 15, cargo: "1 suplente" },
+            { id: 3, cargo: "vice governador" },
+            { id: 13, cargo: "vice prefeito" },
+            { id: 10, cargo: "vice presidente" },
+        ]
+        const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
+        const filteredRoles = dimension === "votes"
+            ? roles.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
+            : roles
         return res.json({
             success: true,
             data: {
@@ -75,16 +85,19 @@ const getCargoAndAnalises = async (req, res) => {
                         label: "Quantidade de candidaturas",
                         parameter: "dimension",
                         value: "total_candidates",
+                        cargos,
                     },
                     {
                         label: "Sucesso eleitoral",
                         parameter: "dimension",
                         value: "elected_candidates",
+                        cargos,
                     },
                     {
                         label: "Votação",
                         parameter: "dimension",
                         value: "votes",
+                        cargos: filteredRoles,
                     },
                 ],
                 cargos,
