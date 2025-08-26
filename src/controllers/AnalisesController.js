@@ -168,7 +168,7 @@ const generateGraph = async (req, res) => {
         const parsedParams = await parseFiltersToAnalytics(params)
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
-        console.log(dbData)
+        // console.log(dbData)
         // Preencher dados faltantes com zero para categorias sem resultados
         const completeData = await fillMissingCategoriesWithZero(dbData, providedCategoricalParams, parsedParams, params)
 
