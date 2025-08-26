@@ -106,12 +106,15 @@ const getAnalyticCrossCriteria = async (params) => {
             ],
             attributes: [
                 [Sequelize.col("eleicao.ano_eleicao"), "ano"],
+                [Sequelize.col("eleicao.turno"), "turno"],
             ],
             group: [
                 "ano",
+                "turno",
             ],
             order: [
                 ["ano", "ASC"],
+                ["turno", "ASC"],
             ],
             raw: true,
         }
@@ -138,6 +141,7 @@ const parseByDimension = (finder, dimension) => {
     switch (dimension) {
     case "total_candidates":
         finder.attributes.push([Sequelize.fn("COUNT", Sequelize.fn("DISTINCT", Sequelize.col("candidato.id"))), "total"])
+        finder.group.push("turno") // Agrupa por turno também
         break
     case "elected_candidates":
         finder.attributes.push(
@@ -152,10 +156,12 @@ const parseByDimension = (finder, dimension) => {
         }
         finder.include.push(includeST)
         finder.group.push("situacao_turno.foi_eleito") // Agrupa por foi_eleito
+        finder.group.push("turno") // Agrupa por turno também
         break
     case "votes":
         finder.include.push({ model: votacaoCandidatoMunicipioModel, attributes: [] })
         finder.attributes.push([Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total"])
+        finder.group.push("turno") // Agrupa por turno também
         break
     default: break
     }

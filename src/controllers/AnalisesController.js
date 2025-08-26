@@ -169,8 +169,15 @@ const generateGraph = async (req, res) => {
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
         // console.log(dbData)
+        
+        // Transformar o ano para incluir o turno
+        const transformedData = dbData.map((item) => ({
+            ...item,
+            ano: `${item.ano} - ${item.turno}º turno`,
+        }))
+        
         // Preencher dados faltantes com zero para categorias sem resultados
-        const completeData = await fillMissingCategoriesWithZero(dbData, providedCategoricalParams, parsedParams, params)
+        const completeData = await fillMissingCategoriesWithZero(transformedData, providedCategoricalParams, parsedParams, params)
 
         if (exportcsv === "true") {
             if (dimension === "elected_candidates"){
@@ -330,18 +337,25 @@ const getElectionYearsFromParsedParams = (parsedParams, dbData = []) => {
 
         if (electionYears.length === 0) {
             console.warn("Nenhum ano de eleição encontrado nos parâmetros processados, usando anos dos dados existentes")
-            return [...new Set(dbData.map((item) => item.ano))].sort((a, b) => a - b)
+            return [...new Set(dbData.map((item) => item.ano))].sort()
+        }
+
+        // Gerar combinações de ano e turno
+        const yearTurnCombinations = []
+        for (const year of electionYears) {
+            yearTurnCombinations.push(`${year} - 1º turno`)
+            yearTurnCombinations.push(`${year} - 2º turno`)
         }
 
         // Combinar com anos dos dados existentes (caso existam dados)
         const dataYears = dbData.map((item) => item.ano)
-        const allYears = [...new Set([...electionYears, ...dataYears])]
+        const allYears = [...new Set([...yearTurnCombinations, ...dataYears])]
 
-        return allYears.sort((a, b) => a - b)
+        return allYears.sort()
     } catch (error) {
         console.error("Erro ao obter anos de eleições dos parâmetros processados:", error)
         // Em caso de erro, retornar anos dos dados existentes
-        return [...new Set(dbData.map((item) => item.ano))].sort((a, b) => a - b)
+        return [...new Set(dbData.map((item) => item.ano))].sort()
     }
 }
 
@@ -478,16 +492,16 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
         return dbData
     }
 
-    for (const year of allYears) {
+    for (const yearWithTurn of allYears) {
         for (const combination of selectedCombinations) {
             // Verificar se há registros existentes para esta combinação e ano
-            const existingData = findExistingData(dbData, year, combination)
+            const existingData = findExistingData(dbData, yearWithTurn, combination)
 
             if (existingData.length > 0) {
                 filledData.push(...existingData)
             } else {
                 // Criar registro com zero para esta combinação
-                const zeroRecords = createZeroRecords(year, combination, parsedParams)
+                const zeroRecords = createZeroRecords(yearWithTurn, combination, parsedParams)
                 filledData.push(...zeroRecords)
             }
         }
@@ -497,9 +511,9 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
 }
 
 // Função auxiliar para encontrar dados existentes
-const findExistingData = (dbData, year, combination) => {
+const findExistingData = (dbData, yearWithTurn, combination) => {
     return dbData.filter((item) => {
-        if (item.ano !== year) return false
+        if (item.ano !== yearWithTurn) return false
 
         for (const [key, value] of Object.entries(combination)) {
             if (item[key] !== value) return false
@@ -510,9 +524,9 @@ const findExistingData = (dbData, year, combination) => {
 }
 
 // Função auxiliar para criar registros com zero
-const createZeroRecords = (year, combination, parsedParams) => {
+const createZeroRecords = (yearWithTurn, combination, parsedParams) => {
     const baseRecord = {
-        ano: year,
+        ano: yearWithTurn,
         total: 0,
         ...combination,
     }
