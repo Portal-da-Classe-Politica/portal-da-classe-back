@@ -168,7 +168,7 @@ const generateGraph = async (req, res) => {
         const parsedParams = await parseFiltersToAnalytics(params)
 
         const dbData = await analisesSvc.getAnalyticCrossCriteria(parsedParams)
-
+        console.log(dbData)
         // Preencher dados faltantes com zero para categorias sem resultados
         const completeData = await fillMissingCategoriesWithZero(dbData, providedCategoricalParams, parsedParams, params)
 
@@ -480,11 +480,11 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
 
     for (const year of allYears) {
         for (const combination of selectedCombinations) {
-            // Verificar se há um registro existente para esta combinação e ano
+            // Verificar se há registros existentes para esta combinação e ano
             const existingData = findExistingData(dbData, year, combination)
 
-            if (existingData) {
-                filledData.push(existingData)
+            if (existingData.length > 0) {
+                filledData.push(...existingData)
             } else {
                 // Criar registro com zero para esta combinação
                 const zeroRecords = createZeroRecords(year, combination, parsedParams)
@@ -498,7 +498,7 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
 
 // Função auxiliar para encontrar dados existentes
 const findExistingData = (dbData, year, combination) => {
-    return dbData.find((item) => {
+    return dbData.filter((item) => {
         if (item.ano !== year) return false
 
         for (const [key, value] of Object.entries(combination)) {
