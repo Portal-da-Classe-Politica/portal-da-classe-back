@@ -18,10 +18,14 @@ const footer = "\nFonte: Portal da Classe Política - INCT ReDem (2025)"
 
 const getIndicador = async (req, res) => {
     try {
+        console.log("getIndicador called with params:", req.params, "and query:", req.query)
         const { type, indicator_id } = req.params
         let {
             cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv,
         } = req.query
+        // console.log({
+        //     cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv,
+        // })
         const isIndicatorInGroup = verifyIfIndicatorIsInGroup(indicator_id, type)
         const indicator = getIndicatorByID(indicator_id)
         if (!indicator) {
@@ -42,6 +46,7 @@ const getIndicador = async (req, res) => {
         if (!isCargoAllowedForIndicator) {
             return res.status(400).json({ success: false, message: `Cargo ${cargoId} não é permitido para o indicador ${indicator.nome}` })
         }
+        // console.log({ cargoId, cargoFilter })
 
         // if (unidadesEleitorais && !Array.isArray(unidadesEleitorais)) {
         //     unidadesEleitorais = [unidadesEleitorais]
@@ -74,7 +79,7 @@ const getIndicador = async (req, res) => {
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
         })
     } catch (error) {
-        // console.error("Error in getIndicador:", error)
+        // console.log({ error })
         logger.error(error)
         res.status(500).json({ message: error.message })
     }
@@ -279,23 +284,23 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             seriesKey = "sigla_atual",
             indicator_detail = 11,
         )
-    case 12:
-        const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-        if (exportcsv === "true") {
-            return parser.parse(convertDecimalSeparatorInData(dataEficienciaVotos)) // CSV direto do banco
-        }
-        return chartsUtil.parseDataToMultipleSeriesLineChart(
-            dataEficienciaVotos,
-            seriesName = chartsUtil.indicatorsDetails[12].title,
-            xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
-            yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
-            title = chartsUtil.indicatorsDetails[12].title,
-            dataType = "float",
-            xAxisKey = "ano",
-            yAxisKey = "iev",
-            seriesKey = "sigla",
-            indicator_detail = 12,
-        )
+    // case 12:
+    //     const dataEficienciaVotos = await indicadoresGeograficosSvc.getEficienciaVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+    //     if (exportcsv === "true") {
+    //         return parser.parse(convertDecimalSeparatorInData(dataEficienciaVotos)) // CSV direto do banco
+    //     }
+    //     return chartsUtil.parseDataToMultipleSeriesLineChart(
+    //         dataEficienciaVotos,
+    //         seriesName = chartsUtil.indicatorsDetails[12].title,
+    //         xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
+    //         yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
+    //         title = chartsUtil.indicatorsDetails[12].title,
+    //         dataType = "float",
+    //         xAxisKey = "ano",
+    //         yAxisKey = "iev",
+    //         seriesKey = "sigla",
+    //         indicator_detail = 12,
+    //     )
     case 13:
         const dataCustoVoto = await IndicatorCarreiraSvc.getTaxaCustoPorVoto(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
         if (exportcsv === "true") {
@@ -360,7 +365,24 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             "float", // type
             indicator_detail = 16,
         )
+    case 12:
+        const dataGellagher = await IndicatorCarreiraSvc.getGallagherLSq(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
+        if (exportcsv === "true") {
+            return parser.parse(convertDecimalSeparatorInData(dataGellagher)) // CSV direto do banco
+        }
+        return chartsUtil.parseDataToLineChart(
+            dataGellagher,
+            seriesName = chartsUtil.indicatorsDetails[12].title,
+            xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
+            yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
+            chartsUtil.indicatorsDetails[12].title,
+            "float",
+            "ano",
+            "lsq",
+            indicator_detail = 12,
+        )
     default:
+        console.log("Indicador não implementado")
         result = null
     }
 }

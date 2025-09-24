@@ -232,20 +232,20 @@ const indicatorsPossibilities = {
             { ...cargosGlossary.presidente, required_steps: ["UF", "party"] },
         ],
     },
-    "12": {
-        "id": "12",
-        "nome": "Índice de Eficiência do Voto",
-        "grupo": "geográfico",
-        "cargos": [
-            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
-            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
-            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
-            // { ...cargosGlossary.senador, required_steps: ["UF"] },
-            // { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
-            // { ...cargosGlossary.governador, required_steps: ["UF"] },
-            // { ...cargosGlossary.presidente, required_steps: ["UF"] },
-        ],
-    },
+    // "12": {
+    //     "id": "12",
+    //     "nome": "Índice de Eficiência do Voto",
+    //     "grupo": "geográfico",
+    //     "cargos": [
+    //         { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+    //         { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+    //         { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+    //         // { ...cargosGlossary.senador, required_steps: ["UF"] },
+    //         // { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
+    //         // { ...cargosGlossary.governador, required_steps: ["UF"] },
+    //         // { ...cargosGlossary.presidente, required_steps: ["UF"] },
+    //     ],
+    // },
     "13": {
         "id": "13",
         "nome": "Taxa de Custo por Voto",
@@ -302,6 +302,16 @@ const indicatorsPossibilities = {
             { ...cargosGlossary.presidente, required_steps: ["UF"] },
         ],
     },
+    "12": {
+        "id": "12",
+        "nome": "Desproporcionalidade (Gellagher index)",
+        "grupo": "partidário",
+        "cargos": [
+            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
+            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
+            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
+        ],
+    },
 }
 
 const getIndicatorByID = (id) => {
@@ -331,13 +341,13 @@ const indicatorsGroupsGlossary = {
     "partidarios": {
         "nome": "Partidário",
         indicators: [
-            indicatorsPossibilities["5"], indicatorsPossibilities["6"], /* indicatorsPossibilities["7"], */ indicatorsPossibilities["8"],
+            indicatorsPossibilities["5"], indicatorsPossibilities["6"], /* indicatorsPossibilities["7"], */ indicatorsPossibilities["8"], indicatorsPossibilities["12"],
         ],
     },
     "geograficos": {
         "nome": "Geográfico",
         indicators: [
-            /*  indicatorsPossibilities["9"], */ indicatorsPossibilities["10"], indicatorsPossibilities["11"], indicatorsPossibilities["12"],
+            /*  indicatorsPossibilities["9"], */ indicatorsPossibilities["10"], indicatorsPossibilities["11"], /* indicatorsPossibilities["12"], */
         ],
     },
     "financeiros": {
