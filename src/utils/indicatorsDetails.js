@@ -2,10 +2,10 @@ const indicatorsDetails = {
     1: {
         title: "Número Efetivo de Partidos",
         indicator_purpose:
-      "O Número Efetivo de Partidos Parlamentares (NEPP) serve para medir a fragmentação de um sistema partidário em um legislativo, ponderando o número de partidos pela sua proporção de assentos. ",
+      "O Número Efetivo de Partidos Parlamentares (NEPP) mede a fragmentação de um sistema partidário na casa legislativa, ponderando o número de partidos pela sua proporção de assentos, ou seja, pelo peso que ocupa no parlamento.",
         how_to_interpretate:
       "Valores mais próximos de 1 indicam concentração partidária, enquanto valores mais altos revelam maior fragmentação do sistema político.\nEixo X (horizontal): Representa os anos das eleições legislativas.\nEixo Y (vertical): Indica o NEPP, o número efetivo de partidos na arena legislativa.",
-        unit: "Número efetivo de partidos",
+        unit: "Número efetivo de partidos parlamentares",
         party_indicator: false,
         indicator_t1: false,
         xAxisLabel: "Anos das eleições legislativas",

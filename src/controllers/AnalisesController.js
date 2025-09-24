@@ -11,6 +11,7 @@ const { validateParams, parseFiltersToAnalytics } = require("../utils/validateAn
 const analisesSvc = require("../services/AnalisesSvc")
 const { generateLineChartForMultipleLines } = require("../utils/chartParsers")
 const { Parser } = require("json2csv") // no topo do arquivo
+const { convertDecimalSeparatorInData } = require("../utils/csvUtils")
 
 const logger = require("../utils/logger")
 
@@ -178,10 +179,14 @@ const generateGraph = async (req, res) => {
                     curr.status_eleicao = curr.status_eleicao ? "Eleito" : "Não eleito"
                 }
             }
+
+            // Converte pontos decimais para vírgulas nos dados antes do parse
+            const dataWithCommas = convertDecimalSeparatorInData(completeData)
+
             const parser = new Parser({
                 delimiter: ";",
             })
-            let data = parser.parse(completeData)
+            let data = parser.parse(dataWithCommas)
             data += "\nFonte: Portal da Classe Política - INCT ReDem (2025)"
 
             console.log("Exportando CSV")
