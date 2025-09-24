@@ -162,11 +162,14 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
             }
         }
 
-        // Convert the result into the desired format
-        return volatilityResults.map((v) => ({
-            ano: v.year,
-            volatilidade: v.sum,
-        }))
+        const formattedResults = volatilityResults
+            .map((v) => ({
+                ano: v.year,
+                volatilidade: v.sum,
+            }))
+            .sort((a, b) => a.ano - b.ano) // Ordena pelo ano em ordem crescente
+
+        return formattedResults
     } catch (error) {
         console.error("Error in getVolatilidadeEleitoral:", error)
         throw error
