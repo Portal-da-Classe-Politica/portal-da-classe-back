@@ -3,7 +3,7 @@ const {
 } = require("sequelize")
 const EleicaoModel = require("../../models/Eleicao")
 const unidadeEleitoralModel = require("../../models/UnidadeEleitoral")
-const { getElectoralUnitByUFandAbrangency, getElectoralUnitsByUFandAbrangency } = require("../UnidateEleitoralService")
+const { getElectoralUnitByUFandAbrangency, getElectoralUnitsByUFandAbrangency, getFederativeUnitsByAbrangency } = require("../UnidateEleitoralService")
 
 
 const getUFByElectoralUnitId = async (id) => {
@@ -223,7 +223,12 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     } else {
         let ufIds = [UFid]
         if (cargoId != 9){
-            ufIdsArrray = await getElectoralUnitsByUFandAbrangency(UF, 1)
+            if (UF == "Brasil"){
+                ufIdsArrray = await getFederativeUnitsByAbrangency(1)
+            } else {
+                ufIdsArrray = await getElectoralUnitsByUFandAbrangency(UF, 1)
+            }
+
             ufIds = ufIdsArrray.map((uf) => parseInt(uf.id))
         }
         // aqui so pode ser presidente quando nao detalha por cidade

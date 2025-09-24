@@ -23,6 +23,9 @@ const getIndicador = async (req, res) => {
         let {
             cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv,
         } = req.query
+        // console.log({
+        //     cargoId, initialYear, finalYear, unidadesEleitorais, UF, partyId, exportcsv,
+        // })
         const isIndicatorInGroup = verifyIfIndicatorIsInGroup(indicator_id, type)
         const indicator = getIndicatorByID(indicator_id)
         if (!indicator) {
@@ -43,7 +46,7 @@ const getIndicador = async (req, res) => {
         if (!isCargoAllowedForIndicator) {
             return res.status(400).json({ success: false, message: `Cargo ${cargoId} não é permitido para o indicador ${indicator.nome}` })
         }
-        console.log({ cargoId, cargoFilter })
+        // console.log({ cargoId, cargoFilter })
 
         // if (unidadesEleitorais && !Array.isArray(unidadesEleitorais)) {
         //     unidadesEleitorais = [unidadesEleitorais]
@@ -76,6 +79,7 @@ const getIndicador = async (req, res) => {
             message: `Indicador ${indicator.nome} do grupo ${type} para o cargo ${cargoFilter.name}`,
         })
     } catch (error) {
+        // console.log({ error })
         logger.error(error)
         res.status(500).json({ message: error.message })
     }
