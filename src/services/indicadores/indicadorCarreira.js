@@ -415,34 +415,54 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
     if (unidadesEleitorais && unidadesEleitorais.length > 0) {
         filterUnitiesCondition = `AND ce.unidade_eleitoral_id IN (${unidadesEleitorais.join(",")})`
     }
-    const query = `
-    SELECT 
+
+    const replacements = { electionsIds, cargoId }
+    let query = `
+    WITH patrimonio_por_candidato AS (
+      SELECT
         e.ano_eleicao,
-        AVG(b.valor) AS media,
-        STDDEV(b.valor) AS desvio_padrao
-    FROM 
-        bens_candidatos b
-    JOIN 
-        candidato_eleicaos ce ON b.candidato_eleicao_id = ce.id
-    JOIN 
-        eleicaos e ON ce.eleicao_id = e.id
-    WHERE 
-        ce.eleicao_id IN (${electionsIds.join(",")})
-        AND ce.cargo_id = ${cargoId}
+        ce.id AS candidato_eleicao_id,
+        SUM(b.valor) AS patrimonio_cand
+      FROM bens_candidatos b
+      JOIN candidato_eleicaos ce ON b.candidato_eleicao_id = ce.id
+      JOIN eleicaos e ON ce.eleicao_id = e.id
+      WHERE ce.eleicao_id IN (:electionsIds)
+        AND ce.cargo_id = :cargoId
         AND ce.situacao_candidatura_id IN (1, 16)
         ${filterUnitiesCondition}
-    GROUP BY 
-        e.ano_eleicao
-`
+      GROUP BY e.ano_eleicao, ce.id
+    ),
+    totais_ano AS (
+      SELECT
+        ano_eleicao,
+        SUM(patrimonio_cand) AS total_patrimonio
+      FROM patrimonio_por_candidato
+      GROUP BY ano_eleicao
+    ),
+    shares AS (
+      SELECT
+        p.ano_eleicao,
+        p.patrimonio_cand / NULLIF(t.total_patrimonio, 0) AS s_i
+      FROM patrimonio_por_candidato p
+      JOIN totais_ano t USING (ano_eleicao)
+    )
+    SELECT
+      ano_eleicao,
+      SUM(POWER(s_i, 2)) AS hhi
+    FROM shares
+    GROUP BY ano_eleicao
+    ORDER BY ano_eleicao;
+  `
 
-    const results = await sequelize.query(query, { type: Sequelize.QueryTypes.SELECT })
+    const rows = await sequelize.query(query, {
+        replacements,
+        type: Sequelize.QueryTypes.SELECT,
+    })
 
-    const IEARPorAno = results.map((result) => ({
-        ano: result.ano_eleicao,
-        IDAR: result.media > 0 ? Number((parseFloat(result.desvio_padrao) / parseFloat(result.media)).toFixed(2)) : 0,
+    return rows.map((r) => ({
+        ano: Number(r.ano_eleicao),
+        IDAR: r.hhi == null ? null : Number(r.hhi), // HHI
     }))
-
-    return IEARPorAno
 }
 
 /**
