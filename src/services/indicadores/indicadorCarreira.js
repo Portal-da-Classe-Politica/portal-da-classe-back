@@ -651,6 +651,113 @@ function computeAvg(data) {
     return averageByYear
 }
 
+const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+    const electionsIds = elections.map((e) => e.id)
+
+    const replacements = { electionsIds, cargoId }
+
+    let filterUnitiesCondition = ""
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        filterUnitiesCondition = " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds) "
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+    }
+
+    let query = `
+    WITH votos_por_partido_ano AS (
+      SELECT
+        e.ano_eleicao,
+        p.sigla_atual,
+        SUM(vcm.quantidade_votos) AS votos_partido_ano
+      FROM candidato_eleicaos ce
+      JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
+      JOIN eleicaos e ON e.id = ce.eleicao_id
+      JOIN partidos p ON p.id = ce.partido_id
+      WHERE ce.eleicao_id IN (:electionsIds)
+        AND ce.cargo_id = :cargoId
+        ${filterUnitiesCondition}
+      GROUP BY e.ano_eleicao, p.sigla_atual
+    ),
+    votos_totais_ano AS (
+      SELECT ano_eleicao, SUM(votos_partido_ano) AS votos_total_ano
+      FROM votos_por_partido_ano
+      GROUP BY ano_eleicao
+    ),
+    pct_votos AS (
+      SELECT
+        v.ano_eleicao,
+        v.sigla_atual,
+        v.votos_partido_ano / NULLIF(t.votos_total_ano, 0) AS pct_votos
+      FROM votos_por_partido_ano v
+      JOIN votos_totais_ano t USING (ano_eleicao)
+    ),
+    eleitos_por_partido_ano AS (
+      SELECT
+        e.ano_eleicao,
+        p.sigla_atual,
+        COUNT(DISTINCT CASE
+          WHEN ce.situacao_turno_id IN (2, 7, 11, 13) THEN ce.candidato_id
+        END) AS eleitos_partido_ano
+      FROM candidato_eleicaos ce
+      JOIN eleicaos e ON e.id = ce.eleicao_id
+      JOIN partidos p ON p.id = ce.partido_id
+      WHERE ce.eleicao_id IN (:electionsIds)
+        AND ce.cargo_id = :cargoId
+        ${filterUnitiesCondition}
+      GROUP BY e.ano_eleicao, p.sigla_atual
+    ),
+    eleitos_totais_ano AS (
+      SELECT ano_eleicao, SUM(eleitos_partido_ano) AS eleitos_total_ano
+      FROM eleitos_por_partido_ano
+      GROUP BY ano_eleicao
+    ),
+    pct_assentos AS (
+      SELECT
+        epa.ano_eleicao,
+        epa.sigla_atual,
+        epa.eleitos_partido_ano / NULLIF(et.eleitos_total_ano, 0) AS pct_assentos
+      FROM eleitos_por_partido_ano epa
+      JOIN eleitos_totais_ano et USING (ano_eleicao)
+    ),
+    base AS (
+      SELECT
+        COALESCE(v.ano_eleicao, s.ano_eleicao) AS ano_eleicao,
+        COALESCE(v.sigla_atual, s.sigla_atual) AS sigla_atual,
+        COALESCE(v.pct_votos, 0.0)   AS pct_votos,
+        COALESCE(s.pct_assentos, 0.0) AS pct_assentos
+      FROM pct_votos v
+      FULL OUTER JOIN pct_assentos s
+        ON v.ano_eleicao = s.ano_eleicao AND v.sigla_atual = s.sigla_atual
+    ),
+    componentes AS (
+      SELECT
+        ano_eleicao,
+        sigla_atual,
+        (pct_votos - pct_assentos) AS diff,
+        POWER(pct_votos - pct_assentos, 2) AS diff2
+      FROM base
+    )
+    SELECT
+      ano_eleicao,
+      SQRT(0.5 * SUM(diff2)) AS lsq_gallagher
+    FROM componentes
+    GROUP BY ano_eleicao
+    ORDER BY ano_eleicao;
+  `
+
+    const rows = await sequelize.query(query, {
+        replacements,
+        type: Sequelize.QueryTypes.SELECT,
+    })
+    //console.log(rows)
+
+    // Retorna como número
+    return rows.map((r) => ({
+        ano: Number(r.ano_eleicao),
+        lsq: r.lsq_gallagher == null ? null : Number(r.lsq_gallagher),
+    }))
+}
+
 module.exports = {
     getTaxaDeRenovacaoLiquida,
     getTaxaReeleicao,
@@ -660,4 +767,5 @@ module.exports = {
     getMediaMedianaPatrimonio,
     getIndiceDiversidadeEconomica,
     getMedianaMigracao,
+    getGallagherLSq,
 }

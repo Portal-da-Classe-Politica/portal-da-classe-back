@@ -130,18 +130,18 @@ const indicatorsDetails = {
         xAxisLabel: "Tempo (anos ou eleições)",
         yAxisLabel: "Índice de Dispersão Regional do Voto",
     },
-    12: {
-        title: "Índice de Eficiência do Voto",
-        indicator_purpose:
-      "Mede a eficiência de um partido em converter votos recebidos em cadeiras conquistadas, comparando sua proporção de assentos com sua proporção de votos no sistema proporcional. É especialmente útil para analisar se partidos pequenos são prejudicados pela cláusula de barreira ou se partidos grandes são beneficiados por efeitos de magnitude distrital.",
-        how_to_interpretate:
-      "Valor igual a 1 indica proporcionalidade perfeita; valores maiores que 1 revelam super-representação (partido mais eficiente); valores menores que 1 indicam sub-representação (partido menos eficiente na conversão).\nEixo X (horizontal): Tempo (anos ou eleições).\nEixo Y (vertical): Índice de Eficiência do Voto (IEV).\nLinhas: Cada linha representa um partido ou coligação/federação.",
-        unit: "IEV",
-        party_indicator: true,
-        indicator_t1: false,
-        xAxisLabel: "Tempo (anos ou eleições)",
-        yAxisLabel: "Índice de Eficiência do Voto (IEV)",
-    },
+    // 12: {
+    //     title: "Índice de Eficiência do Voto",
+    //     indicator_purpose:
+    //   "Mede a eficiência de um partido em converter votos recebidos em cadeiras conquistadas, comparando sua proporção de assentos com sua proporção de votos no sistema proporcional. É especialmente útil para analisar se partidos pequenos são prejudicados pela cláusula de barreira ou se partidos grandes são beneficiados por efeitos de magnitude distrital.",
+    //     how_to_interpretate:
+    //   "Valor igual a 1 indica proporcionalidade perfeita; valores maiores que 1 revelam super-representação (partido mais eficiente); valores menores que 1 indicam sub-representação (partido menos eficiente na conversão).\nEixo X (horizontal): Tempo (anos ou eleições).\nEixo Y (vertical): Índice de Eficiência do Voto (IEV).\nLinhas: Cada linha representa um partido ou coligação/federação.",
+    //     unit: "IEV",
+    //     party_indicator: true,
+    //     indicator_t1: false,
+    //     xAxisLabel: "Tempo (anos ou eleições)",
+    //     yAxisLabel: "Índice de Eficiência do Voto (IEV)",
+    // },
     13: {
         title: "Taxa de Custo por Voto",
         indicator_purpose:
@@ -189,6 +189,18 @@ const indicatorsDetails = {
         indicator_t1: false,
         xAxisLabel: "Ano",
         yAxisLabel: "Média/Mediana do patrimônio (R$)",
+    },
+    12: {
+        title: "Desproporcionalidade (Gellagher index)",
+        indicator_purpose:
+      "Mensura a desproporcionalidade de um sistema eleitoral através da diferença na proporção de cadeiras conquistadas e votos recebidos. Indicadores mais baixos mostram que a correspondência entre quantidade de votos e quantidade de cadeiras recebidas por um partido é equilibrada.",
+        how_to_interpretate:
+      "Quanto mais próximo de zero, menor a diferença entre votos e cadeiras.Quanto mais próximo de 100, maior a diferença entre votos amealhados e cadeiras recebidas por um partido político.Eixo X (horizontal): Tempo (anos ou eleições).Eixo Y (vertical): Índice de Eficiência do Voto (IEV).Linhas: Cada linha representa um partido ou coligação/federação.",
+        unit: "EM",
+        party_indicator: true,
+        indicator_t1: false,
+        xAxisLabel: "Ano",
+        yAxisLabel: "Gellagher index",
     },
 }
 
