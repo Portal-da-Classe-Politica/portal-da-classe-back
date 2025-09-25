@@ -335,7 +335,7 @@ const indicatorsGroupsGlossary = {
     "eleitorais": {
         "nome": "Eleitoral",
         indicators: [
-            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["4"],
+            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["3"],
         ],
     },
     "partidarios": {
