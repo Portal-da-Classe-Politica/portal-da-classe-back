@@ -35,18 +35,6 @@ const indicatorsDetails = {
         xAxisLabel: "Tempo (anos ou eleições)",
         yAxisLabel: "Quociente eleitoral",
     },
-    4: {
-        title: "Quociente Partidário",
-        indicator_purpose:
-      "Determina quantas cadeiras cada partido ou coligação conquistou na distribuição inicial, dividindo os votos válidos recebidos pelo partido pelo quociente eleitoral.",
-        how_to_interpretate:
-      "O resultado representa a quantidade de vagas que o partido garantiu diretamente, antes da distribuição das sobras pelos votos remanescentes.\nEixo X (horizontal): Tempo (anos ou eleições).\nEixo Y (vertical): Quociente partidário.",
-        unit: "Quociente partidário",
-        party_indicator: true,
-        indicator_t1: false,
-        xAxisLabel: "Tempo (anos ou eleições)",
-        yAxisLabel: "Quociente partidário",
-    },
     5: {
         title: "Taxa de Renovação Líquida",
         indicator_purpose:

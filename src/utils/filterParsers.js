@@ -335,25 +335,25 @@ const indicatorsGroupsGlossary = {
     "eleitorais": {
         "nome": "Eleitoral",
         indicators: [
-            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["3"], indicatorsPossibilities["4"],
+            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["4"],
         ],
     },
     "partidarios": {
         "nome": "Partidário",
         indicators: [
-            indicatorsPossibilities["5"], indicatorsPossibilities["6"], /* indicatorsPossibilities["7"], */ indicatorsPossibilities["8"], indicatorsPossibilities["12"],
+            indicatorsPossibilities["5"], indicatorsPossibilities["6"], indicatorsPossibilities["8"], indicatorsPossibilities["12"],
         ],
     },
     "geograficos": {
         "nome": "Geográfico",
         indicators: [
-            /*  indicatorsPossibilities["9"], */ indicatorsPossibilities["10"], indicatorsPossibilities["11"], /* indicatorsPossibilities["12"], */
+            indicatorsPossibilities["10"], indicatorsPossibilities["11"],
         ],
     },
     "financeiros": {
         "nome": "Financeiro",
         indicators: [
-            /* indicatorsPossibilities["13"], */ indicatorsPossibilities["14"], indicatorsPossibilities["15"], indicatorsPossibilities["16"],
+            indicatorsPossibilities["14"], indicatorsPossibilities["15"], indicatorsPossibilities["16"],
         ],
     },
 }
