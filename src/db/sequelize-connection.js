@@ -3,11 +3,13 @@ const config = require("../config/config")
 const logger = require("../utils/logger")
 const { sendAlert } = require("../utils/alert/alertTelegram")
 
+const databaseName = config.environment != "development" ? "eleicao_v3" : "eleicao_v2"
+
 const objectDB = {
     username: "postgres",
     password: config.secretdb,
     host: config.urldb,
-    database: config.environment != "development" ? "eleicao_v3" : "eleicao_v2",
+    database: databaseName,
     dialect: "postgres",
     port: 5432,
     logging: false,
@@ -35,7 +37,7 @@ const connect = async () => {
     try {
         await sequelize.authenticate()
         sequelize.sync()
-        logger.info("Conexão com o banco de dados estabelecida com sucesso.")
+        logger.info(`Conexão com o banco de dados ${databaseName} estabelecida com sucesso.`)
     } catch (error) {
         logger.error("Não foi possível conectar ao banco de dados:", error)
         process.exit(1)
