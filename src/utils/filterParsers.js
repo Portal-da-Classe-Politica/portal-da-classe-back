@@ -335,13 +335,13 @@ const indicatorsGroupsGlossary = {
     "eleitorais": {
         "nome": "Eleitoral",
         indicators: [
-            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["3"],
+            indicatorsPossibilities["1"], indicatorsPossibilities["2"], indicatorsPossibilities["3"], indicatorsPossibilities["12"],
         ],
     },
     "partidarios": {
         "nome": "Partidário",
         indicators: [
-            indicatorsPossibilities["5"], indicatorsPossibilities["6"], indicatorsPossibilities["8"], indicatorsPossibilities["12"],
+            indicatorsPossibilities["5"], indicatorsPossibilities["6"], indicatorsPossibilities["8"],
         ],
     },
     "geograficos": {
