@@ -113,33 +113,18 @@ const validateParams = (params) => {
             errors.push("O parâmetro 'ocupacao_categorizada_id' contém valores inválidos. Valores permitidos: " + validOcupacaoIds.join(", "))
         }
     }
-    /*
-    // Validate grau_instrucao
-    if (params.grau_instrucao) {
-        const validGraus = [
-            "ANALFABETO", "ENSINO FUNDAMENTAL COMPLETO", "ENSINO FUNDAMENTAL INCOMPLETO",
-            "ENSINO MÉDIO COMPLETO", "ENSINO MÉDIO INCOMPLETO", "LÊ E ESCREVE",
-            "NÃO INFORMADO", "SUPERIOR COMPLETO", "SUPERIOR INCOMPLETO",
-        ]
-        const graus = params.grau_instrucao.split(",")
-        if (graus.some((grau) => !validGraus.includes(grau))) {
-            errors.push("O parâmetro 'grau_instrucao' contém valores inválidos. Valores permitidos: " + validGraus.join(", "))
+
+    if (!params.round){
+        params.round = "all"
+    }
+    if (params.round != "all") {
+        const validRounds = [1, 2]
+        if (isNaN(Number(params.round)) || !validRounds.includes(Number(params.round))) {
+            errors.push("O parâmetro 'round' é inválido. Valores permitidos: " + validRounds.join(", ") + " ou 'all'")
+        } else {
+            params.round = Number(params.round)
         }
     }
-
-    // Validate sigla_atual_partido
-    if (params.sigla_atual_partido) {
-        const validPartidos = [
-            "AGIR", "AVANTE", "CIDADANIA", "DC", "DEM", "MDB", "NOVO", "PAN", "PATRIOTA", "PC do B", "PCB", "PCO", "PDT",
-            "PFL", "PGT", "PHS", "PL", "PMB", "PMDB", "PMN", "PODE", "PP", "PPB", "PPL", "PPS", "PR", "PRB", "PRN", "PRONA",
-            "PROS", "PRP", "PRTB", "PSB", "PSC", "PSD", "PSDB", "PSDC", "PSL", "PSN", "PSOL", "PST", "PSTU", "PT", "PT do B",
-            "PTB", "PTC", "PTN", "PV", "REDE", "REPUBLICANOS", "SDD", "UNIÃO", "UP", null,
-        ]
-        const partidos = params.sigla_atual_partido.split(",")
-        if (partidos.some((partido) => !validPartidos.includes(partido))) {
-            errors.push("O parâmetro 'sigla_atual_partido' contém valores inválidos. Valores permitidos: " + validPartidos.join(", "))
-        }
-    } */
 
     return errors
 }
@@ -181,7 +166,7 @@ const parseFiltersToAnalytics = async (filters) => {
     }
 
     const [elections, ocupations, instructionsDegrees, parties, electoralUnities] = await Promise.all([
-        EleicaoService.getElectionsByYearIntervalAndAbragency(filters.initial_year, filters.final_year, "all", abrangencia),
+        EleicaoService.getElectionsByYearIntervalAndAbragency(filters.initial_year, filters.final_year, filters.round, abrangencia),
         filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],

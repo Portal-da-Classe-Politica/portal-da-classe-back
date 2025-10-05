@@ -30,6 +30,17 @@ const parseFiltersToAnalytics = (filters) => {
                 required: true,
                 type: "select",
             },
+            {
+                label: "Turno",
+                values: [
+                    { id: "all", label: "Todos" },
+                    { id: 1, label: "1º Turno" },
+                    { id: 2, label: "2º Turno" },
+                ],
+                parameter: "round",
+                required: false,
+                type: "select",
+            },
         ],
         cross_criterias: {
             max: 3,

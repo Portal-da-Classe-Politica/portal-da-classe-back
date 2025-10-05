@@ -21,14 +21,14 @@ const unidadeEleitoralSvc = require("../UnidateEleitoralService")
 const { fatoresDeCorreção } = require("../../utils/ipca")
 const cargoSvc = require("../CargoService")
 
-const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId, round = 1) => {
+const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId, round = [1]) => {
     const finder = {
         where: {
             ano_eleicao: {
                 [Sequelize.Op.gte]: initialYear,
                 [Sequelize.Op.lte]: finalYear,
             },
-            turno: round,
+            turno: { [Sequelize.Op.in]: round },
         },
         attributes: ["id", "ano_eleicao"],
         raw: true,
@@ -54,11 +54,11 @@ const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId,
  * @param {*} unidadesEleitorais
  * @returns
  */
-const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
+const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
     const abrangenciaId = abrangency.abrangencia
     const [elections, electedSituacaoTurnos, notElectedSituacaoTurnos] = await Promise.all([
-        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId),
+        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId, round),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: false } }),
     ])
@@ -146,11 +146,11 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
  * @param {*} unidadesEleitorais
  * @returns
  */
-const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
+const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
     const abrangenciaId = abrangency.abrangencia
     const [elections, electedSituacaoTurnos] = await Promise.all([
-        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId),
+        getElectionsByYearInterval(initialYear, finalYear, abrangenciaId, round),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
     ])
     const electionsIds = elections.map((election) => election.id)
@@ -228,9 +228,9 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
  * @param {*} finalYear
  * @param {*} unidadesEleitorais
  */
-const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
+const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const [elections, electedSituacaoTurnos] = await Promise.all([
-        getElectionsByYearInterval(initialYear, finalYear),
+        getElectionsByYearInterval(initialYear, finalYear, null, round),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
     ])
     const electionsIds = elections.map((election) => election.id)
@@ -407,8 +407,8 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
  * @param {*} finalYear
  * @param {*} unidadesEleitorais
  */
-const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((election) => election.id)
 
     let filterUnitiesCondition = ""
@@ -472,8 +472,8 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
  * @param {*} finalYear
  * @param {*} unidadesEleitorais
  */
-const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((election) => election.id)
 
     let filterUnitiesCondition = ""
@@ -531,8 +531,8 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
  * @param {*} finalYear
  * @param {*} unidadesEleitorais
  */
-const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((e) => e.id)
 
     let select = `
@@ -671,8 +671,8 @@ function computeAvg(data) {
     return averageByYear
 }
 
-const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((e) => e.id)
 
     const replacements = { electionsIds, cargoId }
@@ -769,7 +769,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
         replacements,
         type: Sequelize.QueryTypes.SELECT,
     })
-    //console.log(rows)
+    // console.log(rows)
 
     // Retorna como número
     return rows.map((r) => ({
