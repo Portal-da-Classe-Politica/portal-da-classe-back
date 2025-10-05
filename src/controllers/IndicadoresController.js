@@ -309,7 +309,8 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
     default:
         console.log("Indicador não implementado")
-        throw new Error("Indicador não implementado")
+        logger.error("Indicador não implementado")
+        return null
     }
 }
 

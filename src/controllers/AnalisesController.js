@@ -73,7 +73,7 @@ const getCargoAndAnalises = async (req, res) => {
             { id: 10, cargo: "vice presidente" },
             { id: 13, cargo: "vice prefeito" },
             { id: 14, cargo: "2 suplente" },
-            { id: 15, cargo: "1 suplente" },
+            { id: 15, cargo: "1 suplente" }
         ]
         const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
         const filteredRoles = cargos.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
@@ -162,7 +162,6 @@ const generateGraph = async (req, res) => {
             "ocupacao_categorizada_id": "ocupacao",
             "grau_instrucao": "instrucao",
             "id_agrupado_partido": "partido",
-            "round": "round",
         }
 
         // Filtrar e mapear os valores de providedCrossParams com base em providedCategoricalParams

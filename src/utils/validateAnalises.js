@@ -166,7 +166,7 @@ const parseFiltersToAnalytics = async (filters) => {
     }
 
     const [elections, ocupations, instructionsDegrees, parties, electoralUnities] = await Promise.all([
-        EleicaoService.getElectionsByYearIntervalAndAbragency(filters.initial_year, filters.final_year, filters.round, abrangencia),
+        EleicaoService.getElectionsByYearIntervalAndAbrangency(filters.initial_year, filters.final_year, filters.round, abrangencia),
         filters.ocupacao_categorizada_id?.length ? OcupacaoService.getOcupationsIDsByCategory(filters.ocupacao_categorizada_id) : [],
         filters.grau_instrucao?.length ? getGrausDeInstrucaoByIdsAgrupados(filters.grau_instrucao) : [],
         filters.id_agrupado_partido?.length ? getPartidosByIdsAgrupados(filters.id_agrupado_partido) : [],
