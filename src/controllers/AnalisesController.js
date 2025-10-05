@@ -73,7 +73,7 @@ const getCargoAndAnalises = async (req, res) => {
             { id: 10, cargo: "vice presidente" },
             { id: 13, cargo: "vice prefeito" },
             { id: 14, cargo: "2 suplente" },
-            { id: 15, cargo: "1 suplente" }
+            { id: 15, cargo: "1 suplente" },
         ]
         const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
         const filteredRoles = cargos.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
@@ -145,6 +145,7 @@ const generateGraph = async (req, res) => {
             ocupacao_categorizada_id,
             grau_instrucao,
             id_agrupado_partido,
+            round, // Adicionar round aos parâmetros
         }
         const validationErrors = validateParams(params)
 
