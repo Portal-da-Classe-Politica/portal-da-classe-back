@@ -7,6 +7,16 @@ const Cargo = sequelize.define("cargo",
             allowNull: false,
             comment: "DS_CARGO - Descrição do cargo",
         },
+        non_vote: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            comment: "Indica se o cargo é de voto ou não",
+        },
+        has_second_round: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            comment: "Indica se o cargo possui segundo turno",
+        },
     }, {
         sequelize,
         timestamps: false,

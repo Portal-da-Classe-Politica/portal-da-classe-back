@@ -5,7 +5,6 @@ const EleicaoModel = require("../../models/Eleicao")
 const unidadeEleitoralModel = require("../../models/UnidadeEleitoral")
 const { getElectoralUnitByUFandAbrangency, getElectoralUnitsByUFandAbrangency, getFederativeUnitsByAbrangency } = require("../UnidateEleitoralService")
 
-
 const getUFByElectoralUnitId = async (id) => {
     try {
         const unidadeEleitoral = await unidadeEleitoralModel.findOne({
@@ -22,7 +21,7 @@ const getUFByElectoralUnitId = async (id) => {
     }
 }
 
-const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => {
+const getElectionsByYearInterval = async (initialYear, finalYear, round = [1]) => {
     try {
         const election = await EleicaoModel.findAll({
             where: {
@@ -30,7 +29,7 @@ const getElectionsByYearInterval = async (initialYear, finalYear, round = 1) => 
                     [Sequelize.Op.gte]: initialYear,
                     [Sequelize.Op.lte]: finalYear,
                 },
-                turno: round,
+                turno: { [Sequelize.Op.in]: round },
             },
             attributes: ["id"],
             raw: true,
@@ -157,7 +156,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
     return result
 }
 
-const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId) => {
+const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, round) => {
     if (!partyId) {
         throw new Error("Partido deve ser informado")
     }
@@ -173,7 +172,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
         UFid = 28
     }
 
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, round)
     const electionsIds = elections.map((e) => e.id)
 
     const replacements = { electionsIds, cargoId }
@@ -284,8 +283,8 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
     return sumSquare
 }
 
-const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
+const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
+    const elections = await getElectionsByYearInterval(initialYear, finalYear, round)
     const electionsIds = elections.map((e) => e.id)
 
     const replacements = { electionsIds, cargoId }
