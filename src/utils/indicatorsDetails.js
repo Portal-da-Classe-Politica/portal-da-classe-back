@@ -100,7 +100,7 @@ const indicatorsDetails = {
         indicator_purpose:
       "Mede o grau de desigualdade na distribuição de recursos financeiros entre candidatos ao mesmo cargo, avaliando se a competição eleitoral é equilibrada em termos de financiamento de campanha.",
         how_to_interpretate:
-      "Valores próximos de 0 indicam distribuição equilibrada de recursos entre candidatos (maior igualdade), enquanto valores mais altos revelam concentração financeira em poucos candidatos (maior desigualdade no acesso). Eixo X: Tempo (anos ou eleições). Eixo Y: Índice de Desigualdade de Acesso a Recursos (HHI).",
+      "Valores próximos de 0 indicam distribuição equilibrada de recursos entre candidatos (baixa desigualdade), enquanto valores mais altos revelam concentração financeira em poucos candidatos (maior desigualdade no acesso). Eixo X: Tempo (anos ou eleições). Eixo Y: Índice de Desigualdade de Acesso a Recursos.",
         unit: "IDAR",
         party_indicator: false,
         indicator_t1: false,
@@ -112,7 +112,7 @@ const indicatorsDetails = {
         indicator_purpose:
       "Mede o grau de concentração da riqueza declarada entre candidatos ao mesmo cargo, identificando se poucos candidatos muito ricos dominam financeiramente a disputa eleitoral.",
         how_to_interpretate:
-      "Valores próximos de 0 indicam patrimônios distribuídos uniformemente entre candidatos, enquanto valores próximos de 1 revelam alta concentração de riqueza em poucos candidatos da disputa. Eixo X (horizontal): Tempo (anos ou eleições). Eixo Y (vertical): Índice de Diversidade Econômica entre Candidatos (IDEC).",
+      "Valores próximos de 0 indicam patrimônios distribuídos uniformemente entre candidatos, enquanto valores próximos de 1 revelam alta concentração de bens/patrimônios em poucos candidatos da disputa ao cargo. Eixo X (horizontal): Tempo (anos ou eleições). Eixo Y (vertical): Índice de Diversidade Econômica entre Candidatos (IDEC).",
         unit: "ICP",
         party_indicator: false,
         indicator_t1: true,

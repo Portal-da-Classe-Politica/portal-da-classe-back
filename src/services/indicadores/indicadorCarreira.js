@@ -750,7 +750,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
         AND ce.cargo_id = :cargoId
-        ${filterUnitiesCondition}
+        /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
     votos_totais_ano AS (
@@ -762,7 +762,8 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       SELECT
         v.ano_eleicao,
         v.sigla_atual,
-        v.votos_partido_ano / NULLIF(t.votos_total_ano, 0) AS pct_votos
+        -- CORREÇÃO: Multiplicar por 100 para ter percentual em escala 0-100
+        (v.votos_partido_ano / NULLIF(t.votos_total_ano, 0)) * 100 AS pct_votos
       FROM votos_por_partido_ano v
       JOIN votos_totais_ano t USING (ano_eleicao)
     ),
@@ -778,7 +779,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
         AND ce.cargo_id = :cargoId
-        ${filterUnitiesCondition}
+        /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
     eleitos_totais_ano AS (
@@ -790,7 +791,8 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       SELECT
         epa.ano_eleicao,
         epa.sigla_atual,
-        epa.eleitos_partido_ano / NULLIF(et.eleitos_total_ano, 0) AS pct_assentos
+        -- CORREÇÃO: Multiplicar por 100 para ter percentual em escala 0-100
+        (epa.eleitos_partido_ano / NULLIF(et.eleitos_total_ano, 0)) * 100 AS pct_assentos
       FROM eleitos_por_partido_ano epa
       JOIN eleitos_totais_ano et USING (ano_eleicao)
     ),
@@ -814,19 +816,27 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
     )
     SELECT
       ano_eleicao,
+      -- Fórmula de Gallagher (agora com escala correta 0-100)
       SQRT(0.5 * SUM(diff2)) AS lsq_gallagher
     FROM componentes
     GROUP BY ano_eleicao
     ORDER BY ano_eleicao;
   `
 
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        const filtro = " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds) "
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", filtro)
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+    } else {
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", "")
+    }
+
     const rows = await sequelize.query(query, {
         replacements,
         type: Sequelize.QueryTypes.SELECT,
     })
-    // console.log(rows)
 
-    // Retorna como número
+    // Retorna como número (já na escala correta 0-100)
     return rows.map((r) => ({
         ano: Number(r.ano_eleicao),
         lsq: r.lsq_gallagher == null ? null : Number(r.lsq_gallagher),
