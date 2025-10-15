@@ -398,71 +398,71 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
 }
 
 /**
- *  @name Índice de Igualdade de Acesso a Recursos
-    @formula IEAR = (R / A)
-    @R é a variância dos recursos disponíveis entre os candidatos -> variancia dos bens declarados de todos candidatos
-    @A é a média dos recursos disponíveis entre os candidatos -> media dos bens declarados de todos candidatos
- * @param {*} cargoId
- * @param {*} initialYear
- * @param {*} finalYear
- * @param {*} unidadesEleitorais
+ * Agrupa dados por ano e calcula Gini para cada ano
+ * @param {Array} data - Dados retornados pela query SQL
+ * @returns {Array} - Array com ano_eleicao e IDAR (Gini)
  */
+function computeGiniReceitas(data) {
+    const receitasPorAno = {}
+
+    // Agrupa receitas por ano
+    data.forEach(({ ano_eleicao, receita_total }) => {
+        if (!receitasPorAno[ano_eleicao]) {
+            receitasPorAno[ano_eleicao] = []
+        }
+        receitasPorAno[ano_eleicao].push(receita_total)
+    })
+
+    // Calcula Gini para cada ano e retorna no formato esperado
+    return Object.keys(receitasPorAno).map((ano_eleicao) => ({
+        ano: parseInt(ano_eleicao),
+        IDAR: calcularGini(receitasPorAno[ano_eleicao]), // Mantém nome IDAR para compatibilidade
+    }))
+}
+
 const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
-    const electionsIds = elections.map((election) => election.id)
-
-    let filterUnitiesCondition = ""
-    if (unidadesEleitorais && unidadesEleitorais.length > 0) {
-        filterUnitiesCondition = `AND ce.unidade_eleitoral_id IN (${unidadesEleitorais.join(",")})`
-    }
-
+    const electionsIds = elections.map((e) => e.id)
     const replacements = { electionsIds, cargoId }
+
     let query = `
-    WITH patrimonio_por_candidato AS (
-      SELECT
-        e.ano_eleicao,
-        ce.id AS candidato_eleicao_id,
-        SUM(b.valor) AS patrimonio_cand
-      FROM bens_candidatos b
-      JOIN candidato_eleicaos ce ON b.candidato_eleicao_id = ce.id
-      JOIN eleicaos e ON ce.eleicao_id = e.id
-      WHERE ce.eleicao_id IN (:electionsIds)
-        AND ce.cargo_id = :cargoId
-        AND ce.situacao_candidatura_id IN (1, 16)
-        ${filterUnitiesCondition}
-      GROUP BY e.ano_eleicao, ce.id
-    ),
-    totais_ano AS (
-      SELECT
-        ano_eleicao,
-        SUM(patrimonio_cand) AS total_patrimonio
-      FROM patrimonio_por_candidato
-      GROUP BY ano_eleicao
-    ),
-    shares AS (
-      SELECT
-        p.ano_eleicao,
-        p.patrimonio_cand / NULLIF(t.total_patrimonio, 0) AS s_i
-      FROM patrimonio_por_candidato p
-      JOIN totais_ano t USING (ano_eleicao)
-    )
-    SELECT
-      ano_eleicao,
-      SUM(POWER(s_i, 2)) AS hhi
-    FROM shares
-    GROUP BY ano_eleicao
-    ORDER BY ano_eleicao;
-  `
+        WITH receitas_por_candidato AS (
+            SELECT
+                e.ano_eleicao as ano_eleicao,
+                ce.id AS candidato_eleicao_id,
+                COALESCE(SUM(r.valor), 0) AS receita_total
+            FROM candidato_eleicaos ce
+            JOIN eleicaos e ON ce.eleicao_id = e.id
+            LEFT JOIN doacoes_candidato_eleicoes r ON ce.id = r.candidato_eleicao_id
+            WHERE ce.eleicao_id IN (:electionsIds)
+                AND ce.cargo_id = :cargoId
+                AND ce.situacao_candidatura_id IN (1, 16)
+                /** __FILTRO_UNIDADE__ **/
+            GROUP BY e.ano_eleicao, ce.id
+        )
+        SELECT
+            ano_eleicao,
+            candidato_eleicao_id,
+            receita_total
+        FROM receitas_por_candidato
+        ORDER BY ano_eleicao, candidato_eleicao_id;
+    `
+
+    if (unidadesEleitorais?.length) {
+        const filtro = " AND ce.unidade_eleitoral_id IN (:unidadesEleitorais) "
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", filtro)
+        replacements.unidadesEleitorais = unidadesEleitorais
+    } else {
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", "")
+    }
 
     const rows = await sequelize.query(query, {
         replacements,
         type: Sequelize.QueryTypes.SELECT,
     })
 
-    return rows.map((r) => ({
-        ano: Number(r.ano_eleicao),
-        IDAR: r.hhi == null ? null : Number(r.hhi), // HHI
-    }))
+    // Calcula Gini ao invés de HHI
+    return computeGiniReceitas(rows)
 }
 
 /**
@@ -522,36 +522,91 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
 }
 
 /**
- *  @name Índice de Igualdade de Acesso a Recursos
-    @formula IEAR = (R / A)
-    @R é a variância dos recursos disponíveis entre os candidatos -> variancia dos bens declarados de todos candidatos
-    @A é a média dos recursos disponíveis entre os candidatos -> media dos bens declarados de todos candidatos
- * @param {*} cargoId
- * @param {*} initialYear
- * @param {*} finalYear
- * @param {*} unidadesEleitorais
+ * Calcula o Índice de Gini para um array de valores
+ * @param {Array<number>} valores - Array com valores de patrimônio
+ * @returns {number} - Índice de Gini (0 a 1)
  */
+function calcularGini(valores) {
+    // Remove valores nulos/undefined e converte para números
+    const valoresLimpos = valores
+        .filter((v) => v !== null && v !== undefined && !isNaN(v))
+        .map((v) => Number(v))
+        .filter((v) => v >= 0)
+
+    const n = valoresLimpos.length
+
+    // Se não há valores ou todos são zero, Gini = 0
+    if (n === 0 || valoresLimpos.every((v) => v === 0)) {
+        return 0
+    }
+
+    // Ordena os valores em ordem crescente
+    const valoresOrdenados = valoresLimpos.sort((a, b) => a - b)
+
+    // Calcula o Gini: G = (2 * Σ(i * x_i)) / (n * Σ(x_i)) - (n + 1) / n
+    let somaPonderada = 0
+    let somaTotal = 0
+
+    for (let i = 0; i < n; i++) {
+        somaPonderada += (i + 1) * valoresOrdenados[i]
+        somaTotal += valoresOrdenados[i]
+    }
+
+    if (somaTotal === 0) {
+        return 0
+    }
+
+    const gini = (2 * somaPonderada) / (n * somaTotal) - (n + 1) / n
+
+    // Garante que está entre 0 e 1
+    return Math.max(0, Math.min(1, gini))
+}
+
+/**
+ * Agrupa dados por ano e calcula Gini para cada ano
+ * @param {Array} data - Dados retornados pela query SQL
+ * @returns {Array} - Array com ano_eleicao e gini
+ */
+function computeGini(data) {
+    const patrimoniosPorAno = {}
+
+    // Agrupa patrimônios por ano
+    data.forEach(({ ano_eleicao, resultado }) => {
+        if (!patrimoniosPorAno[ano_eleicao]) {
+            patrimoniosPorAno[ano_eleicao] = []
+        }
+        patrimoniosPorAno[ano_eleicao].push(resultado)
+    })
+
+    // Calcula Gini para cada ano e retorna
+    return Object.keys(patrimoniosPorAno).map((ano_eleicao) => ({
+        ano_eleicao: parseInt(ano_eleicao),
+        indice_concentracao_patrimonio: calcularGini(patrimoniosPorAno[ano_eleicao]),
+    }))
+}
+
 const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((e) => e.id)
 
+    // Query simplificada - apenas soma o patrimônio por candidato
     let select = `
     SELECT 
         e.ano_eleicao,
         ce.id,
-        SUM(bens.valor) AS resultado,
-        (SUM(bens.valor) / SUM(SUM(bens.valor)) OVER (PARTITION BY e.ano_eleicao)) * 100 AS percentual
-`
+        COALESCE(SUM(bens.valor), 0) AS resultado
+    `
 
     let queryFrom = `FROM candidato_eleicaos ce
         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
-        INNER JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
+        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
         AND ce.cargo_id = :cargoId 
     `
+
     let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
 
     const replacements = { electionsIds, cargoId }
@@ -566,12 +621,12 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
 
     // Executa a consulta
     const data = await sequelize.query(sqlQuery, {
-        replacements, // Substitui os placeholders
-        type: Sequelize.QueryTypes.SELECT, // Define como SELECT
+        replacements,
+        type: Sequelize.QueryTypes.SELECT,
     })
-    // console.log("data", data)
 
-    return computeSum(data)
+    // Calcula Gini ao invés de HHI
+    return computeGini(data)
 }
 
 const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
@@ -695,7 +750,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
         AND ce.cargo_id = :cargoId
-        ${filterUnitiesCondition}
+        /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
     votos_totais_ano AS (
@@ -707,7 +762,8 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       SELECT
         v.ano_eleicao,
         v.sigla_atual,
-        v.votos_partido_ano / NULLIF(t.votos_total_ano, 0) AS pct_votos
+        -- CORREÇÃO: Multiplicar por 100 para ter percentual em escala 0-100
+        (v.votos_partido_ano / NULLIF(t.votos_total_ano, 0)) * 100 AS pct_votos
       FROM votos_por_partido_ano v
       JOIN votos_totais_ano t USING (ano_eleicao)
     ),
@@ -723,7 +779,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
         AND ce.cargo_id = :cargoId
-        ${filterUnitiesCondition}
+        /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
     eleitos_totais_ano AS (
@@ -735,7 +791,8 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       SELECT
         epa.ano_eleicao,
         epa.sigla_atual,
-        epa.eleitos_partido_ano / NULLIF(et.eleitos_total_ano, 0) AS pct_assentos
+        -- CORREÇÃO: Multiplicar por 100 para ter percentual em escala 0-100
+        (epa.eleitos_partido_ano / NULLIF(et.eleitos_total_ano, 0)) * 100 AS pct_assentos
       FROM eleitos_por_partido_ano epa
       JOIN eleitos_totais_ano et USING (ano_eleicao)
     ),
@@ -759,19 +816,27 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
     )
     SELECT
       ano_eleicao,
+      -- Fórmula de Gallagher (agora com escala correta 0-100)
       SQRT(0.5 * SUM(diff2)) AS lsq_gallagher
     FROM componentes
     GROUP BY ano_eleicao
     ORDER BY ano_eleicao;
   `
 
+    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
+        const filtro = " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds) "
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", filtro)
+        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
+    } else {
+        query = query.replaceAll("/** __FILTRO_UNIDADE__ **/", "")
+    }
+
     const rows = await sequelize.query(query, {
         replacements,
         type: Sequelize.QueryTypes.SELECT,
     })
-    // console.log(rows)
 
-    // Retorna como número
+    // Retorna como número (já na escala correta 0-100)
     return rows.map((r) => ({
         ano: Number(r.ano_eleicao),
         lsq: r.lsq_gallagher == null ? null : Number(r.lsq_gallagher),
