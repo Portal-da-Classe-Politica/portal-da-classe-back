@@ -522,36 +522,95 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
 }
 
 /**
- *  @name Índice de Igualdade de Acesso a Recursos
-    @formula IEAR = (R / A)
-    @R é a variância dos recursos disponíveis entre os candidatos -> variancia dos bens declarados de todos candidatos
-    @A é a média dos recursos disponíveis entre os candidatos -> media dos bens declarados de todos candidatos
- * @param {*} cargoId
- * @param {*} initialYear
- * @param {*} finalYear
- * @param {*} unidadesEleitorais
+ * Calcula o Índice de Gini para um array de valores
+ * @param {Array<number>} valores - Array com valores de patrimônio
+ * @returns {number} - Índice de Gini (0 a 1)
  */
+function calcularGini(valores) {
+    // Remove valores nulos/undefined e converte para números
+    const valoresLimpos = valores
+        .filter((v) => v !== null && v !== undefined && !isNaN(v))
+        .map((v) => Number(v))
+        .filter((v) => v >= 0)
+
+    const n = valoresLimpos.length
+
+    // Se não há valores ou todos são zero, Gini = 0
+    if (n === 0 || valoresLimpos.every((v) => v === 0)) {
+        return 0
+    }
+
+    // Ordena os valores em ordem crescente
+    const valoresOrdenados = valoresLimpos.sort((a, b) => a - b)
+
+    // Calcula o Gini: G = (2 * Σ(i * x_i)) / (n * Σ(x_i)) - (n + 1) / n
+    let somaPonderada = 0
+    let somaTotal = 0
+
+    for (let i = 0; i < n; i++) {
+        somaPonderada += (i + 1) * valoresOrdenados[i]
+        somaTotal += valoresOrdenados[i]
+    }
+
+    if (somaTotal === 0) {
+        return 0
+    }
+
+    const gini = (2 * somaPonderada) / (n * somaTotal) - (n + 1) / n
+
+    // Garante que está entre 0 e 1
+    return Math.max(0, Math.min(1, gini))
+}
+
+/**
+ * Agrupa dados por ano e calcula Gini para cada ano
+ * @param {Array} data - Dados retornados pela query SQL
+ * @returns {Array} - Array com ano_eleicao e gini
+ */
+function computeGini(data) {
+    const patrimoniosPorAno = {}
+
+    // Agrupa patrimônios por ano
+    data.forEach(({ ano_eleicao, resultado }) => {
+        if (!patrimoniosPorAno[ano_eleicao]) {
+            patrimoniosPorAno[ano_eleicao] = []
+        }
+        patrimoniosPorAno[ano_eleicao].push(resultado)
+    })
+
+    // Calcula Gini para cada ano e retorna
+    return Object.keys(patrimoniosPorAno).map((ano_eleicao) => ({
+        ano_eleicao: parseInt(ano_eleicao),
+        indice_concentracao_patrimonio: calcularGini(patrimoniosPorAno[ano_eleicao]),
+    }))
+}
+
+// ============================================================================
+// FUNÇÃO PRINCIPAL ADAPTADA
+// ============================================================================
+
 const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
     const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((e) => e.id)
 
+    // Query simplificada - apenas soma o patrimônio por candidato
     let select = `
     SELECT 
         e.ano_eleicao,
         ce.id,
-        SUM(bens.valor) AS resultado,
-        (SUM(bens.valor) / SUM(SUM(bens.valor)) OVER (PARTITION BY e.ano_eleicao)) * 100 AS percentual
-`
+        COALESCE(SUM(bens.valor), 0) AS resultado
+    `
 
     let queryFrom = `FROM candidato_eleicaos ce
         JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
-        INNER JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
+        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
         AND ce.cargo_id = :cargoId 
     `
+
     let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
 
     const replacements = { electionsIds, cargoId }
@@ -566,12 +625,12 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
 
     // Executa a consulta
     const data = await sequelize.query(sqlQuery, {
-        replacements, // Substitui os placeholders
-        type: Sequelize.QueryTypes.SELECT, // Define como SELECT
+        replacements,
+        type: Sequelize.QueryTypes.SELECT,
     })
-    // console.log("data", data)
 
-    return computeSum(data)
+    // Calcula Gini ao invés de HHI
+    return computeGini(data)
 }
 
 const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {

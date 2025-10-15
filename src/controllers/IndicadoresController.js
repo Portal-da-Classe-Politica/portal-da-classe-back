@@ -274,7 +274,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             chartsUtil.indicatorsDetails[15].title,
             "float",
             seriesKey = "ano_eleicao",
-            "indice_diversidade_economica",
+            "indice_concentracao_patrimonio",
             indicator_detail = 15,
         )
     case 16:
