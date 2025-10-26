@@ -13,6 +13,7 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: "UF",
         abrangencia: 1,
+        has_second_round: false,
     },
     "deputado_federal": {
         name: "DEPUTADO FEDERAL",
@@ -20,6 +21,7 @@ const cargosGlossary = {
         agregacao_regional: ["UF", "BR"],
         filter_by: "UF",
         abrangencia: 1,
+        has_second_round: false,
     },
     "senador": {
         name: "SENADOR",
@@ -27,6 +29,7 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
+        has_second_round: false,
     },
     "governador": {
         name: "GOVERNADOR",
@@ -34,6 +37,7 @@ const cargosGlossary = {
         agregacao_regional: ["UF"],
         filter_by: null,
         abrangencia: 1,
+        has_second_round: true,
     },
     "presidente": {
         name: "PRESIDENTE",
@@ -41,6 +45,7 @@ const cargosGlossary = {
         agregacao_regional: ["BR"],
         filter_by: null,
         abrangencia: 1,
+        has_second_round: true,
     },
     "vereador": {
         name: "VEREADOR",
@@ -48,6 +53,7 @@ const cargosGlossary = {
         agregacao_regional: ["MUNICIPIO"],
         filter_by: "MUNICIPIO",
         abrangencia: 2,
+        has_second_round: false,
     },
     "prefeito": {
         name: "PREFEITO",
@@ -55,6 +61,7 @@ const cargosGlossary = {
         agregacao_regional: ["UF", "BR"],
         filter_by: "MUNICIPIO",
         abrangencia: 2,
+        has_second_round: true,
     },
 }
 
