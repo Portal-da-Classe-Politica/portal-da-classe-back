@@ -12,6 +12,7 @@ const RacaModel = require("../models/Raca")
 const GrauDeInstrucaoModel = require("../models/GrauDeInstrucao")
 const SituacaoTurnoModel = require("../models/SituacaoTurno")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
+const { ageBuckets } = require("../enums/ageFilters")
 
 const parseCrossCriteria = (finder, params) => {
     if (params.partidosIds && params.partidosIds.length > 0) {
@@ -23,6 +24,30 @@ const parseCrossCriteria = (finder, params) => {
         finder.include.push(partidoInclude)
         finder.attributes.push([Sequelize.col("partido.nome_atual"), "partido"])
         finder.group.push("partido")
+    }
+    if (params.ageBucketIds && params.ageBucketIds.length > 0) {
+        // Convert to numbers for comparison
+        const ageBucketIdsAsNumbers = params.ageBucketIds.map((id) => parseInt(id))
+        const selectedBuckets = ageBuckets.filter((bucket) => ageBucketIdsAsNumbers.includes(bucket.id))
+
+        if (selectedBuckets.length > 0) {
+            const ageConditions = selectedBuckets.map((bucket) => ({
+                [Op.and]: [
+                    { idade_data_da_posse: { [Op.gte]: bucket.min } },
+                    { idade_data_da_posse: { [Op.lte]: bucket.max } },
+                ],
+            }))
+
+            finder.where[Op.or] = ageConditions
+
+            const caseStatement = selectedBuckets.map((bucket) => `WHEN candidato_eleicao.idade_data_da_posse BETWEEN ${bucket.min} AND ${bucket.max} THEN '${bucket.label}'`).join(" ")
+
+            finder.attributes.push([
+                Sequelize.literal(`CASE ${caseStatement} ELSE NULL END`),
+                "faixa_etaria",
+            ])
+            finder.group.push("faixa_etaria")
+        }
     }
     if (params.ocupationsIds && params.ocupationsIds.length > 0) {
         finder.where.ocupacao_id = { [Op.in]: params.ocupationsIds }
