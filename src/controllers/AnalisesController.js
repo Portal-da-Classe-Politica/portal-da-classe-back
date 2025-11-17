@@ -29,6 +29,7 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
         const cargo = await cargoService.getAbragencyByCargoID(cargoId)
         if (!cargo) throw new Error("Cargo não encontrado")
         const abrangenciaId = cargo.abrangencia
+        const { ageBuckets } = require("../enums/ageFilters")
         const [anos, ocupacoes_categorizadas, intrucao, partidos, estados] = await Promise.all([
             EleicaoSvc.getAllElectionsYearsByAbragencyForFilters(abrangenciaId),
             categoriaSvc.getAllCategorias(),
@@ -43,6 +44,7 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
             intrucao,
             partidos,
             estados,
+            age_buckets: ageBuckets,
             cargo: cargoId,
             abrangencia: abrangenciaId,
         }
@@ -130,6 +132,7 @@ const generateGraph = async (req, res) => {
         unidade_eleitoral_id,
         exportcsv,
         round,
+        age_bucket_id,
     } = req.query
 
     try {
@@ -145,8 +148,10 @@ const generateGraph = async (req, res) => {
             ocupacao_categorizada_id,
             grau_instrucao,
             id_agrupado_partido,
+            age_bucket_id,
             round, // Adicionar round aos parâmetros
         }
+
         const validationErrors = validateParams(params)
 
         if (validationErrors.length > 0) {
@@ -163,6 +168,7 @@ const generateGraph = async (req, res) => {
             "ocupacao_categorizada_id": "ocupacao",
             "grau_instrucao": "instrucao",
             "id_agrupado_partido": "partido",
+            "age_bucket_id": "faixa_etaria",
         }
 
         // Filtrar e mapear os valores de providedCrossParams com base em providedCategoricalParams
@@ -208,6 +214,7 @@ const generateGraph = async (req, res) => {
             message: "Gráfico gerado com sucesso.",
         })
     } catch (error) {
+        console.log(error)
         logger.error(error)
         return res.status(500).json({
             success: false,

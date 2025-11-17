@@ -111,6 +111,19 @@ const parseFiltersToAnalytics = (filters) => {
                 type: "multi_select",
                 max: 2,
             },
+            {
+                label: "Faixa Etária",
+                values: filters.age_buckets.map((age_bucket) => {
+                    return {
+                        label: age_bucket.label,
+                        id: age_bucket.id,
+                    }
+                }),
+                parameter: "age_bucket_id",
+                required: false,
+                type: "multi_select",
+                max: 2,
+            },
 
             ],
 

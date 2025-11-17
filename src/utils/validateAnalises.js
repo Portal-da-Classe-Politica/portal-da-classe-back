@@ -59,6 +59,7 @@ const validateParams = (params) => {
         "grau_instrucao",
         "sigla_atual_partido",
         "id_agrupado_partido",
+        "age_bucket_id",
     ]
     const providedCategoricalParams = categoricalParams.filter((param) => params[param])
     if (providedCategoricalParams.length > 3) {
@@ -111,6 +112,15 @@ const validateParams = (params) => {
         const ocupacaoIds = Array.isArray(params.ocupacao_categorizada_id) ? params.ocupacao_categorizada_id.map(Number) : [Number(params.ocupacao_categorizada_id)]
         if (ocupacaoIds.some((id) => !validOcupacaoIds.includes(id))) {
             errors.push("O parâmetro 'ocupacao_categorizada_id' contém valores inválidos. Valores permitidos: " + validOcupacaoIds.join(", "))
+        }
+    }
+
+    // Validate age_bucket_id
+    if (params.age_bucket_id) {
+        const validAgeBucketIds = [1, 2, 3, 4, 5]
+        const ageBucketIds = Array.isArray(params.age_bucket_id) ? params.age_bucket_id.map(Number) : [Number(params.age_bucket_id)]
+        if (ageBucketIds.some((id) => !validAgeBucketIds.includes(id))) {
+            errors.push("O parâmetro 'age_bucket_id' contém valores inválidos. Valores permitidos: " + validAgeBucketIds.join(", "))
         }
     }
 
@@ -207,6 +217,12 @@ const parseFiltersToAnalytics = async (filters) => {
         }
     }
 
+    if (filters.age_bucket_id){
+        if (!Array.isArray(filters.age_bucket_id)) {
+            filters.age_bucket_id = [filters.age_bucket_id]
+        }
+    }
+
     return {
         dimension: filters.dimension,
         electionsIds,
@@ -218,6 +234,7 @@ const parseFiltersToAnalytics = async (filters) => {
         racesIds: filters.raca_id,
         instructionsDegreesIds,
         electoralUnitiesIds,
+        ageBucketIds: filters.age_bucket_id,
     }
 }
 
