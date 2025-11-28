@@ -81,11 +81,11 @@ const validateParams = (params) => {
             values = values.split(",") // Split comma-separated values
         }
 
-        if (values.length > 2) {
-            errors.push(
-                `O parâmetro '${param}' pode conter no máximo 2 valores. Você forneceu: ${values.length}.`,
-            )
-        }
+        // if (values.length > 2) {
+        //     errors.push(
+        //         `O parâmetro '${param}' pode conter no máximo 2 valores. Você forneceu: ${values.length}.`,
+        //     )
+        // }
     })
 
     // Validate genero_id
