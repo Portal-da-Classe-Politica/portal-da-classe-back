@@ -299,11 +299,33 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
     case 12:
         const dataUnparsed = await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         const dataGellagher = splitPSDByYear(dataUnparsed)
+
+        // Obter lista única de partidos na ordem desejada
+        const partidosUnicos = [...new Set(dataGellagher.map((item) => item.sigla_atual))]
+        partidosUnicos.sort((a, b) => {
+            const siglaA = a.replace(/^PSD [12]$/, "PSD")
+            const siglaB = b.replace(/^PSD [12]$/, "PSD")
+            const cmp = siglaA.localeCompare(siglaB)
+            // Se as siglas normalizadas são iguais (ambos PSD), ordena por número (1 antes de 2)
+            if (cmp === 0 && a !== b) {
+                return a.localeCompare(b)
+            }
+            return cmp
+        })
+
+        // Reordenar os dados para manter a sequência dos partidos
+        const dataOrdenada = []
+        partidosUnicos.forEach((partido) => {
+            const dadosPartido = dataGellagher.filter((item) => item.sigla_atual === partido)
+            dataOrdenada.push(...dadosPartido)
+        })
+
         if (exportcsv === "true") {
-            return parser.parse(convertDecimalSeparatorInData(dataGellagher)) // CSV direto do banco
+            return parser.parse(convertDecimalSeparatorInData(dataOrdenada)) // CSV direto do banco
         }
+
         return chartsUtil.generateLineChartData(
-            dataGellagher,
+            dataOrdenada,
             "ano",
             "lsq",
             "sigla_atual",
@@ -311,7 +333,6 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
             yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
             chartsUtil.indicatorsDetails[12].title,
-
             indicator_detail = 12,
         )
     default:
