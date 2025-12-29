@@ -17,12 +17,23 @@ const { ageBuckets } = require("../enums/ageFilters")
 // Função auxiliar para dividir PSD em dois períodos
 const splitPSDByYear = (data) => {
     return data.map((item) => {
-        if (item.partido && item.partido.toUpperCase() === "PSD") {
+        // Suporta tanto 'partido' quanto 'sigla_atual'
+        const partidoField = item.partido || item.sigla_atual
+        if (partidoField && partidoField.toUpperCase() === "PSD") {
             const ano = parseInt(item.ano)
             if (ano < 2011) {
-                return { ...item, partido: "PSD 1" }
+                if (item.partido) {
+                    return { ...item, partido: "PSD 1" }
+                } if (item.sigla_atual) {
+                    return { ...item, sigla_atual: "PSD 1" }
+                }
+            } else {
+                if (item.partido) {
+                    return { ...item, partido: "PSD 2" }
+                } if (item.sigla_atual) {
+                    return { ...item, sigla_atual: "PSD 2" }
+                }
             }
-            return { ...item, partido: "PSD 2" }
         }
         return item
     })

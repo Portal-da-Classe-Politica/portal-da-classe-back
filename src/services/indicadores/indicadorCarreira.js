@@ -435,7 +435,7 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
             JOIN eleicaos e ON ce.eleicao_id = e.id
             LEFT JOIN doacoes_candidato_eleicoes r ON ce.id = r.candidato_eleicao_id
             WHERE ce.eleicao_id IN (:electionsIds)
-                AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
+                AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
                 AND ce.situacao_candidatura_id IN (1, 16)
                 /** __FILTRO_UNIDADE__ **/
             GROUP BY e.ano_eleicao, ce.id
@@ -604,7 +604,7 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
-        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
+        AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
     `
 
     let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
@@ -646,7 +646,7 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
             FROM public.candidato_eleicaos ce
             JOIN eleicaos e ON ce.eleicao_id = e.id
             WHERE ce.eleicao_id IN (:electionsIds)
-                AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
+                AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
         `
 
     const replacements = { electionsIds, cargoId }
@@ -749,7 +749,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN eleicaos e ON e.id = ce.eleicao_id
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
-        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
+        AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
         /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
@@ -778,7 +778,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN eleicaos e ON e.id = ce.eleicao_id
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
-        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
+        AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
         /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
@@ -816,11 +816,12 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
     )
     SELECT
       ano_eleicao,
+      sigla_atual,
       -- Fórmula de Gallagher (agora com escala correta 0-100)
       SQRT(0.5 * SUM(diff2)) AS lsq_gallagher
     FROM componentes
-    GROUP BY ano_eleicao
-    ORDER BY ano_eleicao;
+    GROUP BY ano_eleicao, sigla_atual
+    ORDER BY ano_eleicao, sigla_atual;
   `
 
     if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -840,6 +841,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
     return rows.map((r) => ({
         ano: Number(r.ano_eleicao),
         lsq: r.lsq_gallagher == null ? null : Number(r.lsq_gallagher),
+        sigla_atual: r.sigla_atual,
     }))
 }
 
