@@ -118,7 +118,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
 
     switch (parseInt(indicatorId)) {
     case 1:
-        const dataNepp = splitPSDByYear(await indicadoresEleitoraisSvc.getNEPP(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
+        const dataNepp = await indicadoresEleitoraisSvc.getNEPP(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataNepp)) // CSV direto do banco
         }
@@ -134,7 +134,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 1,
         )
     case 2:
-        const dataPersen = splitPSDByYear(await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
+        const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataPersen)) // CSV direto do banco
         }
