@@ -423,7 +423,19 @@ const getCategoryMappings = async (providedCategoricalParams) => {
         }
         case "id_agrupado_partido": {
             const partidos = await partidoSvc.getAllPartidosComSiglaAtualizada()
-            return { key: "partido", mapping: partidos.map((p) => ({ id: p.id_agrupado, name: p.nome_atual })) }
+            const partidosMapping = partidos.map((p) => ({ id: p.id_agrupado, name: p.nome_atual }))
+
+            // Adicionar PSD 1 e PSD 2 se PSD estiver presente
+            const psdIndex = partidosMapping.findIndex((p) => p.name.toUpperCase() === "PSD")
+            if (psdIndex !== -1) {
+                const psdOriginal = partidosMapping[psdIndex]
+                // Substituir PSD por PSD 1 e PSD 2
+                partidosMapping.splice(psdIndex, 1,
+                    { id: psdOriginal.id, name: "PSD 1" },
+                    { id: psdOriginal.id, name: "PSD 2" })
+            }
+
+            return { key: "partido", mapping: partidosMapping }
         }
         default:
             return null
@@ -495,14 +507,27 @@ const fillDataForSelectedCombinations = (dbData, allYears, selectedCombinations,
 
     for (const year of allYears) {
         for (const combination of selectedCombinations) {
+            // Aplicar lógica de divisão do PSD baseada no ano
+            let adjustedCombination = { ...combination }
+            if (combination.partido) {
+                if (combination.partido === "PSD 1" && year >= 2011) {
+                    // PSD 1 só existe antes de 2011, pular esta combinação
+                    continue
+                }
+                if (combination.partido === "PSD 2" && year < 2011) {
+                    // PSD 2 só existe a partir de 2011, pular esta combinação
+                    continue
+                }
+            }
+
             // Verificar se há registros existentes para esta combinação e ano
-            const existingData = findExistingData(dbData, year, combination)
+            const existingData = findExistingData(dbData, year, adjustedCombination)
 
             if (existingData.length > 0) {
                 filledData.push(...existingData)
             } else {
                 // Criar registro com zero para esta combinação
-                const zeroRecords = createZeroRecords(year, combination, parsedParams)
+                const zeroRecords = createZeroRecords(year, adjustedCombination, parsedParams)
                 filledData.push(...zeroRecords)
             }
         }

@@ -14,6 +14,20 @@ const SituacaoTurnoModel = require("../models/SituacaoTurno")
 const votacaoCandidatoMunicipioModel = require("../models/VotacaoCandidatoMunicipio")
 const { ageBuckets } = require("../enums/ageFilters")
 
+// Função auxiliar para dividir PSD em dois períodos
+const splitPSDByYear = (data) => {
+    return data.map((item) => {
+        if (item.partido && item.partido.toUpperCase() === "PSD") {
+            const ano = parseInt(item.ano)
+            if (ano < 2011) {
+                return { ...item, partido: "PSD 1" }
+            }
+            return { ...item, partido: "PSD 2" }
+        }
+        return item
+    })
+}
+
 const parseCrossCriteria = (finder, params) => {
     if (params.partidosIds && params.partidosIds.length > 0) {
         finder.where.partido_id = { [Op.in]: params.partidosIds }
@@ -117,9 +131,9 @@ const getAnalyticCrossCriteria = async (params) => {
         let finder = {
             where: {
                 eleicao_id: { [Sequelize.Op.in]: params.electionsIds },
-                cargo_id: Array.isArray(params.cargoId) 
-                    ? { [Sequelize.Op.in]: params.cargoId }  // Se for array, usa IN
-                    : params.cargoId,  // Se for número único, usa igualdade
+                cargo_id: Array.isArray(params.cargoId)
+                    ? { [Sequelize.Op.in]: params.cargoId } // Se for array, usa IN
+                    : params.cargoId, // Se for número único, usa igualdade
             },
             include: [
                 {
@@ -155,7 +169,8 @@ const getAnalyticCrossCriteria = async (params) => {
             throw new Error("Resultado não encontrado")
         }
 
-        return candidateElection
+        // Aplicar a divisão do PSD em dois períodos
+        return splitPSDByYear(candidateElection)
     } catch (error) {
         console.error("Error getAnalyticCrossCriteria:", error)
         throw error
@@ -190,4 +205,5 @@ const parseByDimension = (finder, dimension) => {
 
 module.exports = {
     getAnalyticCrossCriteria,
+    splitPSDByYear,
 }

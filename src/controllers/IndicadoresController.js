@@ -2,6 +2,7 @@ const {
     verifyIfIndicatorIsInGroup, getIndicatorByID, getCargoFilterByID, verifyIfCargoIsAllowedForIndicator, indicatorsGroupsGlossary,
 } = require("../utils/filterParsers")
 const { expandCargoIds } = require("../services/CargoService")
+const { splitPSDByYear } = require("../services/AnalisesSvc")
 const indicadoresEleitoraisSvc = require("../services/indicadores/indicadoresEleitoraisSvc")
 const IndicatorCarreiraSvc = require("../services/indicadores/indicadorCarreira")
 const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGeograficosSvc")
@@ -114,10 +115,10 @@ const getAllIndicadorByType = async (req, res) => {
 const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, exportcsv, round) => {
     // Expande cargo_id 1 (deputado estadual) para incluir cargo_id 6 (deputado distrital)
     const expandedCargoId = expandCargoIds(cargoId)
-    
+
     switch (parseInt(indicatorId)) {
     case 1:
-        const dataNepp = await indicadoresEleitoraisSvc.getNEPP(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataNepp = splitPSDByYear(await indicadoresEleitoraisSvc.getNEPP(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataNepp)) // CSV direto do banco
         }
@@ -133,7 +134,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 1,
         )
     case 2:
-        const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataPersen = splitPSDByYear(await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataPersen)) // CSV direto do banco
         }
@@ -231,7 +232,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 10,
         )
     case 11:
-        const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataDispereoVotos = splitPSDByYear(await indicadoresGeograficosSvc.getDispersaoRegionalVotos(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataDispereoVotos)) // CSV direto do banco
         }
@@ -296,7 +297,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 16,
         )
     case 12:
-        const dataGellagher = await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataGellagher = splitPSDByYear(await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataGellagher)) // CSV direto do banco
         }
