@@ -47,8 +47,9 @@ const getNEPP = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, r
         JOIN eleicaos e ON e.id = ce.eleicao_id
     `
 
+    // Modificado para suportar cargoId como array ou valor único
     let subqueryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
-        AND ce.cargo_id = :cargoId 
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         AND st.foi_eleito = TRUE
     `
     let subqueryGroupBy = " GROUP BY  e.ano_eleicao, ce.partido_id"
@@ -102,7 +103,7 @@ const getVolatilidadeEleitoral = async (cargoId, initialYear, finalYear, unidade
             FROM candidato_eleicaos ce
             JOIN votacao_candidato_municipios vcm ON ce.candidato_id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
-            WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
+            WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         `
         // Filtros adicionais dinâmicos
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -193,7 +194,7 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
             FROM candidato_eleicaos ce
             JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
-            WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
+            WHERE ce.eleicao_id IN (:electionIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         `
         // Filtros adicionais dinâmicos
         if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
@@ -240,7 +241,7 @@ const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesE
             JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
             JOIN eleicaos e ON e.id = ce.eleicao_id
             JOIN partidos p ON p.id = ce.partido_id
-            WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id = :cargoId
+            WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         `
 
         // Filtros adicionais dinâmicos

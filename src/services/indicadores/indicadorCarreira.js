@@ -80,7 +80,7 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_turno_id: { [Op.in]: electedSituacaoTurnos.map((situacaoTurno) => situacaoTurno.id) },
                 situacao_reeleicao_id: 3,
                 situacao_candidatura_id: { [Op.in]: [1, 16] },
@@ -96,7 +96,7 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_turno_id: { [Op.in]: notElectedSituacaoTurnos.map((situacaoTurno) => situacaoTurno.id) },
                 situacao_reeleicao_id: 3,
                 situacao_candidatura_id: { [Op.in]: [1, 16] },
@@ -170,7 +170,7 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_turno_id: { [Op.in]: electedSituacaoTurnos.map((situacaoTurno) => situacaoTurno.id) },
                 situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
                 situacao_reeleicao_id: 3, // tentou reeleição
@@ -186,7 +186,7 @@ const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitor
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_candidatura_id: { [Op.in]: [1, 16] },
                 situacao_reeleicao_id: 3, // tentou reeleição
                 ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
@@ -252,7 +252,7 @@ const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear,
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_turno_id: { [Op.in]: electedSituacaoTurnos.map((situacaoTurno) => situacaoTurno.id) },
                 situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
                 ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
@@ -277,7 +277,7 @@ const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear,
             ],
             where: {
                 eleicao_id: { [Op.in]: electionsIds },
-                cargo_id: cargoId,
+                cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
                 situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
                 ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
             },
@@ -373,7 +373,7 @@ const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesElei
         ],
         where: {
             eleicao_id: { [Op.in]: electionsIds },
-            cargo_id: cargoId,
+            cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
             situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
             ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
         },
@@ -435,7 +435,7 @@ const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear,
             JOIN eleicaos e ON ce.eleicao_id = e.id
             LEFT JOIN doacoes_candidato_eleicoes r ON ce.id = r.candidato_eleicao_id
             WHERE ce.eleicao_id IN (:electionsIds)
-                AND ce.cargo_id = :cargoId
+                AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
                 AND ce.situacao_candidatura_id IN (1, 16)
                 /** __FILTRO_UNIDADE__ **/
             GROUP BY e.ano_eleicao, ce.id
@@ -604,7 +604,7 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
-        AND ce.cargo_id = :cargoId 
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
     `
 
     let queryGroupBy = " GROUP BY e.ano_eleicao, ce.id"
@@ -646,7 +646,7 @@ const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleit
             FROM public.candidato_eleicaos ce
             JOIN eleicaos e ON ce.eleicao_id = e.id
             WHERE ce.eleicao_id IN (:electionsIds)
-                AND ce.cargo_id = :cargoId
+                AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         `
 
     const replacements = { electionsIds, cargoId }
@@ -749,7 +749,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN eleicaos e ON e.id = ce.eleicao_id
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
-        AND ce.cargo_id = :cargoId
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
@@ -778,7 +778,7 @@ const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitora
       JOIN eleicaos e ON e.id = ce.eleicao_id
       JOIN partidos p ON p.id = ce.partido_id
       WHERE ce.eleicao_id IN (:electionsIds)
-        AND ce.cargo_id = :cargoId
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         /** __FILTRO_UNIDADE__ **/
       GROUP BY e.ano_eleicao, p.sigla_atual
     ),
