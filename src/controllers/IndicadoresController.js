@@ -300,32 +300,12 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         const dataUnparsed = await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         const dataGellagher = splitPSDByYear(dataUnparsed)
 
-        // Obter lista única de partidos na ordem desejada
-        const partidosUnicos = [...new Set(dataGellagher.map((item) => item.sigla_atual))]
-        partidosUnicos.sort((a, b) => {
-            const siglaA = a.replace(/^PSD [12]$/, "PSD")
-            const siglaB = b.replace(/^PSD [12]$/, "PSD")
-            const cmp = siglaA.localeCompare(siglaB)
-            // Se as siglas normalizadas são iguais (ambos PSD), ordena por número (1 antes de 2)
-            if (cmp === 0 && a !== b) {
-                return a.localeCompare(b)
-            }
-            return cmp
-        })
-
-        // Reordenar os dados para manter a sequência dos partidos
-        const dataOrdenada = []
-        partidosUnicos.forEach((partido) => {
-            const dadosPartido = dataGellagher.filter((item) => item.sigla_atual === partido)
-            dataOrdenada.push(...dadosPartido)
-        })
-
         if (exportcsv === "true") {
-            return parser.parse(convertDecimalSeparatorInData(dataOrdenada)) // CSV direto do banco
+            return parser.parse(convertDecimalSeparatorInData(dataGellagher))
         }
 
-        return chartsUtil.generateLineChartData(
-            dataOrdenada,
+        const chartData = chartsUtil.generateLineChartData(
+            dataGellagher,
             "ano",
             "lsq",
             "sigla_atual",
@@ -335,6 +315,25 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             chartsUtil.indicatorsDetails[12].title,
             indicator_detail = 12,
         )
+
+        // Ordenar as séries para manter PSD 1 e PSD 2 consecutivos
+        chartData.series.sort((a, b) => {
+            const getNormalizedName = (name) => {
+                if (name === "PSD 1" || name === "PSD 2") return "PSD"
+                return name
+            }
+
+            const nameA = getNormalizedName(a.name)
+            const nameB = getNormalizedName(b.name)
+            const comparison = nameA.localeCompare(nameB)
+
+            if (comparison === 0) {
+                return a.name.localeCompare(b.name)
+            }
+            return comparison
+        })
+
+        return chartData
     default:
         console.log("Indicador não implementado")
         logger.error("Indicador não implementado")
