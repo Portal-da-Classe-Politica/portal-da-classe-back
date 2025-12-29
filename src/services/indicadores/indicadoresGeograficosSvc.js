@@ -220,6 +220,9 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
         group = " GROUP BY  votacao_municipio_selecionados.municipios_votacao_id, mv.nome, e.ano_eleicao, ce.eleicao_id"
     } else {
+        if (!UFid){
+            throw new Error("UF deve ser informado ou UF não encontrado")
+        }
         let ufIds = [UFid]
         if (cargoId != 9){
             if (UF == "Brasil"){

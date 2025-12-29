@@ -297,19 +297,21 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 16,
         )
     case 12:
-        const dataGellagher = splitPSDByYear(await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round))
+        const dataUnparsed = await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataGellagher = splitPSDByYear(dataUnparsed)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataGellagher)) // CSV direto do banco
         }
-        return chartsUtil.parseDataToLineChart(
+        return chartsUtil.generateLineChartData(
             dataGellagher,
+            "ano",
+            "lsq",
+            "sigla_atual",
             seriesName = chartsUtil.indicatorsDetails[12].title,
             xAxisLabel = chartsUtil.indicatorsDetails[12].xAxisLabel,
             yAxisLabel = chartsUtil.indicatorsDetails[12].yAxisLabel,
             chartsUtil.indicatorsDetails[12].title,
-            "float",
-            "ano",
-            "lsq",
+
             indicator_detail = 12,
         )
     default:
