@@ -91,7 +91,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
         where = ` 
         WHERE ce.eleicao_id IN (:electionsIds) 
-        AND ce.cargo_id = :cargoId
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
         AND mv.id IN (:unidadesEleitoraisIds) 
         AND ce.unidade_eleitoral_id = ${UFid}
         `
@@ -129,7 +129,7 @@ const getDistribGeoVotos = async (cargoId, initialYear, finalYear, unidadesEleit
 
         where = ` 
         WHERE ce.eleicao_id IN (:electionsIds) 
-        AND ce.cargo_id = :cargoId         
+        AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}        
         AND ce.unidade_eleitoral_id = ${UFid}
         `
 
@@ -210,7 +210,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
         where = ` 
       WHERE ce.eleicao_id IN (:electionsIds) 
-      AND ce.cargo_id = :cargoId
+      AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
       AND mv.id IN (:unidadesEleitoraisIds) 
       AND ce.unidade_eleitoral_id = ${UFid}
       AND partido_id = ${partyId}
@@ -256,7 +256,7 @@ const getConcentracaoRegionalVotos = async (cargoId, initialYear, finalYear, uni
 
         where = ` 
       WHERE ce.eleicao_id IN (:electionsIds) 
-      AND ce.cargo_id = :cargoId         
+      AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}        
       AND ce.unidade_eleitoral_id IN (${ufIds})
       AND partido_id = ${partyId}
       `
@@ -303,7 +303,7 @@ const getDispersaoRegionalVotos = async (cargoId, initialYear, finalYear, unidad
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN unidade_eleitorals ue ON ue.id = ce.unidade_eleitoral_id
         JOIN partidos p ON p.id = ce.partido_id
-        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId
+        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
     `
 
     // Filtros adicionais dinâmicos
@@ -354,7 +354,7 @@ const getEficienciaVotos = async (cargoId, initialYear, finalYear, unidadesEleit
         JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
         JOIN partidos p ON p.id = ce.partido_id 
-        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id = :cargoId        
+        WHERE ce.eleicao_id IN (:electionsIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}       
     `
 
     // Filtros adicionais dinâmicos

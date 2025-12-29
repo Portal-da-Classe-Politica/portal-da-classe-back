@@ -1,6 +1,7 @@
 const {
     verifyIfIndicatorIsInGroup, getIndicatorByID, getCargoFilterByID, verifyIfCargoIsAllowedForIndicator, indicatorsGroupsGlossary,
 } = require("../utils/filterParsers")
+const { expandCargoIds } = require("../services/CargoService")
 const indicadoresEleitoraisSvc = require("../services/indicadores/indicadoresEleitoraisSvc")
 const IndicatorCarreiraSvc = require("../services/indicadores/indicadorCarreira")
 const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGeograficosSvc")
@@ -111,9 +112,12 @@ const getAllIndicadorByType = async (req, res) => {
 }
 
 const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, exportcsv, round) => {
+    // Expande cargo_id 1 (deputado estadual) para incluir cargo_id 6 (deputado distrital)
+    const expandedCargoId = expandCargoIds(cargoId)
+    
     switch (parseInt(indicatorId)) {
     case 1:
-        const dataNepp = await indicadoresEleitoraisSvc.getNEPP(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataNepp = await indicadoresEleitoraisSvc.getNEPP(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataNepp)) // CSV direto do banco
         }
@@ -129,7 +133,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 1,
         )
     case 2:
-        const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataPersen = await indicadoresEleitoraisSvc.getVolatilidadeEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataPersen)) // CSV direto do banco
         }
@@ -145,7 +149,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 2,
         )
     case 3:
-        const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataQE = await indicadoresEleitoraisSvc.getQuocienteEleitoral(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataQE)) // CSV direto do banco
         }
@@ -161,7 +165,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 3,
         )
     case 5:
-        const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const data = await IndicatorCarreiraSvc.getTaxaDeRenovacaoLiquida(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(data)) // CSV direto do banco
         }
@@ -177,7 +181,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 5,
         )
     case 6:
-        const dataReeleicao = await IndicatorCarreiraSvc.getTaxaReeleicao(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataReeleicao = await IndicatorCarreiraSvc.getTaxaReeleicao(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataReeleicao)) // CSV direto do banco
         }
@@ -194,7 +198,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
 
     case 8:
-        const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataIPEG = await IndicatorCarreiraSvc.getIndiceParidadeEleitoralGenero(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataIPEG)) // CSV direto do banco
         }
@@ -210,7 +214,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         return objectDataIPEG
 
     case 10:
-        const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, round)
+        const dataConceGeoVotos = await indicadoresGeograficosSvc.getConcentracaoRegionalVotos(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, UF, partyId, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataConceGeoVotos)) // CSV direto do banco
         }
@@ -227,7 +231,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 10,
         )
     case 11:
-        const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataDispereoVotos = await indicadoresGeograficosSvc.getDispersaoRegionalVotos(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataDispereoVotos)) // CSV direto do banco
         }
@@ -245,7 +249,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
 
     case 14:
-        const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataIEAR = await IndicatorCarreiraSvc.getIndiceIgualdadeAcessoRecursos(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataIEAR)) // CSV direto do banco
         }
@@ -262,7 +266,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
         )
 
     case 15:
-        const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataDiversidadeEcon = await IndicatorCarreiraSvc.getIndiceDiversidadeEconomica(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataDiversidadeEcon)) // CSV direto do banco
         }
@@ -278,7 +282,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 15,
         )
     case 16:
-        const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataPatrimonio = await IndicatorCarreiraSvc.getMediaMedianaPatrimonio(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataPatrimonio)) // CSV direto do banco
         }
@@ -292,7 +296,7 @@ const computeIndicator = async (indicatorId, cargoId, initialYear, finalYear, un
             indicator_detail = 16,
         )
     case 12:
-        const dataGellagher = await IndicatorCarreiraSvc.getGallagherLSq(cargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
+        const dataGellagher = await IndicatorCarreiraSvc.getGallagherLSq(expandedCargoId, initialYear, finalYear, unidadesEleitoraisIds, round)
         if (exportcsv === "true") {
             return parser.parse(convertDecimalSeparatorInData(dataGellagher)) // CSV direto do banco
         }

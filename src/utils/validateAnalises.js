@@ -3,6 +3,7 @@ const { getGrausDeInstrucaoByIdsAgrupados } = require("../services/GrausDeInstru
 const { getPartidosByIdsAgrupados } = require("../services/PartidoSvc")
 const OcupacaoService = require("../services/OcupacaoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
+const { expandCargoIds } = require("../services/CargoService")
 
 const validateParams = (params) => {
     const errors = []
@@ -227,7 +228,7 @@ const parseFiltersToAnalytics = async (filters) => {
         dimension: filters.dimension,
         electionsIds,
         electionYears,
-        cargoId: filters.cargoId,
+        cargoId: expandCargoIds(filters.cargoId), // Expande cargo 1 para incluir cargo 6 (deputado distrital)
         partidosIds,
         ocupationsIds,
         gendersIds: filters.genero_id,

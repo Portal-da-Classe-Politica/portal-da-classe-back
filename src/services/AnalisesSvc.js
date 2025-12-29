@@ -117,7 +117,9 @@ const getAnalyticCrossCriteria = async (params) => {
         let finder = {
             where: {
                 eleicao_id: { [Sequelize.Op.in]: params.electionsIds },
-                cargo_id: params.cargoId,
+                cargo_id: Array.isArray(params.cargoId) 
+                    ? { [Sequelize.Op.in]: params.cargoId }  // Se for array, usa IN
+                    : params.cargoId,  // Se for número único, usa igualdade
             },
             include: [
                 {
