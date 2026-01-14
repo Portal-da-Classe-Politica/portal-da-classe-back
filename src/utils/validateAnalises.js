@@ -61,6 +61,10 @@ const validateParams = (params) => {
         "sigla_atual_partido",
         "id_agrupado_partido",
         "age_bucket_id",
+        "class_categ_1",
+        "class_categ_4",
+        "class_survey_esp",
+        "centrao",
     ]
     const providedCategoricalParams = categoricalParams.filter((param) => params[param])
     if (providedCategoricalParams.length > 3) {
@@ -224,6 +228,33 @@ const parseFiltersToAnalytics = async (filters) => {
         }
     }
 
+    // Processar filtros de ideologia
+    if (filters.class_categ_1){
+        if (!Array.isArray(filters.class_categ_1)) {
+            filters.class_categ_1 = [filters.class_categ_1]
+        }
+    }
+
+    if (filters.class_categ_4){
+        if (!Array.isArray(filters.class_categ_4)) {
+            filters.class_categ_4 = [filters.class_categ_4]
+        }
+    }
+
+    if (filters.class_survey_esp){
+        if (!Array.isArray(filters.class_survey_esp)) {
+            filters.class_survey_esp = [filters.class_survey_esp]
+        }
+    }
+
+    if (filters.centrao){
+        if (!Array.isArray(filters.centrao)) {
+            filters.centrao = [filters.centrao]
+        }
+        // Converter valores para números
+        filters.centrao = filters.centrao.map((val) => parseInt(val))
+    }
+
     return {
         dimension: filters.dimension,
         electionsIds,
@@ -236,6 +267,10 @@ const parseFiltersToAnalytics = async (filters) => {
         instructionsDegreesIds,
         electoralUnitiesIds,
         ageBucketIds: filters.age_bucket_id,
+        ideologiaSimplificada: filters.class_categ_1,
+        ideologiaCoppedge: filters.class_categ_4,
+        ideologiaSurvey: filters.class_survey_esp,
+        centrao: filters.centrao,
     }
 }
 
