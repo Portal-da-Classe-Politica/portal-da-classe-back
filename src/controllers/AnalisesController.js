@@ -479,8 +479,8 @@ const getCategoryMappings = async (providedCategoricalParams) => {
             return {
                 key: "centrao",
                 mapping: [
-                    { id: 1, name: "Sim" },
-                    { id: 0, name: "Não" },
+                    { id: 1, name: "Centrão" },
+                    { id: 0, name: "Fora do Centrão" },
                 ],
             }
         }
