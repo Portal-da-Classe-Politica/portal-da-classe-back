@@ -30,12 +30,23 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
         if (!cargo) throw new Error("Cargo não encontrado")
         const abrangenciaId = cargo.abrangencia
         const { ageBuckets } = require("../enums/ageFilters")
-        const [anos, ocupacoes_categorizadas, intrucao, partidos, estados] = await Promise.all([
+        const [anos,
+            ocupacoes_categorizadas,
+            intrucao,
+            partidos,
+            estados,
+            ideologia_simplificada,
+            ideologia_coppedge,
+            ideologia_survey,
+        ] = await Promise.all([
             EleicaoSvc.getAllElectionsYearsByAbragencyForFilters(abrangenciaId),
             categoriaSvc.getAllCategorias(),
             GrauDeInstrucaoSvc.getAllGrausDeInstrucao(),
             partidoSvc.getAllPartidosComSiglaAtualizada(),
             unidadeEleitoralSvc.getFederativeUnitsByAbrangency(abrangenciaId, "onlyUF"),
+            partidoSvc.getDistinctIdeologiaSimplificada(),
+            partidoSvc.getDistinctIdeologiaCoppedge(),
+            partidoSvc.getDistinctIdeologiaSurvey(),
         ])
 
         const filterObject = {
@@ -47,6 +58,9 @@ const getFiltersForAnalyticsByRole = async (req, res) => {
             age_buckets: ageBuckets,
             cargo: cargoId,
             abrangencia: abrangenciaId,
+            ideologia_simplificada,
+            ideologia_coppedge,
+            ideologia_survey,
         }
 
         const data = analisesFilterParser.parseFiltersToAnalytics(filterObject)
@@ -133,6 +147,10 @@ const generateGraph = async (req, res) => {
         exportcsv,
         round,
         age_bucket_id,
+        class_categ_1,
+        class_categ_4,
+        class_survey_esp,
+        centrao,
     } = req.query
 
     try {
@@ -149,7 +167,11 @@ const generateGraph = async (req, res) => {
             grau_instrucao,
             id_agrupado_partido,
             age_bucket_id,
-            round, // Adicionar round aos parâmetros
+            round,
+            class_categ_1,
+            class_categ_4,
+            class_survey_esp,
+            centrao,
         }
 
         const validationErrors = validateParams(params)
@@ -169,6 +191,10 @@ const generateGraph = async (req, res) => {
             "grau_instrucao": "instrucao",
             "id_agrupado_partido": "partido",
             "age_bucket_id": "faixa_etaria",
+            "class_categ_1": "ideologia_simplificada",
+            "class_categ_4": "ideologia_coppedge",
+            "class_survey_esp": "ideologia_survey",
+            "centrao": "centrao",
         }
 
         // Filtrar e mapear os valores de providedCrossParams com base em providedCategoricalParams
@@ -437,6 +463,27 @@ const getCategoryMappings = async (providedCategoricalParams) => {
 
             return { key: "partido", mapping: partidosMapping }
         }
+        case "class_categ_1": {
+            const ideologias = await partidoSvc.getDistinctIdeologiaSimplificada()
+            return { key: "ideologia_simplificada", mapping: ideologias.map((i) => ({ id: i, name: i })) }
+        }
+        case "class_categ_4": {
+            const ideologias = await partidoSvc.getDistinctIdeologiaCoppedge()
+            return { key: "ideologia_coppedge", mapping: ideologias.map((i) => ({ id: i, name: i })) }
+        }
+        case "class_survey_esp": {
+            const ideologias = await partidoSvc.getDistinctIdeologiaSurvey()
+            return { key: "ideologia_survey", mapping: ideologias.map((i) => ({ id: i, name: i })) }
+        }
+        case "centrao": {
+            return { 
+                key: "centrao", 
+                mapping: [
+                    { id: 1, name: "Sim" },
+                    { id: 0, name: "Não" },
+                ] 
+            }
+        }
         default:
             return null
         }
@@ -461,6 +508,10 @@ const getCategoryKey = (param) => {
         "ocupacao_categorizada_id": "ocupacao",
         "grau_instrucao": "instrucao",
         "id_agrupado_partido": "partido",
+        "class_categ_1": "ideologia_simplificada",
+        "class_categ_4": "ideologia_coppedge",
+        "class_survey_esp": "ideologia_survey",
+        "centrao": "centrao",
     }
     return mapping[param] || param
 }

@@ -17,15 +17,15 @@ const Partido = sequelize.define("partido", {
     },
     class_categ_1: {
         type: DataTypes.STRING,
-        comment: "classificacao segundo categoria 1",
+        comment: "classificacao segundo Ideologia_Simplificada",
     },
     class_categ_4: {
         type: DataTypes.STRING,
-        comment: "classificacao segundo class_categ_4",
+        comment: "classificacao segundo Ideologia_Coppedge",
     },
     class_survey_esp: {
         type: DataTypes.STRING,
-        comment: "classificacao segundo class_survey_esp",
+        comment: "classificacao segundo Ideologia_Coppedge",
     },
     cor: {
         type: DataTypes.STRING,
@@ -38,6 +38,10 @@ const Partido = sequelize.define("partido", {
     id_agrupado: {
         type: DataTypes.INTEGER,
         comment: "id do partido agrupado de acordo com a sigla atual",
+    },
+    centrao: {
+        type: DataTypes.BOOLEAN,
+        comment: "Indica se o partido faz parte do centrão",
     },
 }, {
     sequelize,
