@@ -124,10 +124,64 @@ const parseFiltersToAnalytics = (filters) => {
                 type: "multi_select",
                 max: 2,
             },
+            {
+                label: "Ideologia Centrão",
+                values: [
+                    { id: 1, label: "Sim" },
+                    { id: 0, label: "Não" },
+                ],
+                parameter: "centrao",
+                required: false,
+                type: "multi_select",
+                max: 2,
+            },
 
             ],
 
         },
+    }
+
+    // Adicionar filtros de ideologia dinamicamente se houver valores
+    if (filters.ideologia_simplificada && filters.ideologia_simplificada.length > 0) {
+        new_filters.cross_criterias.possibilities.push({
+            label: "Ideologia Simplificada",
+            values: filters.ideologia_simplificada.map((ideologia, index) => ({
+                id: ideologia,
+                label: ideologia,
+            })),
+            parameter: "class_categ_1",
+            required: false,
+            type: "multi_select",
+            max: 2,
+        })
+    }
+
+    if (filters.ideologia_coppedge && filters.ideologia_coppedge.length > 0) {
+        new_filters.cross_criterias.possibilities.push({
+            label: "Ideologia Coppedge",
+            values: filters.ideologia_coppedge.map((ideologia, index) => ({
+                id: ideologia,
+                label: ideologia,
+            })),
+            parameter: "class_categ_4",
+            required: false,
+            type: "multi_select",
+            max: 2,
+        })
+    }
+
+    if (filters.ideologia_survey && filters.ideologia_survey.length > 0) {
+        new_filters.cross_criterias.possibilities.push({
+            label: "Ideologia Survey",
+            values: filters.ideologia_survey.map((ideologia, index) => ({
+                id: ideologia,
+                label: ideologia,
+            })),
+            parameter: "class_survey_esp",
+            required: false,
+            type: "multi_select",
+            max: 2,
+        })
     }
 
     if (filters.abrangencia == 1 && parseInt(filters.cargo) == 9){
