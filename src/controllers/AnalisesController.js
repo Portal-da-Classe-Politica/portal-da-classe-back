@@ -476,12 +476,12 @@ const getCategoryMappings = async (providedCategoricalParams) => {
             return { key: "ideologia_survey", mapping: ideologias.map((i) => ({ id: i, name: i })) }
         }
         case "centrao": {
-            return { 
-                key: "centrao", 
+            return {
+                key: "centrao",
                 mapping: [
                     { id: 1, name: "Sim" },
                     { id: 0, name: "Não" },
-                ] 
+                ],
             }
         }
         default:
