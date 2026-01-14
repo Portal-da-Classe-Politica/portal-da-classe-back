@@ -127,8 +127,8 @@ const parseFiltersToAnalytics = (filters) => {
             {
                 label: "Ideologia Centrão",
                 values: [
-                    { id: 1, label: "Sim" },
-                    { id: 0, label: "Não" },
+                    { id: 1, label: "Centrão" },
+                    { id: 0, label: "Fora do Centrão" },
                 ],
                 parameter: "centrao",
                 required: false,

@@ -135,7 +135,7 @@ const parseCrossCriteria = (finder, params) => {
         finder.attributes.push([Sequelize.col("grau_de_instrucao.nome_agrupado"), "instrucao"])
         finder.group.push("instrucao")
     }
-    
+
     // Filtros de ideologia - class_categ_1 (Ideologia Simplificada)
     if (params.ideologiaSimplificada && params.ideologiaSimplificada.length > 0) {
         // Verificar se já existe include do Partido, senão adicionar
@@ -155,7 +155,7 @@ const parseCrossCriteria = (finder, params) => {
         finder.attributes.push([Sequelize.col("partido.class_categ_1"), "ideologia_simplificada"])
         finder.group.push("ideologia_simplificada")
     }
-    
+
     // Filtros de ideologia - class_categ_4 (Ideologia Coppedge)
     if (params.ideologiaCoppedge && params.ideologiaCoppedge.length > 0) {
         let partidoInclude = finder.include.find((inc) => inc.model === PartidoModel)
@@ -174,7 +174,7 @@ const parseCrossCriteria = (finder, params) => {
         finder.attributes.push([Sequelize.col("partido.class_categ_4"), "ideologia_coppedge"])
         finder.group.push("ideologia_coppedge")
     }
-    
+
     // Filtros de ideologia - class_survey_esp (Ideologia Survey)
     if (params.ideologiaSurvey && params.ideologiaSurvey.length > 0) {
         let partidoInclude = finder.include.find((inc) => inc.model === PartidoModel)
@@ -193,7 +193,7 @@ const parseCrossCriteria = (finder, params) => {
         finder.attributes.push([Sequelize.col("partido.class_survey_esp"), "ideologia_survey"])
         finder.group.push("ideologia_survey")
     }
-    
+
     // Filtro de centrão
     if (params.centrao && params.centrao.length > 0) {
         let partidoInclude = finder.include.find((inc) => inc.model === PartidoModel)
@@ -211,10 +211,10 @@ const parseCrossCriteria = (finder, params) => {
         // Converter para booleanos
         const centraoValues = params.centrao.map((val) => val === 1 || val === "1" || val === true)
         partidoInclude.where.centrao = { [Op.in]: centraoValues }
-        
-        // Usar CASE para converter boolean para "Sim"/"Não"
+
+        // Usar CASE para converter boolean para "Centrão"/"Fora do Centrão"
         finder.attributes.push([
-            Sequelize.literal("CASE WHEN partido.centrao = true THEN 'Sim' ELSE 'Não' END"),
+            Sequelize.literal("CASE WHEN partido.centrao = true THEN 'Centrão' ELSE 'Fora do Centrão' END"),
             "centrao",
         ])
         finder.group.push("centrao")
