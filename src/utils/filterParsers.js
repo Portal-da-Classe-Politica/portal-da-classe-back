@@ -481,4 +481,5 @@ module.exports = {
     getIndicatorByID,
     getCargoFilterByID,
     verifyIfCargoIsAllowedForIndicator,
+    indicatorsPossibilities,
 }

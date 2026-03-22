@@ -16,6 +16,16 @@ app.use(express.urlencoded({
 
 app.use(express.json())
 
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200)
+    }
+    next()
+})
+
 const apiLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutos
     max: 500, // limite de 100 requisições por janela
