@@ -586,6 +586,12 @@ function computeGini(data) {
 }
 
 const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
+    if (initialYear < 2006) {
+        initialYear = 2006
+    }
+    if (finalYear < 2006) {
+        finalYear = 2006
+    }
     const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     const electionsIds = elections.map((e) => e.id)
 
@@ -696,7 +702,7 @@ function computeSum(data) {
         if (!sumsByYear[ano_eleicao]) {
             sumsByYear[ano_eleicao] = 0
         }
-        sumsByYear[ano_eleicao] += Math.pow(percentual, 2)
+        sumsByYear[ano_eleicao] += percentual ** 2
     })
 
     // Convert result to an array of objects
