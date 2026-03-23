@@ -57,21 +57,21 @@ const parseFiltersToAnalytics = (filters) => {
                 type: "multi_select",
                 max: 2,
             },
-            {
-                label: "Raça",
-                values: [
-                    { id: 1, label: "Não Divulgável ou não informada" },
-                    { id: 2, label: "Parda" },
-                    { id: 3, label: "Branca" },
-                    { id: 4, label: "Amarela" },
-                    { id: 5, label: "Preta" },
-                    { id: 6, label: "Indígena" },
-                ],
-                parameter: "raca_id",
-                required: false,
-                type: "multi_select",
-                max: 2,
-            },
+            // {
+            //     label: "Raça",
+            //     values: [
+            //         { id: 1, label: "Não Divulgável ou não informada" },
+            //         { id: 2, label: "Parda" },
+            //         { id: 3, label: "Branca" },
+            //         { id: 4, label: "Amarela" },
+            //         { id: 5, label: "Preta" },
+            //         { id: 6, label: "Indígena" },
+            //     ],
+            //     parameter: "raca_id",
+            //     required: false,
+            //     type: "multi_select",
+            //     max: 2,
+            // },
             {
                 label: "Ocupação",
                 values: filters.ocupacoes_categorizadas.map((ocupacao) => {
