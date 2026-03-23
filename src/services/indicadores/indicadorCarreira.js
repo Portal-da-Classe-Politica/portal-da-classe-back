@@ -495,7 +495,7 @@ const getMediaMedianaPatrimonio = async (cargoId, initialYear, finalYear, unidad
             eleicaos e ON ce.eleicao_id = e.id
         WHERE 
             ce.eleicao_id IN (${electionsIds.join(",")})
-            AND ce.cargo_id = ${cargoId}
+            AND ce.cargo_id IN (${Array.isArray(cargoId) ? cargoId.join(",") : cargoId})
             AND ce.situacao_candidatura_id IN (1, 16)
             ${filterUnitiesCondition}
         GROUP BY 
