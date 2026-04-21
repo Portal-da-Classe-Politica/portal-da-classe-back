@@ -84,10 +84,10 @@ const getCandidateDetailById = async (candidatoId) => {
           sc.nome AS situacao_candidatura
       FROM candidatos c
       LEFT JOIN generos g ON c.genero_id = g.id
-      LEFT JOIN racas r ON c.raca_id = r.id
       LEFT JOIN ocupacaos o ON c.ultima_ocupacao_id = o.id
       LEFT JOIN eleicaos e ON c.ultima_eleicao_id = e.id
       LEFT JOIN candidato_eleicaos ce ON c.id = ce.candidato_id AND c.ultima_eleicao_id = ce.eleicao_id
+      LEFT JOIN racas r ON ce.raca_id = r.id
       LEFT JOIN partidos p ON ce.partido_id = p.id
       LEFT JOIN grau_de_instrucaos gi ON ce.grau_de_instrucao_id = gi.id
       LEFT JOIN bens_candidatos b ON ce.id = b.candidato_eleicao_id

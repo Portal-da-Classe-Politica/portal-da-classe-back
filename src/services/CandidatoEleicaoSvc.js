@@ -40,26 +40,16 @@ const parseFinder = (finder, unidadesEleitoraisIds, isElected, partidos, ocupaco
     }
 
     if (raca) {
-        const include = {
-            model: CandidatoModel,
-            attributes: [],
-        }
         if (Array.isArray(raca) && raca.includes(1) && raca.includes(7)) {
-            include.where = {
-                raca_id: {
-                    [Op.or]: {
-                        [Op.in]: raca,
-                        [Op.is]: null,
-                    },
+            finder.where.raca_id = {
+                [Op.or]: {
+                    [Op.in]: raca,
+                    [Op.is]: null,
                 },
             }
         } else {
-            include.where = {
-                raca_id: raca,
-            }
-            include.required = true
+            finder.where.raca_id = raca
         }
-        finder.include.push(include)
     }
 
     // partido

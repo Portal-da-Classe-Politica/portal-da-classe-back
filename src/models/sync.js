@@ -27,11 +27,9 @@ const Categoria2 = require("./Categoria2")
 
 const syncModels = async () => {
     Candidato.belongsTo(Genero)
-    Candidato.belongsTo(Raca)
     Candidato.belongsTo(Ocupacao, { targetKey: "id", foreignKey: "ultima_ocupacao_id" })
     Candidato.belongsTo(Eleicao, { targetKey: "id", foreignKey: "ultima_eleicao_id" })
     Genero.hasMany(Candidato)
-    Raca.hasMany(Candidato)
 
     Ocupacao.belongsTo(Categoria, { targetKey: "id", foreignKey: "categoria_id" })
     Categoria.hasMany(Ocupacao)
@@ -83,6 +81,9 @@ const syncModels = async () => {
 
     CandidatoEleicao.belongsTo(SituacaoReeleicao, { targetKey: "id", foreignKey: "situacao_reeleicao_id" })
     SituacaoReeleicao.hasMany(CandidatoEleicao)
+
+    CandidatoEleicao.belongsTo(Raca)
+    Raca.hasMany(CandidatoEleicao)
 
     VotacaoCandidatoMunicipio.belongsTo(CandidatoEleicao)
     CandidatoEleicao.hasMany(VotacaoCandidatoMunicipio)

@@ -107,22 +107,13 @@ const parseCrossCriteria = (finder, params) => {
         finder.group.push("genero")
     }
     if (params.racesIds && params.racesIds.length > 0) {
-        if (!finder.include[0].where){
-            finder.include[0].where = {}
-            finder.include[0].where.raca_id = { [Op.in]: params.racesIds }
-        } else {
-            finder.include[0].where.raca_id = { [Op.in]: params.racesIds }
-        }
+        finder.where.raca_id = { [Op.in]: params.racesIds }
         const racaInclude = {
             model: RacaModel,
             attributes: [],
         }
-        if (!finder.include[0].include) {
-            finder.include[0].include = [racaInclude]
-        } else {
-            finder.include[0].include.push(racaInclude)
-        }
-        finder.attributes.push([Sequelize.col("candidato.raca.nome"), "raca"])
+        finder.include.push(racaInclude)
+        finder.attributes.push([Sequelize.col("raca.nome"), "raca"])
         finder.group.push("raca")
     }
     if (params.instructionsDegreesIds && params.instructionsDegreesIds.length > 0) {
