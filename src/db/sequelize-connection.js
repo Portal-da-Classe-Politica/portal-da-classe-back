@@ -3,7 +3,8 @@ const config = require("../config/config")
 const logger = require("../utils/logger")
 const { sendAlert } = require("../utils/alert/alertTelegram")
 
-const databaseName = config.environment != "development" ? "eleicao_v3" : "eleicao_v2"
+const isDevelopment = config.environment === "development"
+const databaseName = isDevelopment ? "eleicao_v2" : "eleicao_v3"
 
 const objectDB = {
     username: "postgres",
@@ -24,7 +25,7 @@ const objectDB = {
     },
 }
 
-if (config.environment === "development") {
+if (isDevelopment) {
     objectDB.dialectOptions.ssl = {
         require: true,
         rejectUnauthorized: false,
