@@ -101,21 +101,26 @@ const getCustoPorVoto = async (candidateId) => {
         raw: true,
     })
 
-    // Calcular a taxa de custo por voto (TCV)
+    // Calcular a taxa de custo por voto (TCV).
+    // total_votes vem NULL (não 0) quando a eleição ainda não tem votação apurada
+    // (ex.: candidatura de uma eleição em curso) — nesse caso o TCV é `null`
+    // ("sem dado"), e não "custo zero por voto".
     const TCV = results.map((result) => {
         const cost = parseFloat(result.total_cost) || 0
-        const votes = parseInt(result.total_votes) || 0
+        const hasVoteData = result.total_votes !== null && result.total_votes !== undefined
+        const votes = hasVoteData ? parseInt(result.total_votes) : null
         const object = {
             ano: result.ano_eleicao,
-            TCV: votes > 0 ? parseFloat((cost / votes).toFixed(2)) : 0,
+            TCV: hasVoteData && votes > 0 ? parseFloat((cost / votes).toFixed(2)) : null,
         }
         return object
     })
     // Ordenar por ano
     TCV.sort((a, b) => a.ano - b.ano)
 
-    const lastTCV = TCV[TCV.length - 1]?.TCV || 0
-    const secondLastTCV = TCV[TCV.length - 2]?.TCV || 0
+    const TCVComDado = TCV.filter((t) => t.TCV !== null)
+    const lastTCV = TCVComDado[TCVComDado.length - 1]?.TCV || 0
+    const secondLastTCV = TCVComDado[TCVComDado.length - 2]?.TCV || 0
 
     return createKPI({
         name: "Custo por Voto",
@@ -172,9 +177,18 @@ const getCargosEleitos = async (candidateId) => {
         metadata: {
             total_eleitos: results.filter((result) => result.foi_eleito === true).length,
             total_candidaturas: results.length,
+            // foi_eleito vem NULL (não false) para uma candidatura cuja eleição ainda
+            // não teve resultado apurado — tratar como false diria "Não eleito" para
+            // uma eleição que sequer aconteceu.
             cargos_disputados: [
-                results.map((r) =>
-                    `${r.nome_cargo} (${r.ano_eleicao}) - ${r.foi_eleito ? "Eleito" : "Não eleito"}`),
+                results.map((r) => {
+                    const situacao = r.foi_eleito === true
+                        ? "Eleito"
+                        : r.foi_eleito === false
+                            ? "Não eleito"
+                            : "Aguardando resultado"
+                    return `${r.nome_cargo} (${r.ano_eleicao}) - ${situacao}`
+                }),
             ].join(", "),
         },
         unity: "text",
@@ -304,6 +318,21 @@ const getDispersaoVotos = async (candidateId) => {
     }))
 
     const totalVotos = votosTratados.reduce((acc, curr) => Number(acc) + Number(curr.total_votes), 0)
+
+    // Sem nenhum voto computado, a eleição ainda não tem resultado apurado (ex.:
+    // candidatura de uma eleição em curso) — retorna "sem dado" em vez de calcular
+    // um índice de concentração de 0% que sugeriria "votos totalmente dispersos".
+    if (!votos.length || totalVotos === 0) {
+        return createKPI({
+            name: `Concentração de votos - ${lastElection["eleicao.turno"]}º turno - ${lastElection["eleicao.ano_eleicao"]}`,
+            description: "Ainda não há resultado de votação apurado para essa candidatura.",
+            value: null,
+            metadata: {
+                totalVotos: 0,
+            },
+            unity: "%",
+        })
+    }
 
     // Compute the percentage of votes for each municipality
     const votosPorcentagem = votosTratados.map((voto) => ({

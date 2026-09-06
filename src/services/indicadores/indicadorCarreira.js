@@ -45,6 +45,52 @@ const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId,
         throw error
     }
 }
+
+/**
+ * Filtra uma lista de eleições (do formato retornado por getElectionsByYearInterval),
+ * mantendo apenas as que já têm resultado apurado — isto é, que possuem ao menos um
+ * registro de votação (votacao_candidato_municipios) OU alguma candidatura já
+ * associada a uma situação de turno (situacao_turno_id preenchido).
+ *
+ * Isso evita que uma eleição cuja candidatura já foi importada mas que ainda não foi
+ * apurada (ex.: eleição em curso, como 2026 antes da apuração) entre em indicadores
+ * baseados em voto/resultado como se tivesse 0%, Gini = 0 etc. — o correto é
+ * simplesmente não gerar um ponto para esse ano até o resultado sair.
+ *
+ * @param {Array<{id: number}>} elections
+ * @returns {Promise<Array<{id: number}>>}
+ */
+const filterElectionsComResultado = async (elections) => {
+    const electionsIds = elections.map((election) => election.id)
+    if (!electionsIds.length) return []
+
+    const rows = await sequelize.query(`
+        SELECT DISTINCT e.id
+        FROM eleicaos e
+        WHERE e.id IN (:electionsIds)
+          AND (
+            EXISTS (
+                SELECT 1
+                FROM candidato_eleicaos ce
+                JOIN votacao_candidato_municipios vcm ON vcm.candidato_eleicao_id = ce.id
+                WHERE ce.eleicao_id = e.id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM candidato_eleicaos ce
+                WHERE ce.eleicao_id = e.id
+                  AND ce.situacao_turno_id IS NOT NULL
+            )
+          )
+    `, {
+        replacements: { electionsIds },
+        type: Sequelize.QueryTypes.SELECT,
+    })
+
+    const idsComResultado = new Set(rows.map((row) => row.id))
+    return elections.filter((election) => idsComResultado.has(election.id))
+}
+
 /**
  * @name Taxa de Renovação Líquida
  * @description TRL = (D / (D + R)) * 100 - D = é o número de membros que tentaram a reeleição e foram derrotados - R = é o número de membros que tentaram a reeleição e foram reeleitos
@@ -57,13 +103,17 @@ const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId,
 const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
     const abrangenciaId = abrangency.abrangencia
-    const [elections, electedSituacaoTurnos, notElectedSituacaoTurnos] = await Promise.all([
+    const [allElections, electedSituacaoTurnos, notElectedSituacaoTurnos] = await Promise.all([
         getElectionsByYearInterval(initialYear, finalYear, abrangenciaId, round),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: false } }),
     ])
 
+    // Eleições sem resultado apurado (ex.: eleição em curso) ainda não têm
+    // derrotados/reeleitos a contabilizar — excluídas para não virar um 0% falso.
+    const elections = await filterElectionsComResultado(allElections)
     const electionsIds = elections.map((election) => election.id)
+    if (!electionsIds.length) return []
 
     let filterUnities
     if (unidadesEleitorais && unidadesEleitorais.length > 0) {
@@ -149,11 +199,16 @@ const getTaxaDeRenovacaoLiquida = async (cargoId, initialYear, finalYear, unidad
 const getTaxaReeleicao = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
     const abrangency = await cargoSvc.getAbragencyByCargoID(cargoId)
     const abrangenciaId = abrangency.abrangencia
-    const [elections, electedSituacaoTurnos] = await Promise.all([
+    const [allElections, electedSituacaoTurnos] = await Promise.all([
         getElectionsByYearInterval(initialYear, finalYear, abrangenciaId, round),
         SituacaoTurnoModel.findAll({ where: { foi_eleito: true } }),
     ])
+
+    // Eleições sem resultado apurado ainda não têm reeleitos a contabilizar —
+    // excluídas para não virar uma taxa de reeleição de 0% falsa.
+    const elections = await filterElectionsComResultado(allElections)
     const electionsIds = elections.map((election) => election.id)
+    if (!electionsIds.length) return []
 
     let filterUnities
     if (unidadesEleitorais && unidadesEleitorais.length > 0) {
@@ -413,11 +468,17 @@ function computeGiniReceitas(data) {
         receitasPorAno[ano_eleicao].push(receita_total)
     })
 
-    // Calcula Gini para cada ano e retorna no formato esperado
-    return Object.keys(receitasPorAno).map((ano_eleicao) => ({
-        ano: parseInt(ano_eleicao),
-        IDAR: calcularGini(receitasPorAno[ano_eleicao]), // Mantém nome IDAR para compatibilidade
-    }))
+    // Calcula Gini para cada ano e retorna no formato esperado.
+    // Anos em que NENHUM candidato tem receita declarada (> 0) ainda não têm dado de
+    // financiamento importado (ex.: eleição em curso, antes da prestação de contas) —
+    // são excluídos, pois reportar Gini = 0 sugeriria "distribuição perfeitamente
+    // igualitária" quando na verdade é apenas ausência de dado.
+    return Object.keys(receitasPorAno)
+        .filter((ano_eleicao) => receitasPorAno[ano_eleicao].some((valor) => Number(valor) > 0))
+        .map((ano_eleicao) => ({
+            ano: parseInt(ano_eleicao),
+            IDAR: calcularGini(receitasPorAno[ano_eleicao]), // Mantém nome IDAR para compatibilidade
+        }))
 }
 
 const getIndiceIgualdadeAcessoRecursos = async (cargoId, initialYear, finalYear, unidadesEleitorais, round) => {
@@ -603,10 +664,14 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
         COALESCE(SUM(bens.valor), 0) AS resultado
     `
 
+    // Este índice mede concentração de PATRIMÔNIO declarado, não depende de resultado
+    // de turno. O join com situacao_turnos foi removido: como é um INNER JOIN, ele
+    // excluía indevidamente qualquer candidatura sem situação de turno definida —
+    // o que inclui toda candidatura de uma eleição ainda sem resultado apurado
+    // (ex.: 2026 antes da apuração), mesmo já tendo bens declarados.
     let queryFrom = `FROM candidato_eleicaos ce
-        JOIN situacao_turnos st ON st.id = ce.situacao_turno_id
         JOIN eleicaos e ON e.id = ce.eleicao_id
-        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id  
+        LEFT JOIN bens_candidatos bens ON ce.id = bens.candidato_eleicao_id
     `
 
     let queryWhere = ` WHERE ce.eleicao_id IN (:electionsIds) 
@@ -733,8 +798,14 @@ function computeAvg(data) {
 }
 
 const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
+    const allElections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
+    // Sem votação e sem turno apurado ainda não há como medir desproporcionalidade
+    // votos x cadeiras. Sem este filtro, uma eleição em curso (candidaturas já
+    // cadastradas, mas situacao_turno_id ainda nulo) gera uma "cadeira" fantasma com
+    // 0 eleitos por partido, que o COALESCE mais abaixo transforma num LSq = 0 falso.
+    const elections = await filterElectionsComResultado(allElections)
     const electionsIds = elections.map((e) => e.id)
+    if (!electionsIds.length) return []
 
     const replacements = { electionsIds, cargoId }
 
