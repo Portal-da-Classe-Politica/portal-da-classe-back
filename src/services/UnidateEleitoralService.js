@@ -1,4 +1,3 @@
-const { Op, Sequelize } = require("sequelize")
 const unidadeEleitoralModel = require("../models/UnidadeEleitoral")
 
 const getFederativeUnitsByAbrangency = (abrangency, show, UF) => {
@@ -50,40 +49,6 @@ const getElectoralUnitByUFandAbrangency = (UF, abrangency) => {
     })
 }
 
-const getAllElectoralUnitsByArrayOfUFs = (UFs) => {
-    return unidadeEleitoralModel.findAll({
-        where: {
-            sigla_unidade_federacao: {
-                [Op.in]: UFs,
-            },
-            id: {
-                [Op.gte]: 29, // 29 is the first electoral unit id by municipality
-            },
-        },
-        attributes: ["id"],
-        raw: true,
-    })
-}
-
-const getAllElectoralUnitsByArrayOfUnidadesEleitorais = async (unidadesIds) => {
-    const sqlQuery = ` 
-        SELECT id FROM unidade_eleitorals 
-        WHERE sigla_unidade_federacao in (
-            SELECT sigla_unidade_federacao 
-            FROM unidade_eleitorals 
-            WHERE id IN (:unidadesIds)
-        )`
-
-    const replacements = { unidadesIds }
-
-    const results = await sequelize.query(sqlQuery, {
-        replacements, // Substitute placeholders
-        type: Sequelize.QueryTypes.SELECT, // Define as SELECT
-    })
-
-    return results
-}
-
 const getElectoralUnitsByUFandAbrangency = (UF, abrangency) => {
     return unidadeEleitoralModel.findAll({
         where: {
@@ -96,10 +61,8 @@ const getElectoralUnitsByUFandAbrangency = (UF, abrangency) => {
 }
 
 module.exports = {
-    getAllElectoralUnitsByArrayOfUFs,
     getFederativeUnitsByAbrangency,
     getAllElectoralUnitiesIdsByUF,
     getElectoralUnitByUFandAbrangency,
-    getAllElectoralUnitsByArrayOfUnidadesEleitorais,
     getElectoralUnitsByUFandAbrangency,
 }

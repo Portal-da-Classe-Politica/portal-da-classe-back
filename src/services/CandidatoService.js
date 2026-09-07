@@ -1,58 +1,7 @@
 const candidatoModel = require("../models/Candidato")
-const nomeUrnaModel = require("../models/NomeUrna")
 const eleicaoModel = require("../models/Eleicao")
-const candidatoEleicaoModel = require("../models/CandidatoEleicao")
-const grauDeInstrucaoModel = require("../models/GrauDeInstrucao")
-const generoModel = require("../models/Genero")
-const partidoModel = require("../models/Partido")
-const racaModel = require("../models/Raca")
-const ocupacaoModel = require("../models/Ocupacao")
-const bensCandidatoEleicaoModel = require("../models/BensCandidatoEleicao")
-const cargoModel = require("../models/Cargo")
-const unidadesEleitoraisModel = require("../models/UnidadeEleitoral")
-const situacaoCandidaturaModel = require("../models/SituacaoCandidatura")
 
-const {
-    Op, where, QueryTypes, Sequelize,
-} = require("sequelize")
-
-const get10CandidatesSortedByName = async (skip, limit) => {
-    try {
-        const { count, rows } = await candidatoModel.findAndCountAll({
-            order: [
-                ["nome", "ASC"],
-            ],
-            attributes: ["id", "ultima_eleicao_id"],
-            "limit": limit,
-            offset: skip,
-            raw: true,
-
-        })
-
-        if (!rows || rows.length === 0) return new Error("Nenhum candidato encontrado")
-        const currentPage = Math.floor(skip / limit) + 1
-        const totalPages = Math.ceil(count / limit)
-        const totalResults = count
-        const filteredCandidates = rows.map((c) => {
-            return {
-                candidato_id: c.id,
-                eleicao_id: c.ultima_eleicao_id,
-            }
-        })
-
-        const result = {
-            totalResults,
-            currentPage,
-            totalPages,
-            results: filteredCandidates,
-        }
-
-        return result
-    } catch (error) {
-        console.error("Error fetching candidates:", error)
-        throw error
-    }
-}
+const { QueryTypes } = require("sequelize")
 
 const getCandidateDetailById = async (candidatoId) => {
     try {
@@ -169,6 +118,5 @@ const getCandidate = async (candidatoId) => {
 
 module.exports = {
     getCandidate,
-    get10CandidatesSortedByName,
     getCandidateDetailById,
 }

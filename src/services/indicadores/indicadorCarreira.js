@@ -4,21 +4,9 @@ const {
 const CandidatoEleicaoModel = require("../../models/CandidatoEleicao")
 const EleicaoModel = require("../../models/Eleicao")
 const CandidatoModel = require("../../models/Candidato")
-const PartidoModel = require("../../models/Partido")
-const SituacaoCandidatoModel = require("../../models/SituacaoCandidatura")
-const CargoModel = require("../../models/Cargo")
-const nomeUrnaModel = require("../../models/NomeUrna")
-const votacaoCandidatoMunicipioModel = require("../../models/VotacaoCandidatoMunicipio")
-const municipiosVotacaoModel = require("../../models/MunicipiosVotacao")
 const BensCandidatoEleicao = require("../../models/BensCandidatoEleicao")
 const GeneroModel = require("../../models/Genero")
 const SituacaoTurnoModel = require("../../models/SituacaoTurno")
-const ocupacaoModel = require("../../models/Ocupacao")
-const categoriaModel = require("../../models/Categoria")
-const categoria2Model = require("../../models/Categoria2")
-const doacoesCandidatoEleicaoModel = require("../../models/DoacoesCandidatoEleicao")
-const unidadeEleitoralSvc = require("../UnidateEleitoralService")
-const { fatoresDeCorreção } = require("../../utils/ipca")
 const cargoSvc = require("../CargoService")
 
 const getElectionsByYearInterval = async (initialYear, finalYear, abrangenciaId, round = [1]) => {
@@ -384,75 +372,6 @@ const getIndiceParidadeEleitoralGenero = async (cargoId, initialYear, finalYear,
 }
 
 /**
- *  @name Taxa de Custo por Voto
- * @formula TCV = (C / V)
- * @C é o custo da campanha
- * @V é o número de votos obtidos por partido
- * @param {*} cargoId
- * @param {*} initialYear
- * @param {*} finalYear
- * @param {*} unidadesEleitorais
- */
-const getTaxaCustoPorVoto = async (cargoId, initialYear, finalYear, unidadesEleitorais) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map((election) => election.id)
-
-    let filterUnities
-    if (unidadesEleitorais && unidadesEleitorais.length > 0) {
-        filterUnities = unidadesEleitorais
-    }
-
-    // Obter os custos de campanha e votos dos partidos em uma única consulta
-    const results = await CandidatoEleicaoModel.findAll({
-        attributes: [
-            "eleicao_id",
-            "partido.sigla_atual",
-            [Sequelize.fn("SUM", Sequelize.col("candidato_eleicao.despesa_campanha")), "total_cost"],
-            [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
-        ],
-        include: [
-            // {
-            //     model: doacoesCandidatoEleicaoModel,
-            //     attributes: [],
-            //     required: false,
-            // },
-            {
-                model: votacaoCandidatoMunicipioModel,
-                attributes: [],
-                required: false,
-            },
-            {
-                model: PartidoModel,
-                attributes: ["sigla_atual"],
-            },
-        ],
-        where: {
-            eleicao_id: { [Op.in]: electionsIds },
-            cargo_id: Array.isArray(cargoId) ? { [Op.in]: cargoId } : cargoId,
-            situacao_candidatura_id: { [Op.in]: [1, 16] }, // candidaturas validas
-            ...(filterUnities && { unidade_eleitoral_id: filterUnities }),
-        },
-        group: ["eleicao_id", "partido.sigla_atual"],
-        raw: true,
-    })
-
-    // Calcular a taxa de custo por voto (TCV)
-    const TCV = results.map((result) => {
-        const cost = parseFloat(result.total_cost) || 0
-        const votes = parseInt(result.total_votes) || 0
-        const object = {
-            partido: result["partido.sigla_atual"],
-            ano: elections.find((election) => election.id === result.eleicao_id).ano_eleicao,
-            TCV: votes > 0 ? parseFloat((cost / votes).toFixed(2)) : 0,
-        }
-        // console.log(object)
-        return object
-    })
-
-    return TCV
-}
-
-/**
  * Agrupa dados por ano e calcula Gini para cada ano
  * @param {Array} data - Dados retornados pela query SQL
  * @returns {Array} - Array com ano_eleicao e IDAR (Gini)
@@ -700,103 +619,6 @@ const getIndiceDiversidadeEconomica = async (cargoId, initialYear, finalYear, un
     return computeGini(data)
 }
 
-const getMedianaMigracao = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
-    const elections = await getElectionsByYearInterval(initialYear, finalYear)
-    const electionsIds = elections.map((e) => e.id)
-
-    let select = `
-            WITH candidate_parties AS (
-            SELECT 
-                candidato_id,
-                e.ano_eleicao,
-                partido_id,
-                ROW_NUMBER() OVER (
-                    PARTITION BY candidato_id, partido_id 
-                    ORDER BY e.ano_eleicao
-                ) AS first_occurrence
-            FROM public.candidato_eleicaos ce
-            JOIN eleicaos e ON ce.eleicao_id = e.id
-            WHERE ce.eleicao_id IN (:electionsIds)
-                AND ce.cargo_id ${Array.isArray(cargoId) ? "IN (:cargoId)" : "= :cargoId"}
-        `
-
-    const replacements = { electionsIds, cargoId }
-
-    // Filtros adicionais dinâmicos
-    if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-        select += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
-        replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-    }
-    select += `),
-        unique_parties AS (
-            SELECT 
-                candidato_id,
-                ano_eleicao,
-                COUNT(*) AS new_parties
-            FROM candidate_parties
-            WHERE first_occurrence = 1
-            GROUP BY candidato_id, ano_eleicao
-        )
-        SELECT 
-            candidato_id,
-            ano_eleicao,
-            SUM(new_parties) OVER (
-                PARTITION BY candidato_id 
-                ORDER BY ano_eleicao
-                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-            ) AS total_unique_parties_up_to_year
-        FROM unique_parties
-        ORDER BY candidato_id, ano_eleicao;
-        `
-
-    // Executa a consulta
-    const data = await sequelize.query(select, {
-        replacements, // Substitui os placeholders
-        type: Sequelize.QueryTypes.SELECT, // Define como SELECT
-    })
-
-    return computeAvg(data)
-}
-
-// Function to compute sum of 1/s_i^2 for each year
-function computeSum(data) {
-    const sumsByYear = {}
-
-    // Group data by year and compute the sum for each year
-    data.forEach(({ ano_eleicao, percentual }) => {
-        if (!sumsByYear[ano_eleicao]) {
-            sumsByYear[ano_eleicao] = 0
-        }
-        sumsByYear[ano_eleicao] += percentual ** 2
-    })
-
-    // Convert result to an array of objects
-    return Object.keys(sumsByYear).map((ano_eleicao) => ({
-        ano_eleicao: parseInt(ano_eleicao),
-        indice_diversidade_economica: sumsByYear[ano_eleicao],
-    }))
-}
-
-function computeAvg(data) {
-    // Step 1: Group by ano_eleicao
-    const yearGroups = data.reduce((acc, { ano_eleicao, total_unique_parties_up_to_year }) => {
-        if (!acc[ano_eleicao]) {
-            acc[ano_eleicao] = { sum: 0, count: 0 }
-        }
-        acc[ano_eleicao].sum += parseInt(total_unique_parties_up_to_year, 10)
-        acc[ano_eleicao].count += 1
-        return acc
-    }, {})
-
-    // Step 2: Compute the average for each year
-    const averageByYear = Object.entries(yearGroups).map(([year, { sum, count }]) => ({
-        ano_eleicao: parseInt(year, 10),
-        media_partidos: sum / count,
-    }))
-
-    return averageByYear
-}
-
 const getGallagherLSq = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds, round) => {
     const allElections = await getElectionsByYearInterval(initialYear, finalYear, null, round)
     // Sem votação e sem turno apurado ainda não há como medir desproporcionalidade
@@ -926,10 +748,8 @@ module.exports = {
     getTaxaDeRenovacaoLiquida,
     getTaxaReeleicao,
     getIndiceParidadeEleitoralGenero,
-    getTaxaCustoPorVoto,
     getIndiceIgualdadeAcessoRecursos,
     getMediaMedianaPatrimonio,
     getIndiceDiversidadeEconomica,
-    getMedianaMigracao,
     getGallagherLSq,
 }

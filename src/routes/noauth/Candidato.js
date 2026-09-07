@@ -10,14 +10,8 @@ router.get("/last-election-votes-by-region/:id", CandidatoController.getLastElec
 
 router.get("/get-last-5-last-elections-votes/:id", CandidatoController.getLast5LastElectionsVotes)
 
-router.get("/biggest-donors/:id", CandidatoController.getBiggestDonors)
-
 router.get("/get-filters", CandidatoController.getFiltersForSearch)
 
-router.get("/cargos", CandidatoController.getCargoFilters)
-
 router.get("/kpis/:id", CandidatoController.getKpis)
-
-router.get("/fuzzy-search", CandidatoController.fuzzySearchCandidatesByName)
 
 module.exports = router

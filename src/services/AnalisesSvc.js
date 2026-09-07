@@ -1,5 +1,5 @@
 const {
-    Op, where, QueryTypes, Sequelize,
+    Op, where, Sequelize,
 } = require("sequelize")
 const CandidatoEleicaoModel = require("../models/CandidatoEleicao")
 const CandidatoModel = require("../models/Candidato")

@@ -4,6 +4,4 @@ const UnidadeEleitoralController = require("../../controllers/UnidadeEleitoralCo
 
 router.get("/", UnidadeEleitoralController.getByAbrangency)
 
-router.get("/get-ufs/", UnidadeEleitoralController.getFederativeUnits)
-
 module.exports = router

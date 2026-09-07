@@ -1,6 +1,6 @@
 const { sequelize } = require("../db/sequelize-connection")
 const EleicaoModel = require("../models/Eleicao")
-const { Sequelize, or } = require("sequelize")
+const { Sequelize } = require("sequelize")
 
 const getLastElectionFirstTurn = async (ano, turno) => {
     try {
@@ -100,32 +100,9 @@ const getAllElectionsYearsByAbragencyForFilters = async (abrangency) => {
     }
 }
 
-const getInitialAndLastElections = async (initialYear, finalYear, round = 1) => {
-    try {
-        if (round === "all"){
-            round = { [Sequelize.Op.in]: [1, 2] }
-        }
-        const election = await EleicaoModel.findAll({
-            where: {
-                ano_eleicao: {
-                    [Sequelize.Op.in]: [initialYear, finalYear],
-                },
-                turno: round,
-            },
-            attributes: ["id", "ano_eleicao"],
-            raw: true,
-        })
-        return election
-    } catch (error) {
-        console.error("Error fetching election:", error)
-        throw error
-    }
-}
-
 module.exports = {
     getAllElectionsYearsByAbragencyForFilters,
     getElectionsByYearIntervalAndAbragency,
-    getInitialAndLastElections,
     getLastElectionFirstTurn,
     getElectionsByYearInterval,
     getAllElectionsYears,

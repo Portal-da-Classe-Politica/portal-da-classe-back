@@ -223,69 +223,6 @@ const getQuocienteEleitoral = async (cargoId, initialYear, finalYear, unidadesEl
     }
 }
 
-const getQuocientePartidario = async (cargoId, initialYear, finalYear, unidadesEleitoraisIds) => {
-    try {
-        const elections = await getElectionsByYearInterval(initialYear, finalYear)
-        const electionIds = elections.map((e) => e.id)
-
-        const replacements = { electionIds, cargoId }
-
-        const quociente_eleitoral = await getQuocienteEleitoral(cargoId, initialYear, finalYear, unidadesEleitoraisIds)
-
-        let query = `
-            SELECT
-                p.sigla_atual,
-                e.ano_eleicao,
-                SUM(vcm.quantidade_votos) total_votos
-            FROM candidato_eleicaos ce
-            JOIN votacao_candidato_municipios vcm ON ce.id = vcm.candidato_eleicao_id
-            JOIN eleicaos e ON e.id = ce.eleicao_id
-            JOIN partidos p ON p.id = ce.partido_id
-            WHERE  ce.eleicao_id IN (:electionIds) AND ce.cargo_id ${Array.isArray(cargoId) ? 'IN (:cargoId)' : '= :cargoId'}
-        `
-
-        // Filtros adicionais dinâmicos
-        if (unidadesEleitoraisIds && unidadesEleitoraisIds.length > 0) {
-            query += " AND ce.unidade_eleitoral_id IN (:unidadesEleitoraisIds)"
-            replacements.unidadesEleitoraisIds = unidadesEleitoraisIds
-        }
-
-        query += `
-            GROUP BY p.sigla_atual, e.ano_eleicao
-            ORDER BY p.sigla_atual, e.ano_eleicao
-        `
-
-        const results = await sequelize.query(query, {
-            replacements,
-            type: Sequelize.QueryTypes.SELECT,
-        })
-
-        const data = quociente_eleitoral
-
-        const mergedData = results.map((result) => {
-            // Find the corresponding entry in 'data' with the same 'ano_eleicao'
-            const quocienteEntry = data.find((d) => d.ano === result.ano_eleicao)
-
-            // Calculate the 'quociente_partidario' if the matching year is found
-            const quociente_partidario = quocienteEntry
-                ? parseFloat(result.total_votos) / quocienteEntry.quociente_eleitoral
-                : null
-
-            // Return the new object
-            return {
-                ano: result.ano_eleicao,
-                sigla: result.sigla_atual,
-                quociente_partidario: quociente_partidario ? quociente_partidario.toFixed(2) : null, // rounding to 2 decimals
-            }
-        })
-
-        return mergedData
-    } catch (error) {
-        console.error("Error in getVolatilidadeEleitoral:", error)
-        throw error
-    }
-}
-
 // Function to compute sum of 1/s_i^2 for each year
 function computeSum(data) {
     const sumsByYear = {}
@@ -309,5 +246,4 @@ module.exports = {
     getNEPP,
     getVolatilidadeEleitoral,
     getQuocienteEleitoral,
-    getQuocientePartidario,
 }

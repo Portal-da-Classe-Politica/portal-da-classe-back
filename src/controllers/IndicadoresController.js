@@ -4,7 +4,6 @@ const {
     getCargoFilterByID,
     verifyIfCargoIsAllowedForIndicator,
     indicatorsGroupsGlossary,
-    indicatorsPossibilities,
 } = require("../utils/filterParsers")
 const { expandCargoIds } = require("../services/CargoService")
 const { splitPSDByYear } = require("../services/AnalisesSvc")
@@ -14,9 +13,6 @@ const indicadoresGeograficosSvc = require("../services/indicadores/indicadoresGe
 const chartsUtil = require("../utils/chartParsers")
 const UfForVotes = require("../utils/votesLocation")
 const municipioVotacaoService = require("../services/MunicipiosVotacaoSvc")
-const {
-    getElectoralUnitByUFandAbrangency,
-} = require("../services/UnidateEleitoralService")
 const logger = require("../utils/logger")
 const { Parser } = require("json2csv") // no topo do arquivo
 const { convertDecimalSeparatorInData } = require("../utils/csvUtils")
@@ -505,39 +501,9 @@ const getCitiesVotesByUF = async (req, res) => {
     }
 }
 
-const getDiscovery = async (req, res) => {
-    try {
-        const discovery = Object.values(indicatorsPossibilities).map(
-            (indicator) => ({
-                id: indicator.id,
-                nome: indicator.nome,
-                grupo: indicator.grupo,
-                cargos: indicator.cargos.map((cargo) => ({
-                    id: cargo.id,
-                    nome: cargo.name,
-                    abrangencia: cargo.abrangencia,
-                    filtros_requeridos: cargo.required_steps ?? [],
-                })),
-            }),
-        )
-
-        return res.status(200).json({
-            success: true,
-            data: discovery,
-            message: "Indicadores e cargos disponíveis",
-        })
-    } catch (error) {
-        logger.error(error)
-        return res
-            .status(500)
-            .json({ success: false, message: "Erro ao buscar discovery" })
-    }
-}
-
 module.exports = {
     getIndicador,
     getAllIndicadorByType,
     getUFVotes,
     getCitiesVotesByUF,
-    getDiscovery,
 }

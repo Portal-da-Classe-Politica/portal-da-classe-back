@@ -34,44 +34,6 @@ const convertDecimalSeparatorInData = (data) => {
  * @param {string} csvString - String CSV para processar
  * @returns {string} String CSV com vírgulas como separador decimal
  */
-const convertDecimalSeparatorToComma = (csvString) => {
-    // Divide o CSV em linhas
-    const lines = csvString.split("\n")
-
-    // Processa cada linha
-    const processedLines = lines.map((line) => {
-        // Divide a linha em colunas usando o delimitador ;
-        const columns = line.split(";")
-
-        // Processa cada coluna
-        const processedColumns = columns.map((column) => {
-            // Remove aspas se existirem
-            const cleanColumn = column.replace(/^"(.*)"$/, "$1")
-
-            // Verifica se é um número com ponto decimal
-            if (/^\d+\.\d+$/.test(cleanColumn)) {
-                // Substitui ponto por vírgula
-                return `"${cleanColumn.replace(".", ",")}"`
-            }
-
-            // Se já tinha aspas, mantém; senão, verifica se precisa
-            if (column.startsWith("\"") && column.endsWith("\"")) {
-                return column
-            }
-            if (cleanColumn.includes(";") || cleanColumn.includes(",") || cleanColumn.includes("\n")) {
-                return `"${cleanColumn}"`
-            }
-
-            return column
-        })
-
-        return processedColumns.join(";")
-    })
-
-    return processedLines.join("\n")
-}
-
 module.exports = {
     convertDecimalSeparatorInData,
-    convertDecimalSeparatorToComma,
 }

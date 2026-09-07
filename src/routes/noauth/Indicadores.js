@@ -3,8 +3,6 @@ const router = Router()
 
 const IndicadoresController = require("../../controllers/IndicadoresController")
 
-router.get("/discovery", IndicadoresController.getDiscovery)
-
 router.get("/geographical-filters/uf-votes", IndicadoresController.getUFVotes)
 
 router.get(

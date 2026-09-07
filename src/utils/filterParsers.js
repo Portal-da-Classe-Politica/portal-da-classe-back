@@ -135,21 +135,6 @@ const indicatorsPossibilities = {
 
         }],
     },
-    "4": {
-        "id": "4",
-        "nome": "Quociente Partidário",
-        "grupo": "eleitoral",
-        "cargos": [{
-            ...cargosGlossary.vereador,
-            required_steps: ["UF", "city"],
-        }, {
-            ...cargosGlossary.deputado_estadual,
-            required_steps: ["UF"],
-        }, {
-            ...cargosGlossary.deputado_federal,
-            required_steps: ["UF"],
-        }],
-    },
     "5": {
         "id": "5",
         "nome": "Taxa de Renovação Líquida",
@@ -253,20 +238,6 @@ const indicatorsPossibilities = {
     //         // { ...cargosGlossary.presidente, required_steps: ["UF"] },
     //     ],
     // },
-    "13": {
-        "id": "13",
-        "nome": "Taxa de Custo por Voto",
-        "grupo": "financeiro",
-        "cargos": [
-            { ...cargosGlossary.vereador, required_steps: ["UF", "city"] },
-            { ...cargosGlossary.deputado_estadual, required_steps: ["UF"] },
-            { ...cargosGlossary.deputado_federal, required_steps: ["UF"] },
-            { ...cargosGlossary.senador, required_steps: ["UF"] },
-            { ...cargosGlossary.prefeito, required_steps: ["UF", "city"] },
-            { ...cargosGlossary.governador, required_steps: ["UF"] },
-            { ...cargosGlossary.presidente, required_steps: ["UF"] },
-        ],
-    },
     "14": {
         "id": "14",
         "nome": "Índice de Desigualdade de Acesso a Recursos",
@@ -474,12 +445,10 @@ const getFiltersForSearchesByOrigin = async (origin, abrangenciaId) => {
 }
 
 module.exports = {
-    possibilitiesByOrigin,
     indicatorsGroupsGlossary,
     getFiltersForSearchesByOrigin,
     verifyIfIndicatorIsInGroup,
     getIndicatorByID,
     getCargoFilterByID,
     verifyIfCargoIsAllowedForIndicator,
-    indicatorsPossibilities,
 }

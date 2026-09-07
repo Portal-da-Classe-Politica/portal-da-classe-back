@@ -1,4 +1,4 @@
-const { DataTypes, Model } = require("sequelize")
+const { DataTypes } = require("sequelize")
 
 const VotacaoCandidatoMunicipio = sequelize.define(
     "votacao_candidato_municipio",

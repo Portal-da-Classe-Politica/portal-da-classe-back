@@ -29,5 +29,4 @@ function atualizarValor(valorOriginal, anoDoacao) {
 
 module.exports = {
     atualizarValor,
-    fatoresDeCorreção,
 }

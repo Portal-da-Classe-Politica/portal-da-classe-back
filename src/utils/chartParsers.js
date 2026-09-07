@@ -8,40 +8,6 @@ const dimensions = {
     "votes": "Votação",
 }
 
-function parseDataToDonutChart(data, nameKey, valueKey, title) {
-    if (!Array.isArray(data)) {
-        throw new Error("Input data must be an array")
-    }
-
-    const seriesData = data.map((item) => ({
-        name: item[nameKey],
-        value: Number(item[valueKey]) || 0,
-    }))
-
-    // Sort data in descending order
-    seriesData.sort((a, b) => b.value - a.value)
-
-    // Calculate total value
-    const totalValue = seriesData.reduce((sum, item) => sum + item.value, 0)
-
-    // Extra data calculations
-    const largestSegment = seriesData[0]
-    const smallestSegment = seriesData[seriesData.length - 1]
-
-    const largestSegmentValue = ((largestSegment.value / totalValue) * 100)?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    const smallestSegmentValue = ((smallestSegment.value / totalValue) * 100)?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return {
-        type: "donut",
-        title: title || "",
-        series: seriesData,
-        extraData: [
-            `Total: ${totalValue?.toLocaleString("pt-BR")}`,
-            `Maior segmento: ${largestSegment.name} (${largestSegmentValue}%)`,
-            `Menor segmento: ${smallestSegment.name} (${smallestSegmentValue}%)`,
-        ],
-    }
-}
-
 function parseDataToLineChart(
     data,
     seriesName,
@@ -154,81 +120,6 @@ function parseDataToMultipleSeriesLineChart(
     }
 
     return result
-}
-
-function parseDataToBarChart(
-    data,
-    title,
-    seriesName,
-    itemKey = "categoria_ocupacao",
-    totalKey = "total",
-    topX = 100,
-) {
-    // Parse totals to numbers and sort descending
-    data.sort((a, b) => parseInt(b[totalKey]) - parseInt(a[totalKey]))
-
-    // Calculate total votes
-    const totalVotes = data.reduce((sum, item) => sum + parseInt(item[totalKey]), 0)
-
-    // Calculate top 20%
-    const top20PercentIndex = Math.ceil(data.length * 0.2) // Get the index for top 20%
-    const top20PercentTotal = data.slice(0, top20PercentIndex).reduce((sum, item) => sum + parseInt(item[totalKey]), 0)
-
-    // Calculate the percentage of total votes represented by the top 20%
-    const top20PercentPercentage = (top20PercentTotal / totalVotes) * 100
-
-    // Extract top 100 categories and combine the rest into "Outros"
-    const top100 = data.slice(0, topX)
-    console.log({ top100 })
-    // const outrosTotal = data.slice(100).reduce((sum, item) => sum + parseInt(item.total), 0);
-    const finalData = [...top100,
-        // { categoria_ocupacao: "Outras ocupações", total: outrosTotal }
-    ]
-
-    // Calculate percentage increase (first to second)
-    const percentageIncrease = ((data[0][totalKey] - data[1][totalKey]) / data[1][totalKey]) * 100
-
-    // Format the output for the chart
-    const output = {
-        type: "bar",
-        title,
-        seriesName,
-        series: finalData.map((item) => ({ name: item[itemKey], value: item[totalKey] })),
-
-    }
-
-    if (title == "Distribuição do total por categoria de ocupação") {
-        output.extraData = {
-            bigNumbers: [
-                { value: `+${percentageIncrease?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Aumento percentual do primeiro para o segundo" },
-                { value: `${top20PercentPercentage?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Total dos top 20%" }, // Add top 20% big number
-            ],
-        }
-    } else if (title == "Candidatos mais votados") {
-        output.extraData = {
-            bigNumbers: [
-                { value: `+${percentageIncrease?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Aumento percentual do primeiro para o segundo" },
-                { value: `${top20PercentPercentage?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`, label: "Total dos top 20%" }, // Add top 20% big number
-            ],
-        }
-    }
-
-    return output
-}
-
-const parseFinanceDataToBarChart = (data, title, seriesName) => {
-    // Parse totals to numbers and sort descending
-    data.sort((a, b) => parseInt(b.mediana) - parseInt(a.mediana))
-
-    const output = {
-        type: "bar",
-        title,
-        seriesName,
-        series: data.map((item) => ({ name: item.partido, value: item.mediana })),
-
-    }
-
-    return output
 }
 
 function parseDataToBarChart2(
@@ -477,10 +368,7 @@ const generateLineChartForMultipleLines = (data, dimension, crossCriteria = []) 
 
 module.exports = {
     generateLineChartForMultipleLines,
-    parseFinanceDataToBarChart,
-    parseDataToDonutChart,
     parseDataToLineChart,
-    parseDataToBarChart,
     parseDataToBarChart2,
     generateLineChartData,
     generateLineChartDataForMultipleLines,

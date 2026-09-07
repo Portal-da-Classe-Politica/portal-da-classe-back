@@ -250,45 +250,6 @@ const generateGraph = async (req, res) => {
     }
 }
 
-const getRolesByDimension = async (req, res) => {
-    try {
-        const { dimension } = req.params
-        if (!dimension) {
-            return res.status(400).json({
-                success: false,
-                data: {},
-                message: "É necessário informar a dimensão",
-            })
-        }
-
-        const roles = await cargoService.getAllCargos()
-        const nonVotesRoles = [{ id: 14, cargo: "2 suplente" },
-            { id: 15, cargo: "1 suplente" },
-            { id: 3, cargo: "vice governador" },
-            { id: 13, cargo: "vice prefeito" },
-            { id: 10, cargo: "vice presidente" },
-        ]
-
-        const nonVotesRoleIds = nonVotesRoles.map((role) => role.id)
-        const filteredRoles = dimension === "votes"
-            ? roles.filter((cargo) => !nonVotesRoleIds.includes(cargo.id))
-            : roles
-
-        return res.json({
-            success: true,
-            data: filteredRoles,
-            message: "Cargos encontrados com sucesso.",
-        })
-    } catch (error) {
-        logger.error(error)
-        return res.status(500).json({
-            success: false,
-            data: {},
-            message: "Erro ao buscar os cargos",
-        })
-    }
-}
-
 // Função auxiliar para preencher dados faltantes com zero
 const fillMissingCategoriesWithZero = async (dbData, providedCategoricalParams, parsedParams, params) => {
     if (providedCategoricalParams.length === 0) {
@@ -311,59 +272,6 @@ const fillMissingCategoriesWithZero = async (dbData, providedCategoricalParams, 
 }
 
 // Função auxiliar para obter todos os anos disponíveis
-const getAvailableYears = (dbData, params) => {
-    const yearsFromData = [...new Set(dbData.map((item) => item.ano))]
-    const yearsFromParams = getYearsFromParams(params)
-
-    // Combinar anos dos dados com anos dos parâmetros, removendo duplicatas
-    const allYears = [...new Set([...yearsFromData, ...yearsFromParams])]
-
-    return allYears.sort((a, b) => a - b)
-}
-
-// Função auxiliar para extrair anos dos parâmetros
-const getYearsFromParams = (params) => {
-    const years = []
-
-    const initialYear = parseInt(params.initial_year)
-    const finalYear = parseInt(params.final_year)
-
-    if (initialYear && finalYear && initialYear <= finalYear) {
-        years.push(...generateElectionYears(initialYear, finalYear))
-    } else if (initialYear) {
-        years.push(initialYear)
-    } else if (finalYear) {
-        years.push(finalYear)
-    }
-
-    return years
-}
-
-// Função auxiliar para gerar anos eleitorais
-const generateElectionYears = (initialYear, finalYear) => {
-    const years = []
-    const yearSpan = finalYear - initialYear
-
-    // Para intervalos pequenos, incluir todos os anos pares
-    if (yearSpan <= 8) {
-        for (let year = initialYear; year <= finalYear; year++) {
-            if (year % 2 === 0) {
-                years.push(year)
-            }
-        }
-    } else {
-        // Para intervalos maiores, incluir apenas anos eleitorais principais
-        for (let year = initialYear; year <= finalYear; year++) {
-            if (year % 4 === 0 || year % 4 === 2) {
-                years.push(year)
-            }
-        }
-    }
-
-    return years
-}
-
-// Função auxiliar para obter anos das eleições dos parâmetros já processados
 const getElectionYearsFromParsedParams = (parsedParams, dbData = []) => {
     try {
         // Usar os anos das eleições que já vêm do parseFiltersToAnalytics
@@ -620,7 +528,6 @@ const createZeroRecords = (year, combination, parsedParams) => {
 }
 
 module.exports = {
-    getRolesByDimension,
     getFiltersForAnalyticsByRole,
     getCargoAndAnalises,
     generateGraph,
