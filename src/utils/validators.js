@@ -1,21 +1,13 @@
-const availableYearsByOrigin = {
-    "candidates": { initialYear: 1998, finalYear: 2024 },
-    "donations": { initialYear: 2002, finalYear: 2024 },
-    "elections": { initialYear: 1998, finalYear: 2024 },
+const INITIAL_ELECTION_YEAR = 1998
 
-}
-
-const filterElectionYearByOrigin = (origin, year) => {
-    const yearsPossibilitiesForOrigin = availableYearsByOrigin[origin]
-    if (year > yearsPossibilitiesForOrigin.finalYear){
-        return false
-    }
-    if (year < yearsPossibilitiesForOrigin.initialYear){
-        return false
-    }
-    return true
-}
+/**
+ * Valida se o ano de eleição pode ser exibido nos filtros.
+ * O ano inicial é sempre 1998 e o final é sempre a última eleição
+ * disponível na base, por isso não há limite superior fixo.
+ */
+const filterElectionYear = (year) => Number(year) >= INITIAL_ELECTION_YEAR
 
 module.exports = {
-    filterElectionYearByOrigin,
+    INITIAL_ELECTION_YEAR,
+    filterElectionYear,
 }

@@ -23,7 +23,7 @@ const validateParams = (params) => {
 
     // Validate initial_year and final_year
     const minimal_year = 1998
-    const maximum_year = 2024
+    const maximum_year = 2026
     if (!params.initial_year || !params.final_year) {
         errors.push("Os parâmetros 'initial_year' e 'final_year' são obrigatórios.") }
 

@@ -4,7 +4,7 @@ const categoriaSvc = require("../services/CategoriaSvc")
 const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
-const { filterElectionYearByOrigin } = require("./validators")
+const { filterElectionYear } = require("./validators")
 // Glossary of cargos with their properties
 const cargosGlossary = {
     "deputado_estadual": {
@@ -382,7 +382,7 @@ const getFiltersForSearchesByOrigin = async (origin, abrangenciaId) => {
         ],
     )
     const years = anos
-        .filter((i) => filterElectionYearByOrigin(origin, i.ano_eleicao))
+        .filter((i) => filterElectionYear(i.ano_eleicao))
         .map((i) => i.ano_eleicao)
 
     const data = {
