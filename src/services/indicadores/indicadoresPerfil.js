@@ -110,8 +110,9 @@ const getCargosEleitos = async (candidateId) => {
 }
 
 const getDispersaoVotos = async (candidateId) => {
-    // First, get the candidate's last election with abrangencia = 1 (eleições gerais)
-    const lastElection = await CandidatoEleicaoModel.findOne({
+    // Candidaturas válidas do candidato em eleições gerais (abrangência 1),
+    // da mais recente para a mais antiga.
+    const candidaturasGerais = await CandidatoEleicaoModel.findAll({
         where: {
             candidato_id: candidateId,
             situacao_candidatura_id: { [Op.in]: [1, 16] }, // valid candidacies
@@ -123,11 +124,12 @@ const getDispersaoVotos = async (candidateId) => {
                 abrangencium_id: 1, // apenas eleições gerais
             },
         }],
+        attributes: ["id", "eleicao_id"],
         order: [[Sequelize.col("eleicao.ano_eleicao"), "DESC"]],
         raw: true,
     })
 
-    if (!lastElection) {
+    if (!candidaturasGerais.length) {
         return createKPI({
             name: "Não participou de eleições gerais",
             description: "Como o candidato não participou de eleições gerais, não é possível calcular a concentração de votos.",
@@ -135,6 +137,50 @@ const getDispersaoVotos = async (candidateId) => {
             metadata: {
                 totalVotos: 0,
             // votosPorcentagem: votosPorcentagem.sort((a, b) => b.percentual - a.percentual),
+            },
+            unity: "%",
+        })
+    }
+
+    // Total de votos por eleição. O INNER JOIN com a votação deixa de fora as eleições
+    // que ainda não foram apuradas (ex.: 2026, com candidaturas já importadas mas sem
+    // nenhum registro em votacao_candidato_municipios).
+    const totaisPorEleicao = await CandidatoEleicaoModel.findAll({
+        attributes: [
+            "eleicao_id",
+            [Sequelize.fn("SUM", Sequelize.col("votacao_candidato_municipios.quantidade_votos")), "total_votes"],
+        ],
+        include: [{
+            model: votacaoCandidatoMunicipioModel,
+            attributes: [],
+            required: true,
+        }],
+        where: {
+            candidato_id: candidateId,
+            eleicao_id: { [Op.in]: candidaturasGerais.map((candidatura) => candidatura["eleicao.id"]) },
+        },
+        group: [Sequelize.col("candidato_eleicao.eleicao_id")],
+        raw: true,
+    })
+
+    const eleicoesApuradas = new Set(
+        totaisPorEleicao
+            .filter((linha) => Number(linha.total_votes) > 0)
+            .map((linha) => linha.eleicao_id),
+    )
+
+    // A eleição analisada é a mais recente COM votação apurada: uma candidatura em
+    // eleição ainda em curso não deve zerar o indicador nem esconder o último
+    // resultado real do candidato.
+    const lastElection = candidaturasGerais.find((candidatura) => eleicoesApuradas.has(candidatura["eleicao.id"]))
+
+    if (!lastElection) {
+        return createKPI({
+            name: `Concentração de votos - ${candidaturasGerais[0]["eleicao.ano_eleicao"]}`,
+            description: "Ainda não há resultado de votação apurado para essa candidatura.",
+            value: null,
+            metadata: {
+                totalVotos: 0,
             },
             unity: "%",
         })
