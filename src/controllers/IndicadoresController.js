@@ -4,6 +4,7 @@ const {
     getCargoFilterByID,
     verifyIfCargoIsAllowedForIndicator,
     indicatorsGroupsGlossary,
+    getMaxYearForIndicator,
 } = require("../utils/filterParsers")
 const { expandCargoIds } = require("../services/CargoService")
 const { splitPSDByYear } = require("../services/AnalisesSvc")
@@ -87,6 +88,15 @@ const getIndicador = async (req, res) => {
                 success: false,
                 message: `Cargo ${cargoId} não é permitido para o indicador ${indicator.nome}`,
             })
+        }
+
+        // 2026 ainda não tem votação/turno apurado nem financiamento apurado.
+        // Trava o ano final para indicadores que dependem desses dados, em
+        // qualquer cargo, independente do que o front envie ou do estado do dump.
+        const maxYear = getMaxYearForIndicator(indicator_id)
+        if (maxYear !== null) {
+            finalYear = Math.min(parseInt(finalYear), maxYear)
+            initialYear = Math.min(parseInt(initialYear), finalYear)
         }
         // console.log({ cargoId, cargoFilter })
 

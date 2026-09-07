@@ -5,6 +5,7 @@ const partidoSvc = require("../services/PartidoSvc")
 const unidadeEleitoralSvc = require("../services/UnidateEleitoralService")
 const EleicaoSvc = require("../services/EleicaoSvc")
 const { filterElectionYear } = require("./validators")
+const config = require("../config/config")
 // Glossary of cargos with their properties
 const cargosGlossary = {
     "deputado_estadual": {
@@ -444,6 +445,28 @@ const getFiltersForSearchesByOrigin = async (origin, abrangenciaId) => {
     return data
 }
 
+// Indicadores cuja série depende de resultado de votação/turno apurado
+// (situacao_turno_id, votacao_candidato_municipios) ou de financiamento apurado
+// (doacoes_candidato_eleicoes) — dados que a eleição de 2026 ainda não tem.
+// O maxYear aqui trava o ano final aceito pelo getIndicador independente do
+// que o front envie e independente de o dump já trazer situacao_turno
+// preenchido ou não (ver getIndicador em IndicadoresController.js).
+// Remover a entrada (ou desligar via config.limitIndicatorYearsToApuracao)
+// quando 2026 tiver apuração completa.
+const indicatorsMaxYearWithoutApuracao = {
+    "2": 2022, // Índice de Volatilidade Eleitoral (Pedersen)
+    "3": 2022, // Quociente Eleitoral
+    "10": 2022, // Índice de Concentração Regional do Voto
+    "11": 2022, // Índice de Desigualdade Regional do Voto
+    "12": 2022, // Desproporcionalidade (Gallagher index)
+    "14": 2022, // Índice de Desigualdade de Acesso a Recursos
+}
+
+const getMaxYearForIndicator = (indicatorId) => {
+    if (!config.limitIndicatorYearsToApuracao) return null
+    return indicatorsMaxYearWithoutApuracao[String(indicatorId)] ?? null
+}
+
 module.exports = {
     indicatorsGroupsGlossary,
     getFiltersForSearchesByOrigin,
@@ -451,4 +474,5 @@ module.exports = {
     getIndicatorByID,
     getCargoFilterByID,
     verifyIfCargoIsAllowedForIndicator,
+    getMaxYearForIndicator,
 }
