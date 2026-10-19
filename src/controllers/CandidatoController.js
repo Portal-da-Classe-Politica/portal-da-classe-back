@@ -62,9 +62,9 @@ const getLastElectionVotesByRegion = async (req, res) => {
         if (!id) throw new Error("ID do candidato é obrigatório")
         const candidate = await candidatoSvc.getCandidate(id)
         if (!candidate) throw new Error("Candidato não encontrado")
-        if (!candidate.ano_eleicao) throw new Error("Candidato não possui ano de eleição")
-        const lastElectionFirstTurn = await EleicaoSvc.getLastElectionFirstTurn(candidate.ano_eleicao, 1)
-        const votes = await candidatoEleicaoSvc.getLastElectionVotesByRegion(id, lastElectionFirstTurn.id)
+        const lastElectionId = await candidatoSvc.getLastElectionId(id)
+        if (!lastElectionId) throw new Error("Candidato não possui eleição disputada")
+        const votes = await candidatoEleicaoSvc.getLastElectionVotesByRegion(id, lastElectionId)
         if (!votes) throw new Error("Votos não encontrados")
         return res.json({
             success: true,

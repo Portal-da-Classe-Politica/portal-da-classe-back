@@ -48,7 +48,7 @@ const fuzzySearchCandidatesByName = async (searchTerm, skip = 0, limit = 10) => 
             FROM (
                 SELECT 
                     c.id AS candidato_id,
-                    c.ultima_eleicao_id AS eleicao_id,
+                    le.eleicao_id AS eleicao_id,
                     nu.nome_candidato,
                     nu.nome_urna,
                     e.ano_eleicao,
@@ -64,9 +64,17 @@ const fuzzySearchCandidatesByName = async (searchTerm, skip = 0, limit = 10) => 
                     ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY ce.id DESC) as rn
                 FROM candidatos c
                 INNER JOIN nome_urnas nu ON nu.candidato_id = c.id
-                LEFT JOIN eleicaos e ON e.id = c.ultima_eleicao_id
+                LEFT JOIN LATERAL (
+                    SELECT ce0.eleicao_id
+                    FROM candidato_eleicaos ce0
+                    JOIN eleicaos e0 ON e0.id = ce0.eleicao_id
+                    WHERE ce0.candidato_id = c.id
+                    ORDER BY e0.ano_eleicao DESC, e0.turno ASC
+                    LIMIT 1
+                ) le ON TRUE
+                LEFT JOIN eleicaos e ON e.id = le.eleicao_id
                 LEFT JOIN candidato_eleicaos ce ON ce.candidato_id = c.id 
-                    AND ce.eleicao_id = c.ultima_eleicao_id
+                    AND ce.eleicao_id = le.eleicao_id
                 LEFT JOIN partidos p ON p.id = ce.partido_id
                 LEFT JOIN situacao_candidaturas sc ON sc.id = ce.situacao_candidatura_id
                 LEFT JOIN cargos car ON car.id = ce.cargo_id

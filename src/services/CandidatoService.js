@@ -3,6 +3,24 @@ const eleicaoModel = require("../models/Eleicao")
 
 const { QueryTypes } = require("sequelize")
 
+// Última eleição disputada, calculada a partir das candidaturas — candidatos.ultima_eleicao_id
+// pode ficar defasado quando uma nova eleição é carregada. Na mesma ano, prefere o 1º turno.
+const LAST_ELECTION_ID_SQL = (candidatoRef) => `
+    SELECT ce0.eleicao_id
+    FROM candidato_eleicaos ce0
+    JOIN eleicaos e0 ON e0.id = ce0.eleicao_id
+    WHERE ce0.candidato_id = ${candidatoRef}
+    ORDER BY e0.ano_eleicao DESC, e0.turno ASC
+    LIMIT 1`
+
+const getLastElectionId = async (candidatoId) => {
+    const [row] = await sequelize.query(LAST_ELECTION_ID_SQL(":candidatoId"), {
+        replacements: { candidatoId },
+        type: QueryTypes.SELECT,
+    })
+    return row ? row.eleicao_id : null
+}
+
 const getCandidateDetailById = async (candidatoId) => {
     try {
         const query = `
@@ -34,8 +52,9 @@ const getCandidateDetailById = async (candidatoId) => {
       FROM candidatos c
       LEFT JOIN generos g ON c.genero_id = g.id
       LEFT JOIN ocupacaos o ON c.ultima_ocupacao_id = o.id
-      LEFT JOIN eleicaos e ON c.ultima_eleicao_id = e.id
-      LEFT JOIN candidato_eleicaos ce ON c.id = ce.candidato_id AND c.ultima_eleicao_id = ce.eleicao_id
+      LEFT JOIN LATERAL (${LAST_ELECTION_ID_SQL("c.id")}) le ON TRUE
+      LEFT JOIN eleicaos e ON le.eleicao_id = e.id
+      LEFT JOIN candidato_eleicaos ce ON c.id = ce.candidato_id AND le.eleicao_id = ce.eleicao_id
       LEFT JOIN racas r ON ce.raca_id = r.id
       LEFT JOIN partidos p ON ce.partido_id = p.id
       LEFT JOIN grau_de_instrucaos gi ON ce.grau_de_instrucao_id = gi.id
@@ -119,4 +138,5 @@ const getCandidate = async (candidatoId) => {
 module.exports = {
     getCandidate,
     getCandidateDetailById,
+    getLastElectionId,
 }
