@@ -58,7 +58,7 @@ const getCargosEleitos = async (candidateId) => {
             "eleicao.ano_eleicao",
             "cargo.nome_cargo",
             "situacao_turno.foi_eleito",
-
+            ["situacao_turno.nome", "situacao_turno"],
         ],
         include: [
             {
@@ -81,6 +81,12 @@ const getCargosEleitos = async (candidateId) => {
         raw: true,
     })
 
+    // "2º TURNO" está cadastrada com foi_eleito = true, mas significa apenas que o
+    // candidato avançou ao segundo turno — não que foi eleito.
+    results.forEach((r) => {
+        if (r.situacao_turno === "2º TURNO") r.foi_eleito = null
+    })
+
     // Ordernar por ano de eleicao
     results.sort((a, b) => a.ano_eleicao - b.ano_eleicao)
 
@@ -100,7 +106,9 @@ const getCargosEleitos = async (candidateId) => {
                         ? "Eleito"
                         : r.foi_eleito === false
                             ? "Não eleito"
-                            : "Aguardando resultado"
+                            : r.situacao_turno === "2º TURNO"
+                                ? "Foi para o 2º turno"
+                                : "Aguardando resultado"
                     return `${r.nome_cargo} (${r.ano_eleicao}) - ${situacao}`
                 }),
             ].join(", "),
