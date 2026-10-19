@@ -8,12 +8,38 @@ on:
       - main
 
 jobs:
-  deploy:
+  check:
     runs-on: ubuntu-latest
 
     steps:
       - name: 🔄 Checkout do Código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 📦 Instalar dependências
+        run: npm ci
+
+      - name: 🧪 Verificar sintaxe
+        run: find src -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      # Não bloqueia enquanto houver erros de estilo antigos no código.
+      # Depois de rodar `npx eslint src --fix`, remova o continue-on-error.
+      - name: 🔍 Lint
+        run: npx eslint src
+        continue-on-error: true
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout do Código
+        uses: actions/checkout@v4
 
       - name: 🔑 Configurar SSH
         run: |
@@ -22,13 +48,9 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
+      # O script vai do runner para o servidor, então sempre roda a versão
+      # sendo publicada (e funciona mesmo antes de existir no servidor).
       - name: 🚀 Fazer deploy no servidor
         run: |
-          ssh root@${{ secrets.SSH_HOST }} << 'EOF'
-            cd portal-da-classe-back
-            source ~/.bashrc
-            git checkout .
-            git pull origin main
-            npm install --production
-            pm2 restart "portal back"
-          EOF
+          scp scripts/deploy.sh root@${{ secrets.SSH_HOST }}:/tmp/portal-back-deploy.sh
+          ssh root@${{ secrets.SSH_HOST }} 'bash -l /tmp/portal-back-deploy.sh'
